@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <string>
 
 #include <GLFW/glfw3.h>
 #include "ImGui/imgui.h"
@@ -10,6 +11,10 @@
 #include "ImGui/imgui_impl_opengl3.h"
 #include "ImGui/imgui_memory_editor.h"
 #include <stdio.h>
+
+#include "cpu.h"
+
+extern const instruction instructions[256];
 
 GLFWwindow* window;
 const char* glsl_version;
@@ -30,8 +35,10 @@ uint16_t HL{};
 
 uint16_t sp{}; // Stack pointer
 uint16_t pc = 0x100; // Program counter
+uint8_t opcode{};
 
 uint8_t memory[0x10000]{};
+uint8_t rom[0x8000]{}; // Enough space to load a 32 kB ROM
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -108,6 +115,7 @@ void render_ImGui()
     {
         ImGui::Begin("CPU", 0, ImGuiWindowFlags_NoResize);
         ImGui::SetWindowSize(ImVec2(200, 280));
+
         ImGui::Text("Registers (hex/decimal):");
         ImGui::Text("AF: 0x%x / %d", AF, AF);
         ImGui::Text("BC: 0x%x / %d", BC, BC);
@@ -131,10 +139,27 @@ void render_ImGui()
         ImGui::End();
     }
 
+    // Current opcode / Disassembly
+    {
+        ImGui::Begin("Opcode", 0, ImGuiWindowFlags_NoResize);
+        ImGui::SetWindowSize(ImVec2(200, 80));
+
+        ImGui::Text("Current opcode: 0x%02x", opcode);
+        ImGui::Text("Disassembly: %s", instructions[opcode].disassembly);
+
+        ImGui::End();
+    }
+
     // Memory explorer
     {
         static MemoryEditor mem_edit;
         mem_edit.DrawWindow("Memory Editor", memory, sizeof(memory));
+    }
+
+    // ROM explorer
+    {
+        static MemoryEditor rom_explorer;
+        rom_explorer.DrawWindow("ROM Explorer", rom, sizeof(rom));
     }
 
     {
@@ -160,6 +185,22 @@ void render_ImGui()
     glfwSwapBuffers(window);
 }
 
+int load_rom(std::string path)
+{
+    FILE* romFile = fopen(path.c_str(), "rb");
+    if (!rom)
+    {
+        std::cout << "ERROR OPENING ROM FILE" << std::endl;
+        return -1;
+    }
+
+    fseek(romFile, 0, SEEK_END); // Get file size
+    size_t size = ftell(romFile);
+
+    rewind(romFile);
+    fread(&rom, sizeof(char), size, romFile);
+}
+
 // Main code
 int main(int, char**)
 {
@@ -178,9 +219,15 @@ int main(int, char**)
 
     update_texture();
 
+    load_rom("roms/Tetris (World) (Rev A).gb"); // Load ROM into rom variable
+    // Load ROM into memory (32kB at most to not overflow into the rest of the address space)
+    memcpy(memory, rom, 0x8000);
+
     // Main loop
-    while (!glfwWindowShouldClose(window))
+    for (;;)
     {
+        opcode = memory[pc];
+
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -189,6 +236,9 @@ int main(int, char**)
         glfwPollEvents();
 
         render_ImGui();
+
+        if (glfwWindowShouldClose(window))
+            break;
     }
 
     // Cleanup
