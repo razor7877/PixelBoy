@@ -12,10 +12,11 @@
 #include "ImGui/imgui_memory_editor.h"
 #include <stdio.h>
 
+#include "main.h"
+#include "memory.h"
 #include "cpu.h"
 
-extern const instruction instructions[256];
-
+// OpenGL context
 GLFWwindow* window;
 const char* glsl_version;
 
@@ -25,19 +26,6 @@ GLuint display_texture{};
 
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-// Registers
-// They are grouped two by two. AF corresponds to registers A (upper 8 bits) and F (lower 8 bits)
-// F is the flag register
-uint16_t AF{};
-uint16_t BC{};
-uint16_t DE{};
-uint16_t HL{};
-
-uint16_t sp{}; // Stack pointer
-uint16_t pc = 0x100; // Program counter
-uint8_t opcode{};
-
-uint8_t memory[0x10000]{};
 uint8_t rom[0x8000]{}; // Enough space to load a 32 kB ROM
 
 static void glfw_error_callback(int error, const char* description)
@@ -142,10 +130,11 @@ void render_ImGui()
     // Current opcode / Disassembly
     {
         ImGui::Begin("Opcode", 0, ImGuiWindowFlags_NoResize);
-        ImGui::SetWindowSize(ImVec2(200, 80));
+        ImGui::SetWindowSize(ImVec2(200, 120));
 
         ImGui::Text("Current opcode: 0x%02x", opcode);
         ImGui::Text("Disassembly: %s", instructions[opcode].disassembly);
+        ImGui::Text("Operand length: %d", instructions[opcode].operand_length);
 
         ImGui::End();
     }
@@ -226,7 +215,7 @@ int main(int, char**)
     // Main loop
     for (;;)
     {
-        opcode = memory[pc];
+        //handle_instruction();
 
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
