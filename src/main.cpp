@@ -238,7 +238,7 @@ int main(int, char**)
 
     update_texture();
 
-    load_rom("roms/Tetris (World) (Rev A).gb"); // Load ROM into rom variable
+    load_rom("roms/06-ld r,r.gb"); // Load ROM into rom variable
     // Load ROM into memory (32kB at most to not overflow into the rest of the address space)
     memcpy(memory, rom, 0x8000);
 

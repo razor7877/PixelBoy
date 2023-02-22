@@ -29,6 +29,10 @@ extern uint16_t BC;
 extern uint16_t DE;
 extern uint16_t HL;
 
+extern bool IME; // Interrupt Master Enable
+extern uint8_t IE; // Interrupt enable register
+extern uint8_t IF; // Interrupt flags register
+
 extern uint16_t sp; // Stack pointer
 extern uint16_t pc; // Program counter
 extern uint8_t opcode;
@@ -54,7 +58,9 @@ bool get_flags(uint8_t flags);
 void and_r(uint8_t value);
 void xor_r(uint8_t value);
 void or_r(uint8_t value);
+
 void cp_r(uint8_t value);
+uint8_t inc_r(uint8_t value);
 
 /*
 Functions are named as follow:
@@ -91,7 +97,7 @@ void inc_d(); // 0x14
 void dec_d(); // 0x15
 void ld_d_n(uint8_t operand); // 0x16
 void rla(); // 0x17
-void jr_n(uint8_t operand); // 0x18
+void jr_n(int8_t operand); // 0x18
 void add_hl_de(); // 0x19
 void ld_a_dep(); // 0x1A
 void dec_de(); // 0x1B
@@ -100,7 +106,7 @@ void dec_e(); // 0x1D
 void ld_e_n(uint8_t operand); // 0x1E
 void rra(); // 0x1F
 
-void jr_nz_n(uint8_t operand); // 0x20
+void jr_nz_n(int8_t operand); // 0x20
 void ld_hl_nn(uint16_t operand); // 0x21
 void ldi_hlp_a(); // 0x22
 void inc_hl(); // 0x23
@@ -108,7 +114,7 @@ void inc_h(); // 0x24
 void dec_h(); // 0x25
 void ld_h_n(uint8_t operand); // 0x26
 void daa(); // 0x27
-void jr_z_n(uint8_t operand); // 0x28
+void jr_z_n(int8_t operand); // 0x28
 void add_hl_hl(); // 0x29
 void ldi_a_hlp(); // 0x2A
 void dec_hl(); // 0x2B
@@ -117,7 +123,7 @@ void dec_l(); // 0x2D
 void ld_l_n(uint8_t operand); // 0x2E
 void cpl(); // 0x2F
 
-void jr_nc_n(uint8_t operand); // 0x30
+void jr_nc_n(int8_t operand); // 0x30
 void ld_sp_nn(uint16_t operand); // 0x31
 void ldd_hlp_a(); // 0x32
 void inc_sp(); // 0x33
@@ -125,7 +131,7 @@ void inc_hlp(); // 0x34
 void dec_hlp(); // 0x35
 void ld_hlp_n(uint8_t operand); // 0x36
 void scf(); // 0x37
-void jr_c_n(uint8_t operand); // 0x38
+void jr_c_n(int8_t operand); // 0x38
 void add_hl_sp(); // 0x39
 void ldd_a_hlp(); // 0x3A
 void dec_sp(); // 0x3B
@@ -312,7 +318,7 @@ void ld_ff_c_a();
 void push_hl();
 void and_n(uint8_t operand);
 void rst_20();
-void add_sp_n(uint8_t operand);
+void add_sp_n(int8_t operand);
 void jp_hlp();
 void ld_nn_a(uint16_t operand);
 // Placeholder - No opcode
@@ -329,7 +335,7 @@ void di();
 void push_af();
 void or_n(uint8_t operand);
 void rst_30();
-void ld_hl_sp_n(uint8_t operand);
+void ld_hl_sp_n(int8_t operand);
 void ld_sp_hl();
 void ld_a_nnp(uint16_t operand);
 void ei();

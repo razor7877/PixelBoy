@@ -9,14 +9,18 @@
 
 
 // Make sure to zero initialize all variables
-uint16_t AF = 0x0100;
-uint16_t BC = 0xFF13;
-uint16_t DE = 0x00C1;
-uint16_t HL = 0x8403;
+uint16_t AF = 0x0180;
+uint16_t BC = 0x0013;
+uint16_t DE = 0x00D8;
+uint16_t HL = 0x014D;
 
 uint16_t sp = 0xFFFE; // Stack pointer
 uint16_t pc = 0x100; // Program counter
 uint8_t opcode{};
+
+bool IME{};
+uint8_t IE{};
+uint8_t IF{};
 
 uint16_t operand{};
 
@@ -29,21 +33,22 @@ void handle_instruction()
 	{
 		case 0:
 			operand = 0x00;
+			pc += instructions[opcode].operand_length;
 			((void (*)(void))instructions[opcode].function)();
 			break;
 
 		case 1:
 			operand = read_byte(pc);
+			pc += instructions[opcode].operand_length;
 			((void (*)(uint8_t))instructions[opcode].function)(operand);
 			break;
 
 		case 2:
 			operand = read_word(pc);
+			pc += instructions[opcode].operand_length;
 			((void (*)(uint16_t))instructions[opcode].function)(operand);
 			break;
 	}
-
-	pc += instructions[opcode].operand_length;
 }
 
 uint8_t lower_byte(uint16_t value)
@@ -138,73 +143,108 @@ void cp_r(uint8_t value)
 	set_flags(FLAG_NEGATIVE);
 }
 
+uint8_t inc_r(uint8_t value)
+{
+	if (((value & 0x0F) + 1) > 0x0F)
+		set_flags(FLAG_HALFCARRY);
+	else
+		clear_flags(FLAG_HALFCARRY);
+
+	value++;
+
+	if (value == 0)
+		set_flags(FLAG_ZERO);
+	else
+		clear_flags(FLAG_ZERO);
+
+	clear_flags(FLAG_NEGATIVE);
+
+	return value;
+}
+
 void undefined(){}
 void nop(){} // 0x00
 void ld_bc_nn(uint16_t operand) { BC = operand; } // 0x01
-void ld_bcp_a(){} // 0x02
-void inc_bc(){} // 0x03
-void inc_b(){} // 0x04
+void ld_bcp_a() { write_byte(BC, upper_byte(AF)); } // 0x02
+void inc_bc() { BC++; } // 0x03
+void inc_b() { set_reg_hi(BC, inc_r(upper_byte(BC))); } // 0x04
 void dec_b(){} // 0x05
-void ld_b_n(uint8_t operand){} // 0x06
+void ld_b_n(uint8_t operand){ set_reg_hi(BC, operand); } // 0x06
 void rlca(){} // 0x07
-void ld_nnp_sp(uint16_t operand){} // 0x08
+void ld_nnp_sp(uint16_t operand) { write_word(operand, sp); } // 0x08
 void add_hl_bc(){} // 0x09
 void ld_a_bcp(){} // 0x0A
 void dec_bc(){} // 0x0B
-void inc_c(){} // 0x0C
+void inc_c(){ set_reg_lo(BC, inc_r(lower_byte(BC))); } // 0x0C
 void dec_c(){} // 0x0D
-void ld_c_n(uint8_t operand){} // 0x0E
+void ld_c_n(uint8_t operand){ set_reg_lo(BC, operand); } // 0x0E
 void rrca(){} // 0x0F
 
 void stop(uint8_t operand){} // 0x10
 void ld_de_nn(uint16_t operand) { DE = operand; } // 0x11
-void ld_dep_a(){} // 0x12
-void inc_de(){} // 0x13
-void inc_d(){} // 0x14
+void ld_dep_a() { write_byte(DE, upper_byte(AF)); } // 0x12
+void inc_de() { DE++; } // 0x13
+void inc_d(){ set_reg_hi(DE, inc_r(upper_byte(DE))); } // 0x14
 void dec_d(){} // 0x15
-void ld_d_n(uint8_t operand){} // 0x16
+void ld_d_n(uint8_t operand){ set_reg_hi(DE, operand); } // 0x16
 void rla(){} // 0x17
-void jr_n(uint8_t operand){} // 0x18
+void jr_n(int8_t operand) { pc += operand; } // 0x18
 void add_hl_de(){} // 0x19
-void ld_a_dep(){} // 0x1A
+void ld_a_dep() { set_reg_hi(AF, read_byte(DE)); } // 0x1A
 void dec_de(){} // 0x1B
-void inc_e(){} // 0x1C
+void inc_e(){ set_reg_lo(DE, inc_r(lower_byte(DE))); } // 0x1C
 void dec_e(){} // 0x1D
-void ld_e_n(uint8_t operand){} // 0x1E
+void ld_e_n(uint8_t operand){ set_reg_lo(DE, operand); } // 0x1E
 void rra(){} // 0x1F
 
-void jr_nz_n(uint8_t operand){} // 0x20
+void jr_nz_n(int8_t operand) // 0x20
+{
+	if (!get_flags(FLAG_ZERO))
+		pc += operand;
+}
 void ld_hl_nn(uint16_t operand) { HL = operand; } // 0x21
-void ldi_hlp_a(){} // 0x22
-void inc_hl(){} // 0x23
-void inc_h(){} // 0x24
+void ldi_hlp_a() { write_byte(HL++, upper_byte(AF)); } // 0x22
+void inc_hl() { HL++; } // 0x23
+void inc_h(){ set_reg_hi(HL, inc_r(upper_byte(HL))); } // 0x24
 void dec_h(){} // 0x25
-void ld_h_n(uint8_t operand){} // 0x26
+void ld_h_n(uint8_t operand){ set_reg_hi(HL, operand); } // 0x26
 void daa(){} // 0x27
-void jr_z_n(uint8_t operand){} // 0x28
+void jr_z_n(int8_t operand) // 0x28
+{
+	if (get_flags(FLAG_ZERO))
+		pc += operand;
+}
 void add_hl_hl(){} // 0x29
-void ldi_a_hlp(){} // 0x2A
+void ldi_a_hlp() { set_reg_hi(AF, read_byte(HL++)); } // 0x2A
 void dec_hl(){} // 0x2B
-void inc_l(){} // 0x2C
+void inc_l(){ set_reg_lo(HL, inc_r(lower_byte(HL))); } // 0x2C
 void dec_l(){} // 0x2D
-void ld_l_n(uint8_t operand){} // 0x2E
+void ld_l_n(uint8_t operand){ set_reg_lo(HL, operand); } // 0x2E
 void cpl(){} // 0x2F
 
-void jr_nc_n(uint8_t operand){} // 0x30
+void jr_nc_n(int8_t operand) // 0x30
+{
+	if (!get_flags(FLAG_CARRY))
+		pc += operand;
+}
 void ld_sp_nn(uint16_t operand) { sp = operand; } // 0x31
-void ldd_hlp_a(){} // 0x32
-void inc_sp(){} // 0x33
-void inc_hlp(){} // 0x34
+void ldd_hlp_a() { write_byte(HL, upper_byte(AF)); HL--; } // 0x32
+void inc_sp() { sp++; } // 0x33
+void inc_hlp() { write_byte(HL, inc_r(read_byte(HL))); } // 0x34
 void dec_hlp(){} // 0x35
-void ld_hlp_n(uint8_t operand){} // 0x36
+void ld_hlp_n(uint8_t operand) { write_byte(HL, operand); } // 0x36
 void scf(){} // 0x37
-void jr_c_n(uint8_t operand){} // 0x38
+void jr_c_n(int8_t operand) // 0x38
+{
+	if (get_flags(FLAG_CARRY))
+		pc += operand;
+}
 void add_hl_sp(){} // 0x39
-void ldd_a_hlp(){} // 0x3A
+void ldd_a_hlp() { set_reg_hi(AF, read_byte(HL)); HL--; } // 0x3A
 void dec_sp(){} // 0x3B
-void inc_a(){} // 0x3C
+void inc_a(){ set_reg_hi(AF, inc_r(upper_byte(AF))); } // 0x3C
 void dec_a(){} // 0x3D
-void ld_a_n(uint8_t operand){} // 0x3E
+void ld_a_n(uint8_t operand){ set_reg_hi(AF, operand); } // 0x3E
 void ccf(){} // 0x3F
 
 void ld_b_b(){}
@@ -343,8 +383,15 @@ void cp_l() { cp_r(lower_byte(HL)); }
 void cp_hlp() { cp_r(read_byte(HL)); }
 void cp_a() { cp_r(upper_byte(AF)); }
 
-void ret_nz(){}
-void pop_bc() { sp += 2; BC = read_word(sp); }
+void ret_nz()
+{
+	if (!get_flags(FLAG_ZERO))
+	{
+		pc = read_word(sp);
+		sp += 2;
+	}
+}
+void pop_bc() { BC = read_word(sp); sp += 2; }
 void jp_nz_nn(uint16_t operand)
 {
 	if (!get_flags(FLAG_ZERO))
@@ -363,8 +410,15 @@ void call_nz_nn(uint16_t operand)
 void push_bc() { write_word(sp, BC); sp -= 2; }
 void add_a_n(uint8_t operand){}
 void rst_00() { write_word(sp, pc); sp -= 2; pc = 0x00; }
-void ret_z(){}
-void ret(){}
+void ret_z()
+{
+	if (get_flags(FLAG_ZERO))
+	{
+		pc = read_word(sp);
+		sp += 2;
+	}
+}
+void ret() { printf("%x\n", read_word(sp)); pc = read_word(sp); sp += 2; }
 void jp_z_nn(uint16_t operand)
 {
 	if (get_flags(FLAG_ZERO))
@@ -389,8 +443,15 @@ void call_nn(uint16_t operand)
 void adc_a_n(uint8_t operand){}
 void rst_08() { write_word(sp, pc); sp -= 2; pc = 0x08; }
 
-void ret_nc(){}
-void pop_de() { sp += 2; DE = read_word(sp); }
+void ret_nc()
+{
+	if (!get_flags(FLAG_CARRY))
+	{
+		pc = read_word(sp);
+		sp += 2;
+	}
+}
+void pop_de() { DE = read_word(sp); sp += 2; }
 void jp_nc_nn(uint16_t operand)
 {
 	if (!get_flags(FLAG_CARRY))
@@ -409,8 +470,20 @@ void call_nc_nn(uint16_t operand)
 void push_de() { write_word(sp, DE); sp -= 2; }
 void sub_n(uint8_t operand){}
 void rst_10() { write_word(sp, pc); sp -= 2; pc = 0x10; }
-void ret_c(){}
-void reti(){}
+void ret_c()
+{
+	if (get_flags(FLAG_CARRY))
+	{
+		pc = read_word(sp);
+		sp += 2;
+	}
+}
+void reti()
+{
+	pc = read_word(sp);
+	sp += 2;
+	IME = 1;
+}
 void jp_c_nn(uint16_t operand)
 {
 	if (get_flags(FLAG_CARRY))
@@ -431,14 +504,14 @@ void sbc_a_n(uint8_t operand){}
 void rst_18() { write_word(sp, pc); sp -= 2; pc = 0x18; }
 
 void ld_ff_n_ap(uint8_t operand){}
-void pop_hl() { sp += 2; HL = read_word(sp); }
+void pop_hl() { HL = read_word(sp); sp += 2; }
 void ld_ff_c_a(){}
 // Placeholder - No opcode
 // Placeholder - No opcode
 void push_hl() { write_word(sp, HL); sp -= 2; }
 void and_n(uint8_t operand){}
 void rst_20() { write_word(sp, pc); sp -= 2; pc = 0x20; }
-void add_sp_n(uint8_t operand){}
+void add_sp_n(int8_t operand){}
 void jp_hlp() { pc = read_byte(HL); }
 void ld_nn_a(uint16_t operand){}
 // Placeholder - No opcode
@@ -448,14 +521,14 @@ void xor_n(uint8_t operand){}
 void rst_28() { write_word(sp, pc); sp -= 2; pc = 0x28; }
 
 void ld_ff_ap_n(uint8_t operand){}
-void pop_af() { sp += 2; AF = read_word(sp); }
+void pop_af() { AF = read_word(sp); sp += 2; }
 void ld_ff_a_c(){}
-void di(){}
+void di() { IME = 0; }
 // Placeholder - No opcode
 void push_af() { write_word(sp, AF); sp -= 2; }
 void or_n(uint8_t operand){}
 void rst_30(){ write_word(sp, pc); sp -= 2; pc = 0x30; }
-void ld_hl_sp_n(uint8_t operand)
+void ld_hl_sp_n(int8_t operand)
 {
 	// Result bigger than input types to check for overflow/carry
 	uint32_t result = sp + operand;
@@ -476,7 +549,7 @@ void ld_hl_sp_n(uint8_t operand)
 }
 void ld_sp_hl() { sp = HL; }
 void ld_a_nnp(uint16_t operand) { set_reg_hi(AF, read_byte(operand)); }
-void ei(){}
+void ei() { IME = 1; }
 // Placeholder - No opcode
 // Placeholder - No opcode
 void cp_n(uint8_t operand) { cp_r(operand); }
