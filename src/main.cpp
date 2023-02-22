@@ -71,6 +71,8 @@ int setup_ImGui()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    io = ImGui::GetIO();
+
     return 0;
 }
 
@@ -107,7 +109,7 @@ void render_ImGui()
         ImGui::Text("Registers (hex/decimal):");
         ImGui::Text("AF: 0x%x / %d", AF, AF);
         ImGui::Text("BC: 0x%x / %d", BC, BC);
-        ImGui::Text("DE: 0x%x / %d", HL, DE);
+        ImGui::Text("DE: 0x%x / %d", DE, DE);
         ImGui::Text("HL: 0x%x / %d", HL, HL);
 
         ImGui::NewLine();
@@ -135,6 +137,7 @@ void render_ImGui()
         ImGui::Text("Current opcode: 0x%02x", opcode);
         ImGui::Text("Disassembly: %s", instructions[opcode].disassembly);
         ImGui::Text("Operand length: %d", instructions[opcode].operand_length);
+        ImGui::Text("Operand: 0x%02x", operand);
 
         ImGui::End();
     }
@@ -190,6 +193,31 @@ int load_rom(std::string path)
     fread(&rom, sizeof(char), size, romFile);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
+    ImGuiIO& io = ImGui::GetIO();
+
+    if (io.WantCaptureKeyboard)
+        return;
+
+    if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS)
+        handle_instruction();
+
+    if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS)
+    {
+        for (int i = 0; i < 10; i++)
+            handle_instruction();
+    }
+
+    if (key == GLFW_KEY_KP_3 && action == GLFW_PRESS)
+    {
+        for (int i = 0; i < 100; i++)
+            handle_instruction();
+    }
+}
+
 // Main code
 int main(int, char**)
 {
@@ -197,6 +225,8 @@ int main(int, char**)
         return -1;
 
     setup_ImGui();
+
+    glfwSetKeyCallback(window, key_callback);
 
     for (int x = 0; x < (160 * 144 * 4); x += 4)
     {

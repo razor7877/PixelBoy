@@ -1,6 +1,26 @@
 #ifndef CPU_H
 #define CPU_H
 
+// Corresponds to a CPU instruction/opcode
+// represented by a string mnemonic, the size of the operand (if any) and a pointer to the corresponding function
+struct instruction
+{
+    const char* disassembly;
+    uint8_t operand_length;
+    void* function;
+};
+
+// The flags of the F register
+enum flags
+{
+    FLAG_ZERO = 0b10000000,
+    FLAG_NEGATIVE = 0b01000000,
+    FLAG_HALFCARRY = 0b00100000,
+    FLAG_CARRY = 0b00010000,
+};
+
+extern const instruction instructions[256];
+
 // Registers
 // They are grouped two by two. AF corresponds to registers A (upper 8 bits) and F (lower 8 bits)
 // F is the flag register
@@ -13,18 +33,28 @@ extern uint16_t sp; // Stack pointer
 extern uint16_t pc; // Program counter
 extern uint8_t opcode;
 
-// Corresponds to a CPU instruction/opcode
-// represented by a string mnemonic, the size of the operand (if any) and a pointer to the corresponding function
-struct instruction
-{
-    const char* disassembly;
-    uint8_t operand_length;
-    void* function;
-};
-
-extern const instruction instructions[256];
+extern uint16_t operand;
 
 void handle_instruction();
+
+// Returns the lower or upper byte of a given register
+uint8_t lower_byte(uint16_t value);
+uint8_t upper_byte(uint16_t value);
+
+// Sets the value of the upper 8 bits of the register passed as argument
+void set_reg_hi(uint16_t& reg, uint8_t value);
+// Sets the value of the lower 8 bits of the register passed as argument
+void set_reg_lo(uint16_t& reg, uint8_t value);
+
+void set_flags(uint8_t flags);
+void clear_flags(uint8_t flags);
+bool get_flags(uint8_t flags);
+
+// Bitwise operations between A (accumulator) and passed values
+void and_r(uint8_t value);
+void xor_r(uint8_t value);
+void or_r(uint8_t value);
+void cp_r(uint8_t value);
 
 /*
 Functions are named as follow:
