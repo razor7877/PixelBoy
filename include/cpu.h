@@ -1,6 +1,8 @@
 #ifndef CPU_H
 #define CPU_H
 
+#include <cstdint>
+
 // Corresponds to a CPU instruction/opcode
 // represented by a string mnemonic, the size of the operand (if any) and a pointer to the corresponding function
 struct instruction
@@ -29,6 +31,7 @@ extern uint16_t BC;
 extern uint16_t DE;
 extern uint16_t HL;
 
+extern bool cpu_stopped;
 extern bool IME; // Interrupt Master Enable
 extern uint8_t IE; // Interrupt enable register
 extern uint8_t IF; // Interrupt flags register
@@ -61,6 +64,11 @@ void or_r(uint8_t value);
 
 void cp_r(uint8_t value);
 uint8_t inc_r(uint8_t value);
+uint8_t dec_r(uint8_t value);
+void add_r(uint8_t value);
+void adc_r(uint8_t value);
+void sub_r(uint8_t value);
+void sbc_r(uint8_t value);
 
 /*
 Functions are named as follow:
@@ -287,7 +295,7 @@ void rst_00();
 void ret_z();
 void ret();
 void jp_z_nn(uint16_t operand);
-void cb();
+void cb(uint8_t cb_opcode);
 void call_z_nn(uint16_t operand);
 void call_nn(uint16_t operand);
 void adc_a_n(uint8_t operand);
@@ -310,7 +318,7 @@ void call_c_nn(uint16_t operand);
 void sbc_a_n(uint8_t operand);
 void rst_18();
 
-void ld_ff_n_ap(uint8_t operand);
+void ldh_n_a(uint8_t operand);
 void pop_hl();
 void ld_ff_c_a();
 // Placeholder - No opcode
@@ -320,14 +328,14 @@ void and_n(uint8_t operand);
 void rst_20();
 void add_sp_n(int8_t operand);
 void jp_hlp();
-void ld_nn_a(uint16_t operand);
+void ld_nnp_a(uint16_t operand);
 // Placeholder - No opcode
 // Placeholder - No opcode
 // Placeholder - No opcode
 void xor_n(uint8_t operand);
 void rst_28();
 
-void ld_ff_ap_n(uint8_t operand);
+void ldh_a_n(uint8_t operand);
 void pop_af();
 void ld_ff_a_c();
 void di();

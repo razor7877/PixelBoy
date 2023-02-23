@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\cpu.cpp" />
+    <ClCompile Include="src\cpu_cb.cpp" />
     <ClCompile Include="src\glad\glad.c" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
@@ -33,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\cpu.h" />
+    <ClInclude Include="include\cpu_cb.h" />
     <ClInclude Include="include\main.h" />
     <ClInclude Include="include\memory.h" />
   </ItemGroup>
@@ -135,6 +137,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)include\KHR;$(ProjectDir)include\ImGui;$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

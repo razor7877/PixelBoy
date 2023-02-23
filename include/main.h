@@ -1,8 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-extern uint8_t rom[0x8000];
-
 static void glfw_error_callback(int error, const char* description);
 int setup_glfw();
 int setup_ImGui();

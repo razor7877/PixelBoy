@@ -4,6 +4,9 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <format>
+#include <algorithm>
 
 #include <GLFW/glfw3.h>
 #include "ImGui/imgui.h"
@@ -107,24 +110,24 @@ void render_ImGui()
         ImGui::SetWindowSize(ImVec2(200, 280));
 
         ImGui::Text("Registers (hex/decimal):");
-        ImGui::Text("AF: 0x%x / %d", AF, AF);
-        ImGui::Text("BC: 0x%x / %d", BC, BC);
-        ImGui::Text("DE: 0x%x / %d", DE, DE);
-        ImGui::Text("HL: 0x%x / %d", HL, HL);
+        ImGui::Text("AF: 0x%04x / %d", AF, AF);
+        ImGui::Text("BC: 0x%04x / %d", BC, BC);
+        ImGui::Text("DE: 0x%04x / %d", DE, DE);
+        ImGui::Text("HL: 0x%04x / %d", HL, HL);
 
         ImGui::NewLine();
 
-        ImGui::Text("pc: 0x%x / %d", pc, pc);
-        ImGui::Text("sp: 0x%x / %d", sp, sp);
+        ImGui::Text("pc: 0x%04x / %d", pc, pc);
+        ImGui::Text("sp: 0x%04x / %d", sp, sp);
 
         ImGui::NewLine();
 
         ImGui::Text("Flags (F register):");
 
-        ImGui::Text("Zero: %d", (AF & 0b10000000) >> 7); // Get 7th bit
-        ImGui::Text("Substraction (BCD): %d", (AF & 0b01000000) >> 6); // Get 6th bit
-        ImGui::Text("Half Carry (BCD): %d", (AF & 0b00100000) >> 5); // Get 5th bit
-        ImGui::Text("Carry: %d", (AF & 0b00010000) >> 4); // Get 4th bit
+        ImGui::Text("Zero: %d", get_flags(FLAG_ZERO)); // Get 7th bit
+        ImGui::Text("Substraction (BCD): %d", get_flags(FLAG_NEGATIVE)); // Get 6th bit
+        ImGui::Text("Half Carry (BCD): %d", get_flags(FLAG_HALFCARRY)); // Get 5th bit
+        ImGui::Text("Carry: %d", get_flags(FLAG_CARRY)); // Get 4th bit
 
         ImGui::End();
     }
@@ -242,10 +245,34 @@ int main(int, char**)
     // Load ROM into memory (32kB at most to not overflow into the rest of the address space)
     memcpy(memory, rom, 0x8000);
 
+    std::ofstream logfile;
+    logfile.open("gameboy-doctor-master/log.txt");
+
     // Main loop
     for (;;)
     {
-        //handle_instruction();
+        for (int i = 0; i < 1000; i++)
+        {
+            std::string logline = std::format("A:{:02x} F:{:02x} B:{:02x} C:{:02x} D:{:02x} E:{:02x} H:{:02x} L:{:02x} SP:{:04x} PC:{:04x} PCMEM:{:02x},{:02x},{:02x},{:02x}\n",
+                upper_byte(AF),
+                lower_byte(AF),
+                upper_byte(BC),
+                lower_byte(BC),
+                upper_byte(DE),
+                lower_byte(DE),
+                upper_byte(HL),
+                lower_byte(HL),
+                sp,
+                pc,
+                memory[pc],
+                memory[pc + 1],
+                memory[pc + 2],
+                memory[pc + 3]);
+            std::transform(logline.begin(), logline.end(), logline.begin(), ::toupper);
+            logfile << logline;
+
+            handle_instruction();
+        }
 
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -259,6 +286,8 @@ int main(int, char**)
         if (glfwWindowShouldClose(window))
             break;
     }
+
+    logfile.close();
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
