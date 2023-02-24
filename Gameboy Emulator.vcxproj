@@ -29,12 +29,16 @@
     <ClCompile Include="src\ImGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\ImGui\imgui_tables.cpp" />
     <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="src\input.cpp" />
+    <ClCompile Include="src\interface.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\cpu.h" />
     <ClInclude Include="include\cpu_cb.h" />
+    <ClInclude Include="include\input.h" />
+    <ClInclude Include="include\interface.h" />
     <ClInclude Include="include\main.h" />
     <ClInclude Include="include\memory.h" />
   </ItemGroup>
