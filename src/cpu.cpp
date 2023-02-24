@@ -290,15 +290,25 @@ void rlca() // 0x07
 
 	set_reg_hi(AF, (upper_byte(AF) << 1) | ((upper_byte(AF) & 0x80)) >> 7);
 
-	if (upper_byte(AF) == 0)
-		set_flags(FLAG_ZERO);
-	else
-		clear_flags(FLAG_ZERO);
-
-	clear_flags(FLAG_NEGATIVE | FLAG_HALFCARRY);
+	clear_flags(FLAG_ZERO | FLAG_NEGATIVE | FLAG_HALFCARRY);
 }
 void ld_nnp_sp(uint16_t operand) { write_word(operand, sp); } // 0x08
-void add_hl_bc(){} // 0x09
+void add_hl_bc() // 0x09
+{
+	if ((HL & 0x0FFF) + (BC & 0x0FFF) > 0x0FFF)
+		set_flags(FLAG_HALFCARRY);
+	else
+		clear_flags(FLAG_HALFCARRY);
+
+	if (HL + BC > 0xFFFF)
+		set_flags(FLAG_CARRY);
+	else
+		clear_flags(FLAG_CARRY);
+
+	HL += BC;
+
+	clear_flags(FLAG_NEGATIVE);
+}
 void ld_a_bcp() { set_reg_hi(AF, read_byte(BC)); } // 0x0A
 void dec_bc() { BC--; } // 0x0B
 void inc_c() { set_reg_lo(BC, inc_r(lower_byte(BC))); } // 0x0C
@@ -310,12 +320,7 @@ void rrca() // 0x0F
 
 	set_reg_hi(AF, (upper_byte(AF) >> 1) | ((upper_byte(AF) & 0x01)) << 7);
 
-	if (upper_byte(AF) == 0)
-		set_flags(FLAG_ZERO);
-	else
-		clear_flags(FLAG_ZERO);
-
-	clear_flags(FLAG_NEGATIVE | FLAG_HALFCARRY);
+	clear_flags(FLAG_ZERO | FLAG_NEGATIVE | FLAG_HALFCARRY);
 }
 
 void stop(uint8_t operand) { cpu_stopped = true; } // 0x10
@@ -333,15 +338,25 @@ void rla() // 0x17
 
 	bit_data ? set_flags(FLAG_CARRY) : clear_flags(FLAG_CARRY);
 
-	if (upper_byte(AF) == 0)
-		set_flags(FLAG_ZERO);
-	else
-		clear_flags(FLAG_ZERO);
-
-	clear_flags(FLAG_NEGATIVE | FLAG_HALFCARRY);
+	clear_flags(FLAG_ZERO | FLAG_NEGATIVE | FLAG_HALFCARRY);
 }
 void jr_n(int8_t operand) { pc += operand; } // 0x18
-void add_hl_de(){} // 0x19
+void add_hl_de() // 0x19
+{
+	if ((HL & 0x0FFF) + (DE & 0x0FFF) > 0x0FFF)
+		set_flags(FLAG_HALFCARRY);
+	else
+		clear_flags(FLAG_HALFCARRY);
+
+	if (HL + DE > 0xFFFF)
+		set_flags(FLAG_CARRY);
+	else
+		clear_flags(FLAG_CARRY);
+
+	HL += DE;
+
+	clear_flags(FLAG_NEGATIVE);
+}
 void ld_a_dep() { set_reg_hi(AF, read_byte(DE)); } // 0x1A
 void dec_de() { DE--; } // 0x1B
 void inc_e(){ set_reg_lo(DE, inc_r(lower_byte(DE))); } // 0x1C
@@ -355,12 +370,7 @@ void rra() // 0x1F
 
 	bit_data ? set_flags(FLAG_CARRY) : clear_flags(FLAG_CARRY);
 
-	if (upper_byte(AF) == 0)
-		set_flags(FLAG_ZERO);
-	else
-		clear_flags(FLAG_ZERO);
-
-	clear_flags(FLAG_NEGATIVE | FLAG_HALFCARRY);
+	clear_flags(FLAG_ZERO | FLAG_NEGATIVE | FLAG_HALFCARRY);
 }
 
 void jr_nz_n(int8_t operand) // 0x20
@@ -383,7 +393,7 @@ void daa() // 0x27
 	}
 	else // After addition, adjust if carry/half-carry or result out of bounds
 	{
-		if (get_flags(FLAG_CARRY) || upper_byte(AF) > 0x99) { set_reg_hi(AF, upper_byte(AF) + 0x60); }
+		if (get_flags(FLAG_CARRY) || upper_byte(AF) > 0x99) { set_reg_hi(AF, upper_byte(AF) + 0x60); set_flags(FLAG_CARRY); }
 		if (get_flags(FLAG_HALFCARRY) || (upper_byte(AF) & 0x0f) > 0x09) { set_reg_hi(AF, upper_byte(AF) + 0x06); }
 	}
 
@@ -399,13 +409,28 @@ void jr_z_n(int8_t operand) // 0x28
 	if (get_flags(FLAG_ZERO))
 		pc += operand;
 }
-void add_hl_hl(){} // 0x29
+void add_hl_hl() // 0x29
+{
+	if ((HL & 0x0FFF) + (HL & 0x0FFF) > 0x0FFF)
+		set_flags(FLAG_HALFCARRY);
+	else
+		clear_flags(FLAG_HALFCARRY);
+
+	if (HL + HL > 0xFFFF)
+		set_flags(FLAG_CARRY);
+	else
+		clear_flags(FLAG_CARRY);
+
+	HL += HL;
+
+	clear_flags(FLAG_NEGATIVE);
+}
 void ldi_a_hlp() { set_reg_hi(AF, read_byte(HL++)); } // 0x2A
 void dec_hl() { HL--; } // 0x2B
 void inc_l(){ set_reg_lo(HL, inc_r(lower_byte(HL))); } // 0x2C
 void dec_l() { set_reg_lo(HL, dec_r(lower_byte(HL))); } // 0x2D
 void ld_l_n(uint8_t operand){ set_reg_lo(HL, operand); } // 0x2E
-void cpl() { set_reg_hi(AF, ~upper_byte(AF)); } // 0x2F
+void cpl() { set_reg_hi(AF, ~upper_byte(AF)); set_flags(FLAG_NEGATIVE | FLAG_HALFCARRY); } // 0x2F
 
 void jr_nc_n(int8_t operand) // 0x30
 {
@@ -424,7 +449,22 @@ void jr_c_n(int8_t operand) // 0x38
 	if (get_flags(FLAG_CARRY))
 		pc += operand;
 }
-void add_hl_sp(){} // 0x39
+void add_hl_sp() // 0x39
+{
+	if ((HL & 0x0FFF) + (sp & 0x0FFF) > 0x0FFF)
+		set_flags(FLAG_HALFCARRY);
+	else
+		clear_flags(FLAG_HALFCARRY);
+
+	if (HL + sp > 0xFFFF)
+		set_flags(FLAG_CARRY);
+	else
+		clear_flags(FLAG_CARRY);
+
+	HL += sp;
+
+	clear_flags(FLAG_NEGATIVE);
+}
 void ldd_a_hlp() { set_reg_hi(AF, read_byte(HL)); HL--; } // 0x3A
 void dec_sp() { sp--; } // 0x3B
 void inc_a(){ set_reg_hi(AF, inc_r(upper_byte(AF))); } // 0x3C
@@ -593,7 +633,7 @@ void call_nz_nn(uint16_t operand)
 	if (!get_flags(FLAG_ZERO))
 	{
 		sp -= 2;
-		write_word(sp, pc + 1);
+		write_word(sp, pc);
 		pc = operand;
 	}
 }
@@ -620,7 +660,7 @@ void call_z_nn(uint16_t operand)
 	if (get_flags(FLAG_ZERO))
 	{
 		sp -= 2;
-		write_word(sp, pc + 1);
+		write_word(sp, pc);
 		pc = operand;
 	}
 }
@@ -653,7 +693,7 @@ void call_nc_nn(uint16_t operand)
 	if (!get_flags(FLAG_CARRY))
 	{
 		sp -= 2;
-		write_word(sp, pc + 1);
+		write_word(sp, pc);
 		pc = operand;
 	}
 }
@@ -701,8 +741,23 @@ void ld_ff_c_a() { write_byte(0xFF00 + lower_byte(BC), upper_byte(AF)); }
 void push_hl() { sp -= 2; write_word(sp, HL);}
 void and_n(uint8_t operand) { and_r(operand); }
 void rst_20() { sp -= 2; write_word(sp, pc); pc = 0x20; }
-void add_sp_n(int8_t operand){}
-void jp_hlp() { pc = read_byte(HL); }
+void add_sp_n(int8_t operand)
+{
+	if ((sp & 0x0F) + (operand & 0x0F) > 0x0F)
+		set_flags(FLAG_HALFCARRY);
+	else
+		clear_flags(FLAG_HALFCARRY);
+
+	if ((sp & 0xFF) + operand > 0xFF)
+		set_flags(FLAG_CARRY);
+	else
+		clear_flags(FLAG_CARRY);
+
+	sp += operand;
+
+	clear_flags(FLAG_ZERO | FLAG_NEGATIVE);
+}
+void jp_hlp() { pc = HL; }
 void ld_nnp_a(uint16_t operand) { write_byte(operand, upper_byte(AF)); }
 // Placeholder - No opcode
 // Placeholder - No opcode
@@ -711,7 +766,7 @@ void xor_n(uint8_t operand) { xor_r(operand); }
 void rst_28() { sp -= 2; write_word(sp, pc); pc = 0x28; }
 
 void ldh_a_n(uint8_t operand) { set_reg_hi(AF, read_byte(0xFF00 + operand)); }
-void pop_af() { AF = read_word(sp); sp += 2; }
+void pop_af() { AF = read_word(sp) & 0xFFF0; sp += 2; } // Lower 4 bits cannot be written to
 void ld_ff_a_c() { set_reg_hi(AF, read_byte(0xFF00 + lower_byte(BC))); }
 void di() { IME = 0; }
 // Placeholder - No opcode

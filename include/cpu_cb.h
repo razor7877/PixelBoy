@@ -17,7 +17,7 @@ uint8_t sla(uint8_t value);
 uint8_t sra(uint8_t value);
 uint8_t swap(uint8_t value);
 uint8_t srl(uint8_t value);
-uint8_t bit(uint8_t bit, uint8_t value);
+void bit(uint8_t bit, uint8_t value);
 
 void rlc_b();
 void rlc_c();

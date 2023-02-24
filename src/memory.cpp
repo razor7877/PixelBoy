@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "memory.h"
 
 uint8_t memory[0x10000]{};
@@ -18,6 +20,9 @@ uint16_t read_word(uint16_t address)
 void write_byte(uint16_t address, uint8_t value)
 {
 	memory[address] = value;
+
+	if (address == 0xFF01)
+		printf("%02x\n", value);
 }
 
 void write_word(uint16_t address, uint16_t value)

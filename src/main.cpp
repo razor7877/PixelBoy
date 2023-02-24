@@ -241,7 +241,7 @@ int main(int, char**)
 
     update_texture();
 
-    load_rom("roms/06-ld r,r.gb"); // Load ROM into rom variable
+    load_rom("roms/08-misc instrs.gb"); // Load ROM into rom variable
     // Load ROM into memory (32kB at most to not overflow into the rest of the address space)
     memcpy(memory, rom, 0x8000);
 
@@ -251,9 +251,9 @@ int main(int, char**)
     // Main loop
     for (;;)
     {
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 10000; i++)
         {
-            std::string logline = std::format("A:{:02x} F:{:02x} B:{:02x} C:{:02x} D:{:02x} E:{:02x} H:{:02x} L:{:02x} SP:{:04x} PC:{:04x} PCMEM:{:02x},{:02x},{:02x},{:02x}\n",
+            /*std::string logline = std::format("A:{:02x} F:{:02x} B:{:02x} C:{:02x} D:{:02x} E:{:02x} H:{:02x} L:{:02x} SP:{:04x} PC:{:04x} PCMEM:{:02x},{:02x},{:02x},{:02x}\n",
                 upper_byte(AF),
                 lower_byte(AF),
                 upper_byte(BC),
@@ -269,7 +269,7 @@ int main(int, char**)
                 memory[pc + 2],
                 memory[pc + 3]);
             std::transform(logline.begin(), logline.end(), logline.begin(), ::toupper);
-            logfile << logline;
+            logfile << logline;*/
 
             handle_instruction();
         }
