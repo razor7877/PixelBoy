@@ -107,7 +107,9 @@ void render_ImGui()
     // CPU
     {
         ImGui::Begin("CPU", 0, ImGuiWindowFlags_NoResize);
-        ImGui::SetWindowSize(ImVec2(200, 280));
+        ImGui::SetWindowSize(ImVec2(200, 320));
+
+        ImGui::Text("Cycle count: %d", cycle_count);
 
         ImGui::Text("Registers (hex/decimal):");
         ImGui::Text("AF: 0x%04x / %d", AF, AF);
@@ -205,19 +207,27 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (io.WantCaptureKeyboard)
         return;
 
+    // Execute next CPU instruction
     if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS)
         handle_instruction();
 
+    // Execute next 10 CPU instructions
     if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS)
     {
         for (int i = 0; i < 10; i++)
             handle_instruction();
     }
 
+    // Execute next 100 CPU instruction
     if (key == GLFW_KEY_KP_3 && action == GLFW_PRESS)
     {
         for (int i = 0; i < 100; i++)
             handle_instruction();
+    }
+
+    if (key == GLFW_KEY_KP_4 && action == GLFW_PRESS)
+    {
+        execute_cycle();
     }
 }
 
@@ -241,38 +251,14 @@ int main(int, char**)
 
     update_texture();
 
-    load_rom("roms/08-misc instrs.gb"); // Load ROM into rom variable
+    load_rom("roms/02-interrupts.gb"); // Load ROM into rom variable
     // Load ROM into memory (32kB at most to not overflow into the rest of the address space)
     memcpy(memory, rom, 0x8000);
-
-    std::ofstream logfile;
-    logfile.open("gameboy-doctor-master/log.txt");
 
     // Main loop
     for (;;)
     {
-        for (int i = 0; i < 10000; i++)
-        {
-            /*std::string logline = std::format("A:{:02x} F:{:02x} B:{:02x} C:{:02x} D:{:02x} E:{:02x} H:{:02x} L:{:02x} SP:{:04x} PC:{:04x} PCMEM:{:02x},{:02x},{:02x},{:02x}\n",
-                upper_byte(AF),
-                lower_byte(AF),
-                upper_byte(BC),
-                lower_byte(BC),
-                upper_byte(DE),
-                lower_byte(DE),
-                upper_byte(HL),
-                lower_byte(HL),
-                sp,
-                pc,
-                memory[pc],
-                memory[pc + 1],
-                memory[pc + 2],
-                memory[pc + 3]);
-            std::transform(logline.begin(), logline.end(), logline.begin(), ::toupper);
-            logfile << logline;*/
-
-            handle_instruction();
-        }
+        //execute_cycle();
 
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -286,8 +272,6 @@ int main(int, char**)
         if (glfwWindowShouldClose(window))
             break;
     }
-
-    logfile.close();
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

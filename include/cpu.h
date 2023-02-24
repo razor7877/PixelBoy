@@ -10,6 +10,7 @@ struct instruction
     const char* disassembly;
     uint8_t operand_length;
     void* function;
+    uint8_t duration; // Expressed in t-cycles
 };
 
 // The flags of the F register
@@ -23,6 +24,8 @@ enum flags
 
 extern const instruction instructions[256];
 
+extern uint32_t cycle_count;
+
 // Registers
 // They are grouped two by two. AF corresponds to registers A (upper 8 bits) and F (lower 8 bits)
 // F is the flag register
@@ -31,18 +34,18 @@ extern uint16_t BC;
 extern uint16_t DE;
 extern uint16_t HL;
 
-extern bool cpu_stopped;
-extern bool IME; // Interrupt Master Enable
-extern uint8_t IE; // Interrupt enable register
-extern uint8_t IF; // Interrupt flags register
-
 extern uint16_t sp; // Stack pointer
 extern uint16_t pc; // Program counter
 extern uint8_t opcode;
 
 extern uint16_t operand;
 
+// The CPU handles instructions until a full clock cycle is executed
+void execute_cycle();
+// The CPU handles the next instruction and progresses the internal clock
 void handle_instruction();
+// Increments the internal clock
+void tick(uint8_t cycles);
 
 // Returns the lower or upper byte of a given register
 uint8_t lower_byte(uint16_t value);
