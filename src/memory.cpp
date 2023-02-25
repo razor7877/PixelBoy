@@ -19,6 +19,9 @@ uint8_t read_byte(uint16_t address)
 	if (address == 0xFF44)
 		return 0x90;
 
+	else if (address >= 0xFE00 && address <= 0xFE9F)
+		return read_oam(address - 0xFE00);
+
 	if ((address >= 0xFF00 && address <= 0xFF7F) || (address == 0xFFFF))
 		return read_io(address);
 
@@ -39,6 +42,9 @@ void write_byte(uint16_t address, uint8_t value)
 
 	else if (address >= 0x8000 && address <= 0x9FFF)
 		write_vram(address - 0x8000, value);
+
+	else if (address >= 0xFE00 && address <= 0xFE9F)
+		write_oam(address - 0xFE00, value);
 
 	else if ((address >= 0xFF00 && address <= 0xFF7F) || (address == 0xFFFF))
 		write_io(address, value);

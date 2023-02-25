@@ -3,6 +3,10 @@
 
 #include <cstdint>
 
+#define PPU_FREQ 2097152
+
+extern uint32_t ppu_cycle_count;
+
 extern uint8_t vram[8192];
 extern uint8_t OAM[160]; // Object access memory
 extern uint8_t LCDC; // 0xFF40 : LCD Control
@@ -18,8 +22,13 @@ extern uint8_t OBP1; // 0xFF49 : OBJ palette 1
 extern uint8_t WY; // 0xFF4A : Window Y position
 extern uint8_t WX; // 0xFF4B : Window X position
 
+void tick_ppu(uint8_t cycles);
+
 uint8_t read_vram(uint16_t address);
 void write_vram(uint16_t address, uint8_t value);
+
+uint8_t read_oam(uint16_t address);
+void write_oam(uint16_t address, uint8_t value);
 
 uint8_t read_ppu(uint16_t address);
 void write_ppu(uint16_t address, uint8_t value);

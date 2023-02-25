@@ -1,4 +1,7 @@
 #include "ppu.h"
+#include "cpu.h"
+
+uint32_t ppu_cycle_count{};
 
 uint8_t vram[8192]{};
 uint8_t OAM[160]{};
@@ -15,14 +18,46 @@ uint8_t OBP1{};
 uint8_t WY{};
 uint8_t WX{};
 
+void tick_ppu(uint8_t cycles)
+{
+	ppu_cycle_count += cycles / 2;
+
+	if (ppu_cycle_count > PPU_FREQ)
+		ppu_cycle_count %= PPU_FREQ;
+}
+
 uint8_t read_vram(uint16_t address)
 {
-	return vram[address];
+	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3
+		return 0xFF;
+	else
+		return vram[address];
 }
 
 void write_vram(uint16_t address, uint8_t value)
 {
-	vram[address] = value;
+	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3, ignore writes
+		return;
+	else
+		vram[address] = value;
+}
+
+uint8_t read_oam(uint16_t address)
+{
+	// OAM inaccessible during mode 2 and 3
+	if (((STAT & 0x03) == 0x03) || ((STAT & 0x03) == 0x02))
+		return 0xFF;
+	else
+		return OAM[address];
+}
+
+void write_oam(uint16_t address, uint8_t value)
+{
+	// OAM inaccessible during mode 2 and 3
+	if (((STAT & 0x03) == 0x03) || ((STAT & 0x03) == 0x02))
+		return;
+	else
+		OAM[address] = value;
 }
 
 uint8_t read_ppu(uint16_t address)
@@ -85,7 +120,10 @@ void write_ppu(uint16_t address, uint8_t value)
 		LYC = value;
 
 	if (address == 0xFF46)
+	{
 		DMA = value;
+		dma_transfer();
+	}
 
 	if (address == 0xFF47)
 		BGP = value;

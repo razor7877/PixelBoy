@@ -8,8 +8,10 @@
 #include "memory.h"
 #include "interrupts.h"
 #include "io.h"
+#include "ppu.h"
 
 uint32_t cycle_count{};
+uint16_t dma_cycles_left{};
 
 uint16_t AF = 0x01B0;
 uint16_t BC = 0x0013;
@@ -69,7 +71,31 @@ void handle_instruction()
 void tick(uint8_t cycles)
 {
 	cycle_count += cycles;
+	tick_ppu(cycles);
 	tick_timer(cycles);
+
+	if (dma_cycles_left > 0)
+	{
+		if (cycles > dma_cycles_left)
+		{
+			dma_cycles_left = 0;
+			uint16_t dma_source = read_byte(0xFF46) << 8;
+			printf("DMA Source: %x\n", dma_source);
+			// Fill OAM memory once DMA cycles done
+			for (int i = 0; i < 160; i++)
+			{
+				printf("Writing from adr %x value %x\n", (dma_source + i), read_byte(dma_source + i));
+				write_byte(0xFE00 + i, read_byte(dma_source + i));
+			}
+		}
+		else { dma_cycles_left -= cycles; }
+		printf("In DMA routine, cycles left: %d\n", dma_cycles_left);
+	}
+}
+
+void dma_transfer()
+{
+	dma_cycles_left = DMA_DURATION;
 }
 
 uint8_t lower_byte(uint16_t value)

@@ -178,10 +178,15 @@ void render_ImGui()
     }
 
     // VRAM explorer
-
     {
         static MemoryEditor vram_explorer;
         vram_explorer.DrawWindow("VRAM Explorer", vram, sizeof(vram));
+    }
+
+    // OAM explorer
+    {
+        static MemoryEditor oam_explorer;
+        oam_explorer.DrawWindow("OAM Explorer", OAM, sizeof(OAM));
     }
 
     // Joypad
@@ -203,8 +208,9 @@ void render_ImGui()
     // PPU
     {
         ImGui::Begin("PPU", 0, ImGuiWindowFlags_NoResize);
-        ImGui::SetWindowSize(ImVec2(200, 250));
+        ImGui::SetWindowSize(ImVec2(200, 260));
 
+        ImGui::Text("Cycle count: %d", ppu_cycle_count);
         ImGui::Text("LCDC: %02x", LCDC);
         ImGui::Text("STAT: %02x", STAT);
         ImGui::Text("SCY: %02x", SCY);

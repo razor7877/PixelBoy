@@ -6,6 +6,9 @@
 #include "interface.h"
 #include "rom.h"
 
+#include "ppu.h"
+#include "memory.h"
+
 // Main code
 int main(int, char**)
 {
@@ -13,6 +16,7 @@ int main(int, char**)
 
     start_interface();
 
+    write_byte(0xFF46, 0x03);
     // Main loop
     for (;;)
     {

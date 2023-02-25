@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #define CPU_FREQ 4194304
+#define DMA_DURATION 640
 
 // Corresponds to a CPU instruction/opcode
 // represented by a string mnemonic, the size of the operand (if any) and a pointer to the corresponding function
@@ -27,6 +28,7 @@ enum flags
 extern const instruction instructions[256];
 
 extern uint32_t cycle_count;
+extern uint16_t dma_cycles_left;
 
 // Registers
 // They are grouped two by two. AF corresponds to registers A (upper 8 bits) and F (lower 8 bits)
@@ -50,6 +52,8 @@ void execute_cycle();
 void handle_instruction();
 // Increments the internal clock
 void tick(uint8_t cycles);
+// Starts a DMA transfer from ROM to OAM
+void dma_transfer();
 
 // Returns the lower or upper byte of a given register
 uint8_t lower_byte(uint16_t value);
