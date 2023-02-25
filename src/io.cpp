@@ -1,8 +1,9 @@
 #include <cstdint>
 
 #include "cpu.h"
-#include "input.h"
+#include "io.h"
 #include "interrupts.h"
+#include "ppu.h"
 
 #define DIV_FREQ 16384
 
@@ -19,6 +20,78 @@ uint8_t TMA = 0x00;
 uint8_t TAC = 0xF8;
 
 uint32_t TIMA_cycle_count{};
+
+uint8_t read_io(uint16_t address)
+{
+	if (address == 0xFF00)
+		return io_register;
+
+	if (address == 0xFF01)
+		return SB;
+
+	if (address == 0xFF02)
+		return SC;
+
+	if (address == 0xFF04) // DIV : Only the 8 upper bits are exposed
+		return DIV & 0xFF00 >> 8;
+
+	if (address == 0xFF05)
+		return TIMA;
+
+	if (address == 0xFF06)
+		return TMA;
+
+	if (address == 0xFF07)
+		return TAC;
+
+	else if (address >= 0xFF10 && address <= 0xFF26) {} // Audio
+	else if (address >= 0xFF30 && address <= 0xFF3F) {} // Wave pattern
+
+	else if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
+		return read_ppu(address);
+
+	if (address == 0xFF0F)
+		return IF;
+
+	if (address == 0xFFFF)
+		return IE;
+}
+
+void write_io(uint16_t address, uint8_t value)
+{
+	if (address == 0xFF00) // Write to joypad register
+		io_register = value & 0xF0;
+
+	else if (address == 0xFF01) // Write to serial tranfer data
+		SB = value;
+
+	else if (address == 0xFF02) // Write to serial transfer control
+		SC = value;
+
+	else if (address == 0xFF04) // Reset divider register
+		DIV = 0x00;
+
+	else if (address == 0xFF05)
+		TIMA = value;
+
+	else if (address == 0xFF06)
+		TMA = value;
+
+	else if (address == 0xFF07)
+		TAC = value;
+
+	else if (address >= 0xFF10 && address <= 0xFF26) {} // Audio
+	else if (address >= 0xFF30 && address <= 0xFF3F) {} // Wave pattern
+
+	else if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
+		write_ppu(address, value);
+
+	else if (address == 0xFF0F) // Interrupts requests
+		IF = value;
+
+	else if (address == 0xFFFF)
+		IE = value;
+}
 
 void set_key(joypad key)
 {

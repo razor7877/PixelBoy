@@ -25,9 +25,13 @@ extern uint8_t TIMA; // 0xFF05 : Timer counter
 extern uint8_t TMA; // 0xFF06 : Timer modulo
 extern uint8_t TAC; // 0xFF07 : Timer control
 
+uint8_t read_io(uint16_t address);
+void write_io(uint16_t address, uint8_t value);
+
 void set_key(joypad key);
 void clear_key(joypad key);
 bool get_key(joypad key);
+
 void tick_timer(uint8_t cycles);
 
 #endif

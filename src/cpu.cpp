@@ -7,7 +7,7 @@
 #include "cpu_cb.h"
 #include "memory.h"
 #include "interrupts.h"
-#include "input.h"
+#include "io.h"
 
 uint32_t cycle_count{};
 
@@ -27,24 +27,20 @@ bool IME{}; // Interrupt Master Enable
 
 void execute_cycle()
 {
-	std::ofstream logfile;
-
 	while (cycle_count < CPU_FREQ)
-	{
-
-		service_interrupts();
 		handle_instruction();
-	}
 
 	cycle_count %= CPU_FREQ;
 }
 
 void handle_instruction()
 {
+	service_interrupts();
+
 	if (cpu_stopped)
 		return;
 
-	opcode = memory[pc++];
+	opcode = read_byte(pc++);
 
 	// Switch over the operand length to correctly call the function and pass arguments
 	switch (instructions[opcode].operand_length)

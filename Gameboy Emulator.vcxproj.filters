@@ -60,10 +60,16 @@
     <ClCompile Include="src\interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\input.cpp">
+    <ClCompile Include="src\io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\interrupts.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ppu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,10 +89,16 @@
     <ClInclude Include="include\interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\input.h">
+    <ClInclude Include="include\io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\interrupts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ppu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

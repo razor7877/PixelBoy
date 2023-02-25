@@ -8,8 +8,10 @@
 #include "interface.h"
 #include "cpu.h"
 #include "memory.h"
-#include "input.h"
+#include "io.h"
 #include "interrupts.h"
+#include "rom.h"
+#include "ppu.h"
 
 // OpenGL context
 GLFWwindow* window;
@@ -175,6 +177,13 @@ void render_ImGui()
         rom_explorer.DrawWindow("ROM Explorer", rom, sizeof(rom));
     }
 
+    // VRAM explorer
+
+    {
+        static MemoryEditor vram_explorer;
+        vram_explorer.DrawWindow("VRAM Explorer", vram, sizeof(vram));
+    }
+
     // Joypad
     {
         ImGui::Begin("Joypad", 0, ImGuiWindowFlags_NoResize);
@@ -187,6 +196,27 @@ void render_ImGui()
         ImGui::Text("Up / Select: %d", get_key(JOYPAD_UP));
         ImGui::Text("Left / B: %d", get_key(JOYPAD_LEFT));
         ImGui::Text("Right / A: %d", get_key(JOYPAD_RIGHT));
+
+        ImGui::End();
+    }
+
+    // PPU
+    {
+        ImGui::Begin("PPU", 0, ImGuiWindowFlags_NoResize);
+        ImGui::SetWindowSize(ImVec2(200, 250));
+
+        ImGui::Text("LCDC: %02x", LCDC);
+        ImGui::Text("STAT: %02x", STAT);
+        ImGui::Text("SCY: %02x", SCY);
+        ImGui::Text("SCX: %02x", SCX);
+        ImGui::Text("LY: %02x", LY);
+        ImGui::Text("LYC: %02x", LYC);
+        ImGui::Text("DMA: %02x", DMA);
+        ImGui::Text("BGP: %02x", BGP);
+        ImGui::Text("OBP0: %02x", OBP0);
+        ImGui::Text("OBP1: %02x", OBP1);
+        ImGui::Text("WY: %02x", WY);
+        ImGui::Text("WX: %02x", WX);
 
         ImGui::End();
     }

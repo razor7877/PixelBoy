@@ -29,20 +29,24 @@
     <ClCompile Include="src\ImGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\ImGui\imgui_tables.cpp" />
     <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="src\input.cpp" />
+    <ClCompile Include="src\io.cpp" />
     <ClCompile Include="src\interface.cpp" />
     <ClCompile Include="src\interrupts.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\memory.cpp" />
+    <ClCompile Include="src\ppu.cpp" />
+    <ClCompile Include="src\rom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\cpu.h" />
     <ClInclude Include="include\cpu_cb.h" />
-    <ClInclude Include="include\input.h" />
+    <ClInclude Include="include\io.h" />
     <ClInclude Include="include\interface.h" />
     <ClInclude Include="include\interrupts.h" />
     <ClInclude Include="include\main.h" />
     <ClInclude Include="include\memory.h" />
+    <ClInclude Include="include\ppu.h" />
+    <ClInclude Include="include\rom.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
