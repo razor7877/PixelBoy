@@ -71,7 +71,7 @@ void handle_instruction()
 void tick(uint8_t cycles)
 {
 	cycle_count += cycles;
-	tick_ppu(cycles);
+	tick_ppu(cycles / 2); // PPU runs at half the clock speed of the CPU
 	tick_timer(cycles);
 
 	if (dma_cycles_left > 0)

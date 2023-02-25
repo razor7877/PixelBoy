@@ -16,9 +16,6 @@ uint8_t read_byte(uint16_t address)
 	if (address >= 0x8000 && address <= 0x9FFF)
 		return read_vram(address - 0x8000);
 
-	if (address == 0xFF44)
-		return 0x90;
-
 	else if (address >= 0xFE00 && address <= 0xFE9F)
 		return read_oam(address - 0xFE00);
 

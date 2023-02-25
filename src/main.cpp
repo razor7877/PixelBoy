@@ -16,11 +16,10 @@ int main(int, char**)
 
     start_interface();
 
-    write_byte(0xFF46, 0x03);
     // Main loop
     for (;;)
     {
-        //execute_cycle();
+        execute_cycle();
         if (update_interface() == 1)
             break;
 

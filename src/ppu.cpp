@@ -1,5 +1,9 @@
+#include <stdio.h>
+#include <cstring>
+
 #include "ppu.h"
 #include "cpu.h"
+#include "interrupts.h"
 
 uint32_t ppu_cycle_count{};
 
@@ -18,12 +22,96 @@ uint8_t OBP1{};
 uint8_t WY{};
 uint8_t WX{};
 
+// Each FIFO can hold 16 pixels (2 bits per pixel)
+uint16_t dot_counter{};
+uint8_t bg_FIFO[4]{};
+uint8_t OAM_FIFO[4]{};
+
 void tick_ppu(uint8_t cycles)
 {
 	ppu_cycle_count += cycles / 2;
 
 	if (ppu_cycle_count > PPU_FREQ)
 		ppu_cycle_count %= PPU_FREQ;
+
+	if (LY == LYC)
+	{
+		STAT |= LYC_COMPARE_FLAG;
+		if (STAT & LYC_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+	}
+	else { STAT &= ~LYC_COMPARE_FLAG; }
+
+	step_ppu(cycles);
+}
+
+void step_ppu(uint8_t cycles)
+{
+	for (uint8_t i = 0; i < cycles; i += 4)
+	{
+		dot_counter += 4;
+
+		if (LCDC & 0x80) // PPU is enabled
+		{
+			if (LY < 144)
+			{
+				if (dot_counter < 80) // OAM Scan
+				{
+					if (ppu_mode() != LCD_MODE_2)
+					{
+						STAT = (STAT & 0xFC) | LCD_MODE_2;
+						if (STAT & OAM_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+					}
+				}
+				else if (dot_counter < 252) // Drawing
+				{
+					if (ppu_mode() != LCD_MODE_3)
+					{
+						STAT = (STAT & 0xFC) | LCD_MODE_3;
+						memset(bg_FIFO, 0, sizeof(bg_FIFO));
+						memset(OAM_FIFO, 0, sizeof(OAM_FIFO));
+					}
+						
+				}
+				else if (dot_counter < 456) // HBLANK
+				{
+					if (ppu_mode() != LCD_MODE_0)
+					{
+						STAT = (STAT & 0xFC) | LCD_MODE_0;
+						if (STAT & HBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+					}
+				}
+				else
+				{
+					dot_counter = 0;
+					LY++;
+				}
+			}
+			else if (LY < 153) // VBLANK
+			{
+				if (ppu_mode() != LCD_MODE_1)
+				{
+					STAT = (STAT & 0xFC) | LCD_MODE_1;
+					if (STAT & VBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+				}
+
+				if (dot_counter >= 456)
+				{
+					dot_counter %= 456;
+					LY++;
+				}
+			}
+			else // Frame finished drawing, reset scanline counter
+			{
+				LY = 0;
+				dot_counter %= 456;
+			}
+		}
+	}
+}
+
+uint8_t ppu_mode()
+{
+	return STAT & 0x03;
 }
 
 uint8_t read_vram(uint16_t address)
@@ -105,7 +193,7 @@ void write_ppu(uint16_t address, uint8_t value)
 		LCDC = value;
 
 	if (address == 0xFF41) // Lower 2 bits are read only
-		STAT = (value & 0xFC) | (STAT & 0x02);
+		STAT = (value & 0xFC) | (STAT & 0x03);
 
 	if (address == 0xFF42)
 		SCY = value;

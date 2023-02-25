@@ -5,6 +5,19 @@
 
 #define PPU_FREQ 2097152
 
+enum lcd_status
+{
+	LYC_INTERRUPT_ENABLED = 0b01000000,
+	OAM_INTERRUPT_ENABLED = 0b00100000,
+	VBLANK_INTERRUPT_ENABLED = 0b00010000,
+	HBLANK_INTERRUPT_ENABLED = 0b00001000,
+	LYC_COMPARE_FLAG = 0b00000100,
+	LCD_MODE_0 = 0b00000000,
+	LCD_MODE_1 = 0b00000001,
+	LCD_MODE_2 = 0b00000010,
+	LCD_MODE_3 = 0b00000011,
+};
+
 extern uint32_t ppu_cycle_count;
 
 extern uint8_t vram[8192];
@@ -23,6 +36,8 @@ extern uint8_t WY; // 0xFF4A : Window Y position
 extern uint8_t WX; // 0xFF4B : Window X position
 
 void tick_ppu(uint8_t cycles);
+void step_ppu(uint8_t cycles);
+uint8_t ppu_mode();
 
 uint8_t read_vram(uint16_t address);
 void write_vram(uint16_t address, uint8_t value);
