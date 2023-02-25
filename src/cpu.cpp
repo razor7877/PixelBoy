@@ -1,12 +1,13 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <fstream>
 
 #include "cpu.h"
 #include "cpu_cb.h"
 #include "memory.h"
-
-#define CPU_FREQ 4194304
+#include "interrupts.h"
+#include "input.h"
 
 uint32_t cycle_count{};
 
@@ -19,17 +20,19 @@ uint16_t sp = 0xFFFE; // Stack pointer
 uint16_t pc = 0x100; // Program counter
 uint8_t opcode{};
 
+uint16_t operand{};
+
 bool cpu_stopped{};
 bool IME{}; // Interrupt Master Enable
-uint8_t IE{}; // Interrupt enable register
-uint8_t IF{}; // Interrupt flags register
-
-uint16_t operand{};
 
 void execute_cycle()
 {
+	std::ofstream logfile;
+
 	while (cycle_count < CPU_FREQ)
 	{
+
+		service_interrupts();
 		handle_instruction();
 	}
 
@@ -70,6 +73,7 @@ void handle_instruction()
 void tick(uint8_t cycles)
 {
 	cycle_count += cycles;
+	tick_timer(cycles);
 }
 
 uint8_t lower_byte(uint16_t value)
@@ -343,7 +347,7 @@ void rrca() // 0x0F
 	clear_flags(FLAG_ZERO | FLAG_NEGATIVE | FLAG_HALFCARRY);
 }
 
-void stop(uint8_t operand) { cpu_stopped = true; } // 0x10
+void stop(uint8_t operand) { cpu_stopped = true; DIV = 0x00; } // 0x10
 void ld_de_nn(uint16_t operand) { DE = operand; } // 0x11
 void ld_dep_a() { write_byte(DE, upper_byte(AF)); } // 0x12
 void inc_de() { DE++; } // 0x13
@@ -872,7 +876,7 @@ extern const instruction instructions[256] = {
 	{ "NOP", 0, nop, 4 }, // 0x00
 	{ "LD BC,d16", 2, ld_bc_nn, 12 }, // 0x1
 	{ "LD (BC),A", 0, ld_bcp_a, 8 }, // 0x2
-	{ "INC BC", 0, inc_bc, 4 }, // 0x3
+	{ "INC BC", 0, inc_bc, 8 }, // 0x3
 	{ "INC B", 0, inc_b, 4 }, // 0x4
 	{ "DEC B", 0, dec_b, 4 }, // 0x5
 	{ "LD B,d8", 1, ld_b_n, 8 }, // 0x6
@@ -881,7 +885,7 @@ extern const instruction instructions[256] = {
 	{ "ADD HL,BC", 0, add_hl_bc, 8 }, // 0x9
 	{ "LD A,(BC)", 0, ld_a_bcp, 8 }, // 0xa
 	{ "DEC BC", 0, dec_bc, 8 }, // 0xb
-	{ "INC C", 0, inc_c, 4}, // 0xc
+	{ "INC C", 0, inc_c, 4 }, // 0xc
 	{ "DEC C", 0, dec_c, 4 }, // 0xd
 	{ "LD C,d8", 1, ld_c_n, 8 }, // 0xe
 	{ "RRCA", 0, rrca, 4 }, // 0xf
@@ -1082,7 +1086,7 @@ extern const instruction instructions[256] = {
 	{ "JP NC,a16", 2, jp_nc_nn, 0 }, // 0xd2
 	{ "UNDEFINED", 0, undefined, 0 }, // 0xd3
 	{ "CALL NC,a16", 2, call_nc_nn, 0 }, // 0xd4
-	{ "PUSH DE", 0, push_de, 166 }, // 0xd5
+	{ "PUSH DE", 0, push_de, 16 }, // 0xd5
 	{ "SUB d8", 1, sub_n, 8 }, // 0xd6
 	{ "RST 10H", 0, rst_10, 16 }, // 0xd7
 	{ "RET C", 0, ret_c, 0 }, // 0xd8

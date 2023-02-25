@@ -9,6 +9,7 @@
 #include "cpu.h"
 #include "memory.h"
 #include "input.h"
+#include "interrupts.h"
 
 // OpenGL context
 GLFWwindow* window;
@@ -174,6 +175,7 @@ void render_ImGui()
         rom_explorer.DrawWindow("ROM Explorer", rom, sizeof(rom));
     }
 
+    // Joypad
     {
         ImGui::Begin("Joypad", 0, ImGuiWindowFlags_NoResize);
         ImGui::SetWindowSize(ImVec2(200, 200));
@@ -185,6 +187,31 @@ void render_ImGui()
         ImGui::Text("Up / Select: %d", get_key(JOYPAD_UP));
         ImGui::Text("Left / B: %d", get_key(JOYPAD_LEFT));
         ImGui::Text("Right / A: %d", get_key(JOYPAD_RIGHT));
+
+        ImGui::End();
+    }
+
+    // Interrupts
+    {
+        ImGui::Begin("Interrupts", 0, ImGuiWindowFlags_NoResize);
+        ImGui::SetWindowSize(ImVec2(100, 100));
+
+        ImGui::Text("IME: %d", IME);
+        ImGui::Text("IE: %x", IE);
+        ImGui::Text("IF: %x", IF);
+
+        ImGui::End();
+    }
+
+    // Timer
+    {
+        ImGui::Begin("Timer", 0, ImGuiWindowFlags_NoResize);
+        ImGui::SetWindowSize(ImVec2(100, 100));
+
+        ImGui::Text("DIV: %02x", (DIV & 0xFF00) >> 8);
+        ImGui::Text("TIMA: %02x", TIMA);
+        ImGui::Text("TMA: %02x", TMA);
+        ImGui::Text("TAC: %02x", TAC);
 
         ImGui::End();
     }

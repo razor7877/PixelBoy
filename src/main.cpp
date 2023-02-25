@@ -4,9 +4,8 @@
 
 #include <iostream>
 #include <string>
-#include <fstream>
-#include <format>
-#include <algorithm>
+#include <chrono>
+#include <thread>
 
 #include "main.h"
 #include "memory.h"
@@ -34,7 +33,7 @@ int load_rom(std::string path)
 // Main code
 int main(int, char**)
 {
-    load_rom("roms/02-interrupts.gb"); // Load ROM into rom variable
+    load_rom("roms/cpu_instrs/individual/02-interrupts.gb"); // Load ROM into rom variable
     // Load ROM into memory (32kB at most to not overflow into the rest of the address space)
     memcpy(memory, rom, 0x8000);
 
@@ -44,7 +43,10 @@ int main(int, char**)
     for (;;)
     {
         //execute_cycle();
-        update_interface();
+        if (update_interface() == 1)
+            break;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
     stop_interface();

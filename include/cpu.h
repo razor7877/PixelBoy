@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#define CPU_FREQ 4194304
+
 // Corresponds to a CPU instruction/opcode
 // represented by a string mnemonic, the size of the operand (if any) and a pointer to the corresponding function
 struct instruction
@@ -39,6 +41,8 @@ extern uint16_t pc; // Program counter
 extern uint8_t opcode;
 
 extern uint16_t operand;
+
+extern bool IME;
 
 // The CPU handles instructions until a full clock cycle is executed
 void execute_cycle();

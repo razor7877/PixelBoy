@@ -16,12 +16,18 @@ enum joypad
 };
 
 extern uint8_t io_register; // 0xFF00 : Joypad input
+
 extern uint8_t SB; // 0xFF01 : Serial transfer data
 extern uint8_t SC; // 0xFF02 : Serial transfer control
 
+extern uint16_t DIV; // 0xFF04 : Divider register
+extern uint8_t TIMA; // 0xFF05 : Timer counter
+extern uint8_t TMA; // 0xFF06 : Timer modulo
+extern uint8_t TAC; // 0xFF07 : Timer control
+
 void set_key(joypad key);
-void clear_keys();
 void clear_key(joypad key);
 bool get_key(joypad key);
+void tick_timer(uint8_t cycles);
 
 #endif
