@@ -11,6 +11,7 @@ int setup_ImGui();
 
 void render_ImGui();
 void update_texture();
+uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel);
 
 int start_interface();
 int update_interface();

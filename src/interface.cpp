@@ -21,6 +21,9 @@ const char* glsl_version;
 uint8_t display[160 * 144 * 4]{};
 GLuint display_texture{};
 
+uint8_t vram_buffer[384 * 8 * 8 * 4]; // VRAM stores up to 384 8x8 tiles
+GLuint vram_texture{};
+
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 static void glfw_error_callback(int error, const char* description)
@@ -103,9 +106,9 @@ int setup_ImGui()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    io = ImGui::GetIO();
+io = ImGui::GetIO();
 
-    return 0;
+return 0;
 }
 
 void render_ImGui()
@@ -181,6 +184,38 @@ void render_ImGui()
     {
         static MemoryEditor vram_explorer;
         vram_explorer.DrawWindow("VRAM Explorer", vram, sizeof(vram));
+    }
+
+    // VRAM viewer
+    {
+        for (uint16_t tile = 0; tile < 384; tile++)
+        {
+            for (uint8_t row = 0; row < 8; row++)
+            {
+                for (uint8_t pixel = 0; pixel < 8; pixel++)
+                {
+                    uint8_t color = get_vram_pixel(tile * 16, (row * 8) + pixel) + 1;
+                    uint32_t pixel_address = (64 * 4 * tile) + ((row * 8 + pixel) * 4);
+
+                    vram_buffer[pixel_address] = 0x3F * color;
+                    vram_buffer[pixel_address + 1] = 0x3F * color;
+                    vram_buffer[pixel_address + 2] = 0x3F * color;
+                    vram_buffer[pixel_address + 3] = 0x3F * color;
+                }
+            }
+        }
+
+        glGenTextures(1, &vram_texture);
+        glBindTexture(GL_TEXTURE_2D, vram_texture);
+
+        // Setup filtering parameters for display
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 192, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, vram_buffer);
+
+        ImGui::Begin("VRAM viewer");
+        ImGui::Image((void*)(intptr_t)vram_texture, ImVec2(192, 128));
+        ImGui::End();
     }
 
     // OAM explorer
@@ -273,6 +308,16 @@ void update_texture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160, 144, 0, GL_RGBA, GL_UNSIGNED_BYTE, display);
+}
+
+uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
+{
+    uint8_t row = vram[tile_start + (pixel / 8) + (pixel % 8)];
+    uint8_t upper_byte_mask = 0x1 << (8 + pixel % 8); // 0b10000000
+    uint8_t lower_byte_mask = 0x1 << (pixel % 8);
+    uint8_t color = (row & upper_byte_mask) | (row & lower_byte_mask << 1);
+
+    return color;
 }
 
 int start_interface()

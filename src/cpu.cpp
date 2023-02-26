@@ -19,7 +19,7 @@ uint16_t DE = 0x00D8;
 uint16_t HL = 0x014D;
 
 uint16_t sp = 0xFFFE; // Stack pointer
-uint16_t pc = 0x100; // Program counter
+uint16_t pc = 0x00;//0x100; // Program counter
 uint8_t opcode{};
 
 uint16_t operand{};

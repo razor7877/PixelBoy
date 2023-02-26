@@ -1,9 +1,11 @@
 #include <cstdint>
+#include <stdio.h>
 
 #include "cpu.h"
 #include "io.h"
 #include "interrupts.h"
 #include "ppu.h"
+#include "rom.h"
 
 #define DIV_FREQ 16384
 
@@ -44,10 +46,10 @@ uint8_t read_io(uint16_t address)
 	if (address == 0xFF07)
 		return TAC;
 
-	else if (address >= 0xFF10 && address <= 0xFF26) {} // Audio
-	else if (address >= 0xFF30 && address <= 0xFF3F) {} // Wave pattern
+	if (address >= 0xFF10 && address <= 0xFF26) {} // Audio
+	if (address >= 0xFF30 && address <= 0xFF3F) {} // Wave pattern
 
-	else if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
+	if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
 		return read_ppu(address);
 
 	if (address == 0xFF0F)
@@ -85,6 +87,9 @@ void write_io(uint16_t address, uint8_t value)
 
 	else if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
 		write_ppu(address, value);
+
+	else if (address == 0xFF50) // Boot ROM writes to this register to unmap itself from 0x00-0xFF
+		boot_done = true;
 
 	else if (address == 0xFF0F) // Interrupts requests
 		IF = value;

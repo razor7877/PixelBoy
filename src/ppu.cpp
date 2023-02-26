@@ -91,7 +91,7 @@ void step_ppu(uint8_t cycles)
 				if (ppu_mode() != LCD_MODE_1)
 				{
 					STAT = (STAT & 0xFC) | LCD_MODE_1;
-					if (STAT & VBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+					if (STAT & VBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_VBLANK); }
 				}
 
 				if (dot_counter >= 456)

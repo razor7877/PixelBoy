@@ -12,6 +12,7 @@
 // Main code
 int main(int, char**)
 {
+    load_boot_rom("roms/dmg_boot.bin");
     load_rom("roms/Tetris (World) (Rev A).gb");
 
     start_interface();
@@ -19,7 +20,7 @@ int main(int, char**)
     // Main loop
     for (;;)
     {
-        execute_cycle();
+        //execute_cycle();
         if (update_interface() == 1)
             break;
 

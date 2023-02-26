@@ -38,6 +38,7 @@ extern uint8_t WX; // 0xFF4B : Window X position
 void tick_ppu(uint8_t cycles);
 void step_ppu(uint8_t cycles);
 uint8_t ppu_mode();
+void draw_screen();
 
 uint8_t read_vram(uint16_t address);
 void write_vram(uint16_t address, uint8_t value);
