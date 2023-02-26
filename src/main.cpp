@@ -13,7 +13,7 @@
 int main(int, char**)
 {
     load_boot_rom("roms/dmg_boot.bin");
-    load_rom("roms/Tetris (World) (Rev A).gb");
+    load_rom("roms/Dr. Mario (World).gb");
 
     start_interface();
 
@@ -24,7 +24,7 @@ int main(int, char**)
         if (update_interface() == 1)
             break;
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
     stop_interface();

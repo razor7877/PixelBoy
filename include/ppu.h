@@ -5,6 +5,18 @@
 
 #define PPU_FREQ 2097152
 
+enum lcd_control
+{
+	LCD_ENABLE = 0b10000000,
+	WINDOW_DATA_AREA = 0b01000000,
+	WINDOW_ENABLE = 0b00100000,
+	TILE_DATA_AREA = 0b00010000,
+	BG_DATA_AREA = 0b00001000,
+	OBJ_SIZE = 0b00000100,
+	OBJ_ENABLE = 0b00000010,
+	BG_ENABLE = 0b00000001,
+};
+
 enum lcd_status
 {
 	LYC_INTERRUPT_ENABLED = 0b01000000,
@@ -35,10 +47,12 @@ extern uint8_t OBP1; // 0xFF49 : OBJ palette 1
 extern uint8_t WY; // 0xFF4A : Window Y position
 extern uint8_t WX; // 0xFF4B : Window X position
 
+extern uint8_t frame_buffer[160 * 144 * 4];
+
 void tick_ppu(uint8_t cycles);
 void step_ppu(uint8_t cycles);
 uint8_t ppu_mode();
-void draw_screen();
+void draw_scanline();
 
 uint8_t read_vram(uint16_t address);
 void write_vram(uint16_t address, uint8_t value);

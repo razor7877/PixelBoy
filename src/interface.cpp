@@ -17,8 +17,6 @@
 GLFWwindow* window;
 const char* glsl_version;
 
-// 160px * 144px * 4 bytes per pixel (RGBA)
-uint8_t display[160 * 144 * 4]{};
 GLuint display_texture{};
 
 uint8_t vram_buffer[384 * 8 * 8 * 4]; // VRAM stores up to 384 8x8 tiles
@@ -120,6 +118,8 @@ void render_ImGui()
 
     // Gameboy display
     {
+        update_texture();
+
         ImGui::Begin("Display");
         ImGui::Image((void*)(intptr_t)display_texture, ImVec2(160, 144));
         ImGui::End();
@@ -307,7 +307,7 @@ void update_texture()
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160, 144, 0, GL_RGBA, GL_UNSIGNED_BYTE, display);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160, 144, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
 }
 
 uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
@@ -328,14 +328,6 @@ int start_interface()
     setup_ImGui();
 
     glfwSetKeyCallback(window, key_callback);
-
-    for (int x = 0; x < (160 * 144 * 4); x += 4)
-    {
-        display[x] = 255;
-        display[x + 1] = 0;
-        display[x + 2] = 0;
-        display[x + 3] = 255;
-    }
 
     update_texture();
 

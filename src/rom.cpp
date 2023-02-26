@@ -6,9 +6,10 @@
 
 #include "rom.h"
 #include "memory.h"
+#include "cpu.h"
 
 uint8_t boot_rom[256]{};
-bool boot_done = false;
+bool boot_done = true;
 uint8_t rom[0x8000]{};
 
 int load_rom(std::string path)
@@ -29,6 +30,9 @@ int load_rom(std::string path)
 
 int load_boot_rom(std::string path)
 {
+    boot_done = false;
+    pc = 0x00;
+
     FILE* romFile = fopen(path.c_str(), "rb");
     if (!rom)
     {
