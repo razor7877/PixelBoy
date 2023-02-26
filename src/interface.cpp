@@ -152,6 +152,8 @@ void render_ImGui()
         ImGui::Text("Half Carry (BCD): %d", get_flags(FLAG_HALFCARRY)); // Get 5th bit
         ImGui::Text("Carry: %d", get_flags(FLAG_CARRY)); // Get 4th bit
 
+        ImGui::NewLine();
+
         ImGui::End();
     }
 

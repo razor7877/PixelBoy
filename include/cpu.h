@@ -43,7 +43,6 @@ extern uint16_t pc; // Program counter
 extern uint8_t opcode;
 
 extern uint16_t operand;
-
 extern bool IME;
 
 // The CPU handles instructions until a full clock cycle is executed

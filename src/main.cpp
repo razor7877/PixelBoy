@@ -20,11 +20,11 @@ int main(int, char**)
     // Main loop
     for (;;)
     {
-        //execute_cycle();
+        execute_cycle();
         if (update_interface() == 1)
             break;
 
-        //std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
     stop_interface();

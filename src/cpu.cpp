@@ -44,6 +44,11 @@ void handle_instruction()
 
 	opcode = read_byte(pc++);
 
+	if (pc == 0x40)
+	{
+		printf("Running VBLANK routine\n");
+	}
+
 	// Switch over the operand length to correctly call the function and pass arguments
 	switch (instructions[opcode].operand_length)
 	{

@@ -23,10 +23,7 @@ uint8_t OBP1{};
 uint8_t WY{};
 uint8_t WX{};
 
-// Each FIFO can hold 16 pixels (2 bits per pixel)
 uint16_t dot_counter{};
-uint8_t bg_FIFO[4]{};
-uint8_t OAM_FIFO[4]{};
 
 uint8_t frame_buffer[160 * 144 * 4]{};
 
@@ -71,8 +68,6 @@ void step_ppu(uint8_t cycles)
 					{
 						STAT = (STAT & 0xFC) | LCD_MODE_3;
 
-						memset(bg_FIFO, 0, sizeof(bg_FIFO));
-						memset(OAM_FIFO, 0, sizeof(OAM_FIFO));
 						draw_scanline();
 					}
 						
@@ -96,7 +91,8 @@ void step_ppu(uint8_t cycles)
 				if (ppu_mode() != LCD_MODE_1)
 				{
 					STAT = (STAT & 0xFC) | LCD_MODE_1;
-					if (STAT & VBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_VBLANK); }
+					interrupt_request(INTERRUPT_VBLANK);
+					if (STAT & VBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
 				}
 
 				if (dot_counter >= 456)
@@ -114,12 +110,13 @@ void step_ppu(uint8_t cycles)
 	}
 }
 
-uint8_t ppu_mode()
+void draw_scanline()
 {
-	return STAT & 0x03;
+	draw_tiles();
+	draw_sprites();
 }
 
-void draw_scanline()
+void draw_tiles()
 {
 	uint16_t tile_data{};
 	uint16_t background_memory{};
@@ -173,7 +170,7 @@ void draw_scanline()
 	uint16_t tile_row = (y_pos / 8) * 32;
 
 	// Draw the 160 horizontal pixels for this scanline
-	for (int pixel = 0; pixel < 160; pixel++)
+	for (uint8_t pixel = 0; pixel < 160; pixel++)
 	{
 		uint8_t x_pos = pixel + SCX;
 
@@ -270,6 +267,119 @@ void draw_scanline()
 		frame_buffer[LY * 160 * 4 + (pixel * 4) + 3] = 0xFF;
 	}
 }
+
+void draw_sprites()
+{
+	bool obj_large = false;
+
+	if (LCDC & OBJ_SIZE)
+		obj_large = true;
+
+	for (uint8_t sprite = 0; sprite < 40; sprite++)
+	{
+		uint8_t index = sprite * 4; // Sprite occupies 4 bytes in OAM
+		uint8_t y_pos = OAM[index] - 16;
+		uint8_t x_pos = OAM[index + 1] - 8;
+		uint8_t tile_index = OAM[index + 2];
+		uint8_t attributes = OAM[index + 3];
+
+		bool y_flip = attributes & 0x40; // 6th bit
+		bool x_flip = attributes & 0x20; // 5th bit
+
+		uint8_t y_size = 8;
+		if (obj_large)
+			y_size = 16;
+
+		if ((LY >= y_pos) && (LY < (y_pos + y_size)))
+		{
+			int line = LY - y_pos;
+
+			// Read sprite backwards in Y axis
+			if (y_flip)
+			{
+				line -= y_size;
+				line *= -1;
+			}
+
+			line *= 2;
+			uint16_t data_address = tile_index * 16 + line;
+			uint8_t data_1 = vram[data_address];
+			uint8_t data_2 = vram[data_address + 1];
+
+			for (int tile_pixel = 7; tile_pixel >= 0; tile_pixel--)
+			{
+				uint8_t color_bit = tile_pixel;
+				// Read sprite backwards in X axis
+				if (x_flip)
+				{
+					color_bit -= 7;
+					color_bit *= -1;
+				}
+
+				// Combine the two to get colour id for this pixel in the tile
+				uint8_t color_mask = 1 << color_bit;
+				uint8_t first_bit = (data_1 & color_mask) >> color_bit;
+				uint8_t second_bit = (data_2 & color_mask) >> color_bit;
+				uint8_t color_num = first_bit | (second_bit << 1);
+
+				uint8_t color{};
+
+				// Get actual color from palette as 2 bit value
+				switch (color_num)
+				{
+					case 0x0:
+						color = BGP & 0x03;
+						break;
+
+					case 0x1:
+						color = (BGP & 0x0C) >> 2;
+						break;
+
+					case 0x2:
+						color = (BGP & 0x30) >> 4;
+						break;
+
+					case 0x3:
+						color = (BGP & 0xC0) >> 6;
+						break;
+				}
+
+				uint8_t buffer_color{};
+
+				// Get corresponding RGBA color from the 2 bit value
+				switch (color)
+				{
+					case 0x0: // White
+						buffer_color = 0xFF;
+						break;
+
+					case 0x1: // Light gray
+						buffer_color = 0xAA;
+						break;
+
+					case 0x2: // Dark gray
+						buffer_color = 0x55;
+						break;
+
+					case 0x3: // Black
+						buffer_color = 0x00;
+						break;
+				}
+
+				frame_buffer[LY * 160 * 4 + (tile_pixel * 4)] = buffer_color;
+				frame_buffer[LY * 160 * 4 + (tile_pixel * 4) + 1] = buffer_color;
+				frame_buffer[LY * 160 * 4 + (tile_pixel * 4) + 2] = buffer_color;
+				frame_buffer[LY * 160 * 4 + (tile_pixel * 4) + 3] = 0xFF;
+			}
+		}
+	}
+}
+
+uint8_t ppu_mode()
+{
+	return STAT & 0x03;
+}
+
 
 uint8_t read_vram(uint16_t address)
 {

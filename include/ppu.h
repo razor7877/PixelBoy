@@ -51,8 +51,10 @@ extern uint8_t frame_buffer[160 * 144 * 4];
 
 void tick_ppu(uint8_t cycles);
 void step_ppu(uint8_t cycles);
-uint8_t ppu_mode();
 void draw_scanline();
+void draw_tiles();
+void draw_sprites();
+uint8_t ppu_mode();
 
 uint8_t read_vram(uint16_t address);
 void write_vram(uint16_t address, uint8_t value);
