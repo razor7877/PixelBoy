@@ -11,8 +11,6 @@ void service_interrupts()
 	// Service interrupts
 	if (IME && (IF & 0x1F) && (IE & 0x1F))
 	{
-		printf("Servicing interrupt\n");
-
 		if (IF_get(INTERRUPT_VBLANK) && IE_get(INTERRUPT_VBLANK))
 		{
 			IME = 0; cpu_halted = false;

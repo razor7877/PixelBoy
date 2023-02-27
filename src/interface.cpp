@@ -382,6 +382,7 @@ int update_interface()
         else
             clear_key(JOYPAD_A);
     }
+    else { io_register = (io_register & 0xF0) | 0x0F; }
 
     glfwPollEvents();
 

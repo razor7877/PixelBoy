@@ -65,4 +65,6 @@ void write_oam(uint16_t address, uint8_t value);
 uint8_t read_ppu(uint16_t address);
 void write_ppu(uint16_t address, uint8_t value);
 
+void update_LCDC(uint8_t value);
+
 #endif

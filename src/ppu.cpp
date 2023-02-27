@@ -23,88 +23,101 @@ uint8_t OBP1{};
 uint8_t WY{};
 uint8_t WX{};
 
-uint16_t dot_counter{};
+uint32_t dot_counter{};
+uint32_t dot_start{};
+uint32_t dot_end{};
+bool start_frame = false;
 
 uint8_t frame_buffer[160 * 144 * 4]{};
 
 void tick_ppu(uint8_t cycles)
 {
-	ppu_cycle_count += cycles / 2;
-
-	if (ppu_cycle_count > PPU_FREQ)
-		ppu_cycle_count %= PPU_FREQ;
-
-	if (LY == LYC)
+	if (LCDC & LCD_ENABLE)
 	{
-		STAT |= LYC_COMPARE_FLAG;
-		if (STAT & LYC_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
-	}
-	else { STAT &= ~LYC_COMPARE_FLAG; }
+		ppu_cycle_count += cycles;
 
-	step_ppu(cycles);
+		if (ppu_cycle_count > PPU_FREQ)
+			ppu_cycle_count %= PPU_FREQ;
+
+		if (LY == LYC)
+		{
+			STAT |= LYC_COMPARE_FLAG;
+			if (STAT & LYC_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+		}
+		else { STAT &= ~LYC_COMPARE_FLAG; }
+
+		step_ppu(cycles);
+	}
 }
 
 void step_ppu(uint8_t cycles)
 {
 	for (uint8_t i = 0; i < cycles; i += 4)
 	{
-		dot_counter += 4;
-
-		if (LCDC & 0x80) // PPU is enabled
+		if (start_frame)
 		{
-			if (LY < 144)
-			{
-				if (dot_counter < 80) // OAM Scan
-				{
-					if (ppu_mode() != LCD_MODE_2)
-					{
-						STAT = (STAT & 0xFC) | LCD_MODE_2;
-						if (STAT & OAM_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
-					}
-				}
-				else if (dot_counter < 252) // Drawing
-				{
-					if (ppu_mode() != LCD_MODE_3)
-					{
-						STAT = (STAT & 0xFC) | LCD_MODE_3;
-						draw_scanline();
-					}
-						
-				}
-				else if (dot_counter < 456) // HBLANK
-				{
-					if (ppu_mode() != LCD_MODE_0)
-					{
-						STAT = (STAT & 0xFC) | LCD_MODE_0;
-						if (STAT & HBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
-					}
-				}
-				else
-				{
-					dot_counter = 0;
-					LY++;
-				}
-			}
-			else if (LY < 153) // VBLANK
-			{
-				if (ppu_mode() != LCD_MODE_1)
-				{
-					STAT = (STAT & 0xFC) | LCD_MODE_1;
-					interrupt_request(INTERRUPT_VBLANK);
-					if (STAT & VBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
-				}
+			dot_start = cycle_count;
+			dot_end = cycle_count;
+			start_frame = false;
+		}
 
-				if (dot_counter >= 456)
+		dot_counter += 4;
+		dot_end += 4;
+
+		if (LY < 144)
+		{
+			if (dot_counter < 80) // OAM Scan
+			{
+				if (ppu_mode() != LCD_MODE_2)
 				{
-					dot_counter %= 456;
-					LY++;
+					STAT = (STAT & 0xFC) | LCD_MODE_2;
+					if (STAT & OAM_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
 				}
 			}
-			else // Frame finished drawing, reset scanline counter
+			else if (dot_counter < 252) // Drawing
 			{
-				LY = 0;
-				dot_counter %= 456;
+				if (ppu_mode() != LCD_MODE_3)
+				{
+					STAT = (STAT & 0xFC) | LCD_MODE_3;
+					draw_scanline();
+				}
+						
 			}
+			else if (dot_counter < 456) // HBLANK
+			{
+				if (ppu_mode() != LCD_MODE_0)
+				{
+					STAT = (STAT & 0xFC) | LCD_MODE_0;
+					if (STAT & HBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+				}
+			}
+			else
+			{
+				dot_counter = 0;
+				LY++;
+			}
+		}
+		else if (LY < 154) // VBLANK
+		{
+			if (ppu_mode() != LCD_MODE_1)
+			{
+				STAT = (STAT & 0xFC) | LCD_MODE_1;
+				interrupt_request(INTERRUPT_VBLANK);
+				if (STAT & VBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+			}
+
+			if (dot_counter >= 456)
+			{
+				dot_counter %= 456;
+				LY++;
+			}
+		}
+		else // Frame finished drawing, reset scanline counter
+		{
+			LY = 0;
+			dot_counter %= 456;
+			printf("Finished drawing frame START %d END %d\n", dot_start, dot_end);
+			start_frame = true;
 		}
 	}
 }
@@ -397,8 +410,6 @@ void write_vram(uint16_t address, uint8_t value)
 
 uint8_t read_oam(uint16_t address)
 {
-	printf("OAM Read at ADR %d VALUE %d\n", address, OAM[address]);
-
 	// OAM inaccessible during mode 2 and 3 and DMA transfer
 	if (((STAT & 0x03) == 0x03) || ((STAT & 0x03) == 0x02))
 		return 0xFF;
@@ -408,11 +419,6 @@ uint8_t read_oam(uint16_t address)
 
 void write_oam(uint16_t address, uint8_t value)
 {
-	if (value == 0)
-	{
-
-	}
-
 	// OAM inaccessible during mode 2 and 3
 	if (((STAT & 0x03) == 0x03) || ((STAT & 0x03) == 0x02))
 		return;
@@ -462,7 +468,7 @@ uint8_t read_ppu(uint16_t address)
 void write_ppu(uint16_t address, uint8_t value)
 {
 	if (address == 0xFF40)
-		LCDC = value;
+		update_LCDC(value);
 
 	if (address == 0xFF41) // Lower 2 bits are read only
 		STAT = (value & 0xFC) | (STAT & 0x03);
@@ -499,4 +505,19 @@ void write_ppu(uint16_t address, uint8_t value)
 
 	if (address == 0xFF4B)
 		WX = value;
+}
+
+void update_LCDC(uint8_t value)
+{
+	if ((value & LCD_ENABLE) == 0 && (LCDC & LCD_ENABLE)) // If LCD is being turned off
+	{
+		if (ppu_mode() != LCD_MODE_0)
+			STAT = (STAT & 0xFC) | LCD_MODE_0;
+
+		LY = 0;
+		dot_counter = 0;
+		LCDC = value & 0xFC;
+		
+	}
+	else { LCDC = value; }
 }

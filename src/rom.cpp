@@ -25,7 +25,7 @@ int load_rom(std::string path)
     size_t size = ftell(romFile);
 
     rewind(romFile);
-    fread(&rom, sizeof(char), size, romFile);
+    fread(&rom, sizeof(char), 0x8000, romFile);
 }
 
 int load_boot_rom(std::string path)
