@@ -44,6 +44,7 @@ extern uint16_t pc; // Program counter
 extern uint8_t opcode;
 
 extern uint16_t operand;
+
 extern bool cpu_stopped;
 extern bool cpu_halted;
 extern bool IME;
@@ -339,7 +340,7 @@ void ld_ff_c_a();
 void push_hl();
 void and_n(uint8_t operand);
 void rst_20();
-void add_sp_n(int8_t operand);
+void add_sp_n(uint8_t operand);
 void jp_hlp();
 void ld_nnp_a(uint16_t operand);
 // Placeholder - No opcode
@@ -356,7 +357,7 @@ void di();
 void push_af();
 void or_n(uint8_t operand);
 void rst_30();
-void ld_hl_sp_n(int8_t operand);
+void ld_hl_sp_n(uint8_t operand);
 void ld_sp_hl();
 void ld_a_nnp(uint16_t operand);
 void ei();

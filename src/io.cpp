@@ -22,7 +22,7 @@ uint8_t TMA = 0x00;
 uint8_t TAC = 0xF8;
 
 uint32_t TIMA_cycle_count{};
-uint32_t TIMA_max_cycles{};
+uint32_t TIMA_max_cycles = 1024; // GB starts with TAC clock 00
 
 uint8_t read_io(uint16_t address)
 {
@@ -120,7 +120,7 @@ void clear_key(joypad key)
 
 bool get_key(joypad key)
 {
-	return (io_register & key);
+	return !(io_register & key);
 }
 
 void update_timer_freq(uint8_t value)
@@ -130,19 +130,19 @@ void update_timer_freq(uint8_t value)
 		switch (value & 0x03)
 		{
 			case 0x00: // CPU clock / 1024
-				TIMA_max_cycles = CPU_FREQ / 1024;
+				TIMA_max_cycles = CPU_FREQ / 4096;
 				break;
 
 			case 0x01: // CPU clock / 16
-				TIMA_max_cycles = (CPU_FREQ / 16);
+				TIMA_max_cycles = CPU_FREQ / 262144;
 				break;
 
 			case 0x02: // CPU clock / 64
-				TIMA_max_cycles = CPU_FREQ / 64;
+				TIMA_max_cycles = CPU_FREQ / 65536;
 				break;
 
 			case 0x03: // CPU clock / 256
-				TIMA_max_cycles = CPU_FREQ / 256;
+				TIMA_max_cycles = CPU_FREQ / 16382;
 				break;
 		}
 
@@ -156,56 +156,23 @@ void tick_timer(uint8_t cycles)
 {
 	for (uint8_t i = 0; i < cycles; i += 4)
 	{
-		DIV += cycles;
+		DIV += 4;
 
 		if (TAC & 0x04) // Bit 2 enabled : TIMA timer enabled
 		{
-			TIMA_cycle_count += cycles;
-			bool inc_TIMA = false;
+			TIMA_cycle_count += 4;
 
-			switch (TAC & 0x03)
-			{
-				case 0x00: // CPU clock / 1024
-					if (TIMA_cycle_count > (CPU_FREQ / 1024))
-					{
-						inc_TIMA = true;
-						TIMA_cycle_count %= (CPU_FREQ / 1024);
-					}
-					break;
-
-				case 0x01: // CPU clock / 16
-					if (TIMA_cycle_count > (CPU_FREQ / 16))
-					{
-						inc_TIMA = true;
-						TIMA_cycle_count %= (CPU_FREQ / 16);
-					}
-					break;
-
-				case 0x02: // CPU clock / 64
-					if (TIMA_cycle_count > (CPU_FREQ / 64))
-					{
-						inc_TIMA = true;
-						TIMA_cycle_count %= (CPU_FREQ / 64);
-					}
-					break;
-
-				case 0x03: // CPU clock / 256
-					if (TIMA_cycle_count > (CPU_FREQ / 256))
-					{
-						inc_TIMA = true;
-						TIMA_cycle_count %= (CPU_FREQ / 256);
-					}
-					break;
-			}
-
-			if (inc_TIMA)
+			if (TIMA_cycle_count > TIMA_max_cycles)
 			{
 				if (TIMA == 0xFF) // If TIMA overflowing, reset and send IRQ
 				{
 					TIMA = TMA;
 					interrupt_request(INTERRUPT_TIMER);
 				}
-				else { TIMA++; }
+				else { TIMA++;
+				//printf("Incrementing TIMA, cycles: %d\n", cycle_count);
+				}
+				TIMA_cycle_count %= TIMA_max_cycles;
 			}
 		}
 	}

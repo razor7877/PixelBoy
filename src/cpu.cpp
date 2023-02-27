@@ -26,6 +26,7 @@ uint16_t operand{};
 
 bool cpu_stopped{};
 bool cpu_halted{};
+bool IME_toggle{}; // Toggle to enable IME after one instruction with EI
 bool IME{}; // Interrupt Master Enable
 
 void execute_cycle()
@@ -38,32 +39,38 @@ void execute_cycle()
 
 void handle_instruction()
 {
+	if (IME_toggle)
+	{
+		IME_toggle = 0;
+		IME = 1;
+	}
+	
 	service_interrupts();
 
-	if (cpu_stopped || cpu_halted)
-		return;
-
-	opcode = read_byte(pc++);
-
-	// Switch over the operand length to correctly call the function and pass arguments
-	switch (instructions[opcode].operand_length)
+	if (!cpu_stopped && !cpu_halted)
 	{
-		case 0:
-			operand = 0x00;
-			((void (*)(void))instructions[opcode].function)();
-			break;
+		opcode = read_byte(pc++);
 
-		case 1:
-			operand = read_byte(pc);
-			pc += 1;
-			((void (*)(uint8_t))instructions[opcode].function)(operand);
-			break;
+		// Switch over the operand length to correctly call the function and pass arguments
+		switch (instructions[opcode].operand_length)
+		{
+			case 0:
+				operand = 0x00;
+				((void (*)(void))instructions[opcode].function)();
+				break;
 
-		case 2:
-			operand = read_word(pc);
-			pc += 2;
-			((void (*)(uint16_t))instructions[opcode].function)(operand);
-			break;
+			case 1:
+				operand = read_byte(pc);
+				pc += 1;
+				((void (*)(uint8_t))instructions[opcode].function)(operand);
+				break;
+
+			case 2:
+				operand = read_word(pc);
+				pc += 2;
+				((void (*)(uint16_t))instructions[opcode].function)(operand);
+				break;
+		}
 	}
 
 	tick(instructions[opcode].duration);
@@ -82,6 +89,9 @@ void tick(uint8_t cycles)
 			dma_cycles_left = 0;
 			uint16_t dma_source = read_byte(0xFF46) << 8;
 			printf("DMA Source: %x\n", dma_source);
+			// DMA sources outside of DFFF are mapped back to SRAM
+			if (dma_source >= 0xDFFF)
+				dma_source -= 0x2000;
 			// Fill OAM memory once DMA cycles done
 			for (int i = 0; i < 160; i++)
 			{
@@ -597,7 +607,7 @@ void ld_hlp_d() { write_byte(HL, upper_byte(DE)); }
 void ld_hlp_e() { write_byte(HL, lower_byte(DE)); }
 void ld_hlp_h() { write_byte(HL, upper_byte(HL)); }
 void ld_hlp_l() { write_byte(HL, lower_byte(HL)); }
-void halt() { /*cpu_halted = true;*/ }
+void halt() { cpu_halted = true; }
 void ld_hlp_a() { write_byte(HL, upper_byte(AF)); }
 void ld_a_b() { set_reg_hi(AF, upper_byte(BC)); }
 void ld_a_c() { set_reg_hi(AF, lower_byte(BC)); }
@@ -818,7 +828,7 @@ void call_c_nn(uint16_t operand)
 	if (get_flags(FLAG_CARRY))
 	{
 		sp -= 2;
-		write_word(sp, pc + 1);
+		write_word(sp, pc);
 		pc = operand;
 		tick(24);
 	}
@@ -836,7 +846,7 @@ void ld_ff_c_a() { write_byte(0xFF00 + lower_byte(BC), upper_byte(AF)); }
 void push_hl() { sp -= 2; write_word(sp, HL);}
 void and_n(uint8_t operand) { and_r(operand); }
 void rst_20() { sp -= 2; write_word(sp, pc); pc = 0x20; }
-void add_sp_n(int8_t operand)
+void add_sp_n(uint8_t operand)
 {
 	if ((sp & 0x0F) + (operand & 0x0F) > 0x0F)
 		set_flags(FLAG_HALFCARRY);
@@ -848,7 +858,7 @@ void add_sp_n(int8_t operand)
 	else
 		clear_flags(FLAG_CARRY);
 
-	sp += operand;
+	sp += (int8_t)operand;
 
 	clear_flags(FLAG_ZERO | FLAG_NEGATIVE);
 }
@@ -868,28 +878,25 @@ void di() { IME = 0; }
 void push_af() { sp -= 2; write_word(sp, AF); }
 void or_n(uint8_t operand) { or_r(operand); }
 void rst_30(){ sp -= 2; write_word(sp, pc); pc = 0x30; }
-void ld_hl_sp_n(int8_t operand)
+void ld_hl_sp_n(uint8_t operand)
 {
-	// Result bigger than input types to check for overflow/carry
-	uint32_t result = sp + operand;
-
-	if (result > 0xFF)
+	if ((sp & 0xFF) + (operand & 0xFF) > 0xFF)
 		set_flags(FLAG_CARRY);
 	else
-		set_flags(FLAG_CARRY);
+		clear_flags(FLAG_CARRY);
 
-	if (((sp & 0x0F) + (operand & 0x0F)) > 0x0F)
+	if ((sp & 0x0F) + (operand & 0x0F) > 0x0F)
 		set_flags(FLAG_HALFCARRY);
 	else
 		clear_flags(FLAG_HALFCARRY);
 
-	HL = result & 0xFFFF;
+	HL = sp + (int8_t)operand;
 
 	clear_flags(FLAG_ZERO | FLAG_NEGATIVE);
 }
 void ld_sp_hl() { sp = HL; }
 void ld_a_nnp(uint16_t operand) { set_reg_hi(AF, read_byte(operand)); }
-void ei() { IME = 1; }
+void ei() { IME_toggle = 1; }
 // Placeholder - No opcode
 // Placeholder - No opcode
 void cp_n(uint8_t operand) { cp_r(operand); }

@@ -232,7 +232,7 @@ void render_ImGui()
         ImGui::SetWindowSize(ImVec2(200, 200));
 
         ImGui::Text("I/O Register: %02x", io_register);
-        ImGui::Text("Select action: %d", get_key(JOYPAD_SELECT));
+        ImGui::Text("Select action: %d", get_key(JOYPAD_ACTION));
         ImGui::Text("Select direction: %d", get_key(JOYPAD_DIRECTION));
         ImGui::Text("Down / Start: %d", get_key(JOYPAD_DOWN));
         ImGui::Text("Up / Select: %d", get_key(JOYPAD_UP));
@@ -338,25 +338,50 @@ int start_interface()
 
 int update_interface()
 {
-    if (glfwGetKey(window, GLFW_KEY_DOWN))
-        set_key(JOYPAD_DOWN);
-    else
-        clear_key(JOYPAD_DOWN);
+    if (get_key(JOYPAD_DIRECTION))
+    {
+        if (glfwGetKey(window, GLFW_KEY_DOWN))
+            set_key(JOYPAD_DOWN);
+        else
+            clear_key(JOYPAD_DOWN);
 
-    if (glfwGetKey(window, GLFW_KEY_UP))
-        set_key(JOYPAD_UP);
-    else
-        clear_key(JOYPAD_UP);
+        if (glfwGetKey(window, GLFW_KEY_UP))
+            set_key(JOYPAD_UP);
+        else
+            clear_key(JOYPAD_UP);
 
-    if (glfwGetKey(window, GLFW_KEY_LEFT))
-        set_key(JOYPAD_LEFT);
-    else
-        clear_key(JOYPAD_LEFT);
+        if (glfwGetKey(window, GLFW_KEY_LEFT))
+            set_key(JOYPAD_LEFT);
+        else
+            clear_key(JOYPAD_LEFT);
 
-    if (glfwGetKey(window, GLFW_KEY_RIGHT))
-        set_key(JOYPAD_RIGHT);
-    else
-        clear_key(JOYPAD_RIGHT);
+        if (glfwGetKey(window, GLFW_KEY_RIGHT))
+            set_key(JOYPAD_RIGHT);
+        else
+            clear_key(JOYPAD_RIGHT);
+    }
+    else if (get_key(JOYPAD_ACTION))
+    {
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
+            set_key(JOYPAD_SELECT);
+        else
+            clear_key(JOYPAD_SELECT);
+
+        if (glfwGetKey(window, GLFW_KEY_ENTER))
+            set_key(JOYPAD_START);
+        else
+            clear_key(JOYPAD_START);
+
+        if (glfwGetKey(window, GLFW_KEY_Q))
+            set_key(JOYPAD_B);
+        else
+            clear_key(JOYPAD_B);
+
+        if (glfwGetKey(window, GLFW_KEY_S))
+            set_key(JOYPAD_A);
+        else
+            clear_key(JOYPAD_A);
+    }
 
     glfwPollEvents();
 

@@ -22,7 +22,7 @@ uint8_t read_byte(uint16_t address)
 	if ((address >= 0xFF00 && address <= 0xFF7F) || (address == 0xFFFF))
 		return read_io(address);
 
-	if (address >= 0xE000 && address <= 0xFDFF) // Echo ram, mapped to same memory as 0xC000-0xCFFF
+	if (address >= 0xE000 && address <= 0xFDFF) // Echo RAM, mapped to same memory as 0xC000-0xCFFF
 		return memory[address - 0x2000];
 
 	return memory[address];
@@ -48,6 +48,8 @@ void write_byte(uint16_t address, uint8_t value)
 
 	else if ((address >= 0xFF00 && address <= 0xFF7F) || (address == 0xFFFF))
 		write_io(address, value);
+
+	else if (address >= 0xE000 && address <= 0xFDFF) {} // Ignore echo RAM writes
 
 	else
 		memory[address] = value;

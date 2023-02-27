@@ -397,7 +397,9 @@ void write_vram(uint16_t address, uint8_t value)
 
 uint8_t read_oam(uint16_t address)
 {
-	// OAM inaccessible during mode 2 and 3
+	printf("OAM Read at ADR %d VALUE %d\n", address, OAM[address]);
+
+	// OAM inaccessible during mode 2 and 3 and DMA transfer
 	if (((STAT & 0x03) == 0x03) || ((STAT & 0x03) == 0x02))
 		return 0xFF;
 	else
@@ -406,6 +408,11 @@ uint8_t read_oam(uint16_t address)
 
 void write_oam(uint16_t address, uint8_t value)
 {
+	if (value == 0)
+	{
+
+	}
+
 	// OAM inaccessible during mode 2 and 3
 	if (((STAT & 0x03) == 0x03) || ((STAT & 0x03) == 0x02))
 		return;
