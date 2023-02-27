@@ -32,6 +32,7 @@ void set_key(joypad key);
 void clear_key(joypad key);
 bool get_key(joypad key);
 
+void update_timer_freq(uint8_t value);
 void tick_timer(uint8_t cycles);
 
 #endif

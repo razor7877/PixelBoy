@@ -22,6 +22,7 @@ uint8_t TMA = 0x00;
 uint8_t TAC = 0xF8;
 
 uint32_t TIMA_cycle_count{};
+uint32_t TIMA_max_cycles{};
 
 uint8_t read_io(uint16_t address)
 {
@@ -57,12 +58,15 @@ uint8_t read_io(uint16_t address)
 
 	if (address == 0xFFFF)
 		return IE;
+
+	else
+		return 0xFF;
 }
 
 void write_io(uint16_t address, uint8_t value)
 {
 	if (address == 0xFF00) // Write to joypad register
-		io_register = value & 0xF0;
+		io_register = value & 0x30; // Only bits 4-5 are writeable
 
 	else if (address == 0xFF01) // Write to serial tranfer data
 		SB = value;
@@ -70,8 +74,11 @@ void write_io(uint16_t address, uint8_t value)
 	else if (address == 0xFF02) // Write to serial transfer control
 		SC = value;
 
-	else if (address == 0xFF04) // Reset divider register
+	else if (address == 0xFF04) // Reset timer
+	{
 		DIV = 0x00;
+		TIMA = 0x00;
+	}
 
 	else if (address == 0xFF05)
 		TIMA = value;
@@ -80,7 +87,7 @@ void write_io(uint16_t address, uint8_t value)
 		TMA = value;
 
 	else if (address == 0xFF07)
-		TAC = value;
+		update_timer_freq(value);
 
 	else if (address >= 0xFF10 && address <= 0xFF26) {} // Audio
 	else if (address >= 0xFF30 && address <= 0xFF3F) {} // Wave pattern
@@ -116,58 +123,90 @@ bool get_key(joypad key)
 	return (io_register & key);
 }
 
-void tick_timer(uint8_t cycles)
+void update_timer_freq(uint8_t value)
 {
-	DIV += cycles;
-
-	if (TAC & 0x04) // Bit 2 enabled : TIMA timer enabled
+	if ((TAC & 0x03) != (value & 0x03)) // If timer clock is changed
 	{
-		TIMA_cycle_count += cycles;
-		bool inc_TIMA = false;
-
-		switch (TAC & 0x03)
+		switch (value & 0x03)
 		{
 			case 0x00: // CPU clock / 1024
-				if (TIMA_cycle_count > (CPU_FREQ / 1024))
-				{
-					inc_TIMA = true;
-					TIMA_cycle_count %= (CPU_FREQ / 1024);
-				}
+				TIMA_max_cycles = CPU_FREQ / 1024;
 				break;
 
 			case 0x01: // CPU clock / 16
-				if (TIMA_cycle_count > (CPU_FREQ / 16))
-				{
-					inc_TIMA = true;
-					TIMA_cycle_count %= (CPU_FREQ / 16);
-				}
+				TIMA_max_cycles = (CPU_FREQ / 16);
 				break;
 
 			case 0x02: // CPU clock / 64
-				if (TIMA_cycle_count > (CPU_FREQ / 64))
-				{
-					inc_TIMA = true;
-					TIMA_cycle_count %= (CPU_FREQ / 64);
-				}
+				TIMA_max_cycles = CPU_FREQ / 64;
 				break;
 
 			case 0x03: // CPU clock / 256
-				if (TIMA_cycle_count > (CPU_FREQ / 256))
-				{
-					inc_TIMA = true;
-					TIMA_cycle_count %= (CPU_FREQ / 256);
-				}
+				TIMA_max_cycles = CPU_FREQ / 256;
 				break;
 		}
 
-		if (inc_TIMA)
+		TIMA = 0; // Reset the timer
+	}
+
+	TAC = value;
+}
+
+void tick_timer(uint8_t cycles)
+{
+	for (uint8_t i = 0; i < cycles; i += 4)
+	{
+		DIV += cycles;
+
+		if (TAC & 0x04) // Bit 2 enabled : TIMA timer enabled
 		{
-			if (TIMA == 0xFF) // If TIMA overflowing, reset and send IRQ
+			TIMA_cycle_count += cycles;
+			bool inc_TIMA = false;
+
+			switch (TAC & 0x03)
 			{
-				TIMA = TMA;
-				interrupt_request(INTERRUPT_TIMER);
+				case 0x00: // CPU clock / 1024
+					if (TIMA_cycle_count > (CPU_FREQ / 1024))
+					{
+						inc_TIMA = true;
+						TIMA_cycle_count %= (CPU_FREQ / 1024);
+					}
+					break;
+
+				case 0x01: // CPU clock / 16
+					if (TIMA_cycle_count > (CPU_FREQ / 16))
+					{
+						inc_TIMA = true;
+						TIMA_cycle_count %= (CPU_FREQ / 16);
+					}
+					break;
+
+				case 0x02: // CPU clock / 64
+					if (TIMA_cycle_count > (CPU_FREQ / 64))
+					{
+						inc_TIMA = true;
+						TIMA_cycle_count %= (CPU_FREQ / 64);
+					}
+					break;
+
+				case 0x03: // CPU clock / 256
+					if (TIMA_cycle_count > (CPU_FREQ / 256))
+					{
+						inc_TIMA = true;
+						TIMA_cycle_count %= (CPU_FREQ / 256);
+					}
+					break;
 			}
-			else { TIMA++; }
+
+			if (inc_TIMA)
+			{
+				if (TIMA == 0xFF) // If TIMA overflowing, reset and send IRQ
+				{
+					TIMA = TMA;
+					interrupt_request(INTERRUPT_TIMER);
+				}
+				else { TIMA++; }
+			}
 		}
 	}
 }

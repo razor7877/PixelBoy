@@ -25,29 +25,25 @@ uint8_t opcode{};
 uint16_t operand{};
 
 bool cpu_stopped{};
+bool cpu_halted{};
 bool IME{}; // Interrupt Master Enable
 
 void execute_cycle()
 {
-	while (cycle_count < CPU_FREQ)
+	while (cycle_count < FRAME_CYCLES)
 		handle_instruction();
 
-	cycle_count %= CPU_FREQ;
+	cycle_count %= FRAME_CYCLES;
 }
 
 void handle_instruction()
 {
 	service_interrupts();
 
-	if (cpu_stopped)
+	if (cpu_stopped || cpu_halted)
 		return;
 
 	opcode = read_byte(pc++);
-
-	if (pc == 0x40)
-	{
-		printf("Running VBLANK routine\n");
-	}
 
 	// Switch over the operand length to correctly call the function and pass arguments
 	switch (instructions[opcode].operand_length)
@@ -601,7 +597,7 @@ void ld_hlp_d() { write_byte(HL, upper_byte(DE)); }
 void ld_hlp_e() { write_byte(HL, lower_byte(DE)); }
 void ld_hlp_h() { write_byte(HL, upper_byte(HL)); }
 void ld_hlp_l() { write_byte(HL, lower_byte(HL)); }
-void halt(){}
+void halt() { /*cpu_halted = true;*/ }
 void ld_hlp_a() { write_byte(HL, upper_byte(AF)); }
 void ld_a_b() { set_reg_hi(AF, upper_byte(BC)); }
 void ld_a_c() { set_reg_hi(AF, lower_byte(BC)); }

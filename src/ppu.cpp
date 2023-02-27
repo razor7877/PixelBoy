@@ -67,7 +67,6 @@ void step_ppu(uint8_t cycles)
 					if (ppu_mode() != LCD_MODE_3)
 					{
 						STAT = (STAT & 0xFC) | LCD_MODE_3;
-
 						draw_scanline();
 					}
 						
@@ -379,7 +378,6 @@ uint8_t ppu_mode()
 {
 	return STAT & 0x03;
 }
-
 
 uint8_t read_vram(uint16_t address)
 {

@@ -22,6 +22,9 @@ uint8_t read_byte(uint16_t address)
 	if ((address >= 0xFF00 && address <= 0xFF7F) || (address == 0xFFFF))
 		return read_io(address);
 
+	if (address >= 0xE000 && address <= 0xFDFF) // Echo ram, mapped to same memory as 0xC000-0xCFFF
+		return memory[address - 0x2000];
+
 	return memory[address];
 }
 

@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #define CPU_FREQ 4194304
+#define FRAME_CYCLES 70224
 #define DMA_DURATION 640
 
 // Corresponds to a CPU instruction/opcode
@@ -43,9 +44,11 @@ extern uint16_t pc; // Program counter
 extern uint8_t opcode;
 
 extern uint16_t operand;
+extern bool cpu_stopped;
+extern bool cpu_halted;
 extern bool IME;
 
-// The CPU handles instructions until a full clock cycle is executed
+// The CPU handles enough instructions for 1 frame
 void execute_cycle();
 // The CPU handles the next instruction and progresses the internal clock
 void handle_instruction();

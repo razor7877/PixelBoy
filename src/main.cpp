@@ -6,14 +6,11 @@
 #include "interface.h"
 #include "rom.h"
 
-#include "ppu.h"
-#include "memory.h"
-
 // Main code
 int main(int, char**)
 {
-    load_boot_rom("roms/dmg_boot.bin");
-    load_rom("roms/Dr. Mario (World).gb");
+    //load_boot_rom("roms/dmg_boot.bin");
+    load_rom("roms/mooneye/acceptance/timer/tim00_div_trigger.gb");
 
     start_interface();
 
