@@ -169,8 +169,10 @@ void tick_timer(uint8_t cycles)
 					TIMA = TMA;
 					interrupt_request(INTERRUPT_TIMER);
 				}
-				else { TIMA++;
-				//printf("Incrementing TIMA, cycles: %d\n", cycle_count);
+				else
+				{
+					TIMA++;
+					//printf("Incrementing TIMA, cycles: %d\n", cycle_count);
 				}
 				TIMA_cycle_count %= TIMA_max_cycles;
 			}

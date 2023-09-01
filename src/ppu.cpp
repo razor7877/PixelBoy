@@ -34,7 +34,7 @@ void tick_ppu(uint8_t cycles)
 {
 	if (LCDC & LCD_ENABLE)
 	{
-		ppu_cycle_count += cycles;
+		ppu_cycle_count += cycles / 2;
 
 		if (ppu_cycle_count > PPU_FREQ)
 			ppu_cycle_count %= PPU_FREQ;

@@ -49,6 +49,10 @@ void interrupt_request(interrupts interrupt)
 	if (!IME && cpu_halted)
 		cpu_halted = false;
 
+	// When IME is toggled off, IF should not be updated
+	if (!IME)
+		return;
+
 	IF |= interrupt;
 }
 

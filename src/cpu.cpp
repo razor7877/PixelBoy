@@ -39,6 +39,7 @@ void execute_cycle()
 
 void handle_instruction()
 {
+	// Toggle IME on if EI was the previous instruction
 	if (IME_toggle)
 	{
 		IME_toggle = 0;
@@ -78,30 +79,66 @@ void handle_instruction()
 
 void tick(uint8_t cycles)
 {
-	cycle_count += cycles;
+	for (uint8_t i = 0; i < cycles; i += 4)
+	{
+		cycle_count += 4;
+		
+		if (dma_cycles_left > 0)
+		{
+			if (cycles > dma_cycles_left)
+			{
+				dma_cycles_left = 0;
+				uint16_t dma_source = read_byte(0xFF46) << 8;
+				printf("DMA Source: %x\n", dma_source);
+				// DMA sources outside of DFFF are mapped back to SRAM
+				if (dma_source >= 0xDFFF)
+					dma_source -= 0x2000;
+				// Fill OAM memory once DMA cycles done
+				for (int i = 0; i < 160; i++)
+				{
+					printf("Writing from adr %x value %x\n", (dma_source + i), read_byte(dma_source + i));
+					write_byte(0xFE00 + i, read_byte(dma_source + i));
+				}
+			}
+			else { dma_cycles_left -= 4; }
+			printf("In DMA routine, cycles left: %d\n", dma_cycles_left);
+		}
+	}
+
+	// PPU and timers are both running their own loops to tick the cycles
 	tick_ppu(cycles); // PPU runs at half the clock speed of the CPU
 	tick_timer(cycles);
 
-	if (dma_cycles_left > 0)
+	/*
+	for (uint8_t i = 0; i < cycles; i += 4)
 	{
-		if (cycles > dma_cycles_left)
+		cycle_count += 4;
+
+		if (dma_cycles_left > 0)
 		{
-			dma_cycles_left = 0;
-			uint16_t dma_source = read_byte(0xFF46) << 8;
-			printf("DMA Source: %x\n", dma_source);
-			// DMA sources outside of DFFF are mapped back to SRAM
-			if (dma_source >= 0xDFFF)
-				dma_source -= 0x2000;
-			// Fill OAM memory once DMA cycles done
-			for (int i = 0; i < 160; i++)
+			if (cycles > dma_cycles_left)
 			{
-				printf("Writing from adr %x value %x\n", (dma_source + i), read_byte(dma_source + i));
-				write_byte(0xFE00 + i, read_byte(dma_source + i));
+				dma_cycles_left = 0;
+				uint16_t dma_source = read_byte(0xFF46) << 8;
+				printf("DMA Source: %x\n", dma_source);
+				// DMA sources outside of DFFF are mapped back to SRAM
+				if (dma_source >= 0xDFFF)
+					dma_source -= 0x2000;
+				// Fill OAM memory once DMA cycles done
+				for (int i = 0; i < 160; i++)
+				{
+					printf("Writing from adr %x value %x\n", (dma_source + i), read_byte(dma_source + i));
+					write_byte(0xFE00 + i, read_byte(dma_source + i));
+				}
 			}
+			else { dma_cycles_left -= 4; }
+			printf("In DMA routine, cycles left: %d\n", dma_cycles_left);
 		}
-		else { dma_cycles_left -= cycles; }
-		printf("In DMA routine, cycles left: %d\n", dma_cycles_left);
 	}
+
+	// PPU and timers are both running their own loops to tick the cycles
+	tick_ppu(cycles); // PPU runs at half the clock speed of the CPU
+	tick_timer(cycles);*/
 }
 
 void dma_transfer()
