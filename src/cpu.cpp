@@ -29,14 +29,14 @@ bool cpu_halted{};
 bool IME_toggle{}; // Toggle to enable IME after one instruction with EI
 bool IME{}; // Interrupt Master Enable
 
-void execute_cycle()
+void execute_frame()
 {
-	while (cycle_count < FRAME_CYCLES)
+	while (!new_frame_ready)
 	{
 		handle_instruction();
 	}
 
-	cycle_count %= FRAME_CYCLES;
+	new_frame_ready = false;
 }
 
 void handle_instruction()
@@ -80,8 +80,14 @@ void handle_instruction()
 
 void tick(uint8_t cycles)
 {
+	if (cycle_count > CPU_FREQ)
+	{
+		cycle_count %= CPU_FREQ;
+		printf("Ran full CPU cycle\n");
+	}
+
 	cycle_count += cycles;
-	tick_ppu(cycles); // PPU runs at half the clock speed of the CPU
+	tick_ppu(cycles / 2); // PPU runs at half the clock speed of the CPU
 	tick_timer(cycles);
 
 	if (dma_cycles_left > 0)
@@ -811,7 +817,7 @@ void ret_c()
 }
 void reti()
 {
-	std::cout << "reti called\n";
+	//std::cout << "reti called\n";
 	pc = read_word(sp);
 	sp += 2;
 	IME = 1;

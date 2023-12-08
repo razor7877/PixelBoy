@@ -50,7 +50,7 @@ extern bool cpu_halted;
 extern bool IME;
 
 // The CPU handles enough instructions for 1 frame
-void execute_cycle();
+void execute_frame();
 // The CPU handles the next instruction and progresses the internal clock
 void handle_instruction();
 // Increments the internal clock

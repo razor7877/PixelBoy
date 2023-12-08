@@ -5,6 +5,9 @@
 
 #define PPU_FREQ 2097152
 
+// Used by CPU to handle instructions until one frame is drawn
+extern bool new_frame_ready;
+
 enum lcd_control
 {
 	LCD_ENABLE = 0b10000000,

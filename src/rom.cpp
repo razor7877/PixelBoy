@@ -57,5 +57,5 @@ uint8_t read_rom(uint16_t address)
 
 void write_rom(uint16_t address, uint8_t value)
 {
-    printf("Rom write attempt. ADR %x VALUE %x\n", address, value);
+    //printf("Rom write attempt. ADR %x VALUE %x\n", address, value);
 }

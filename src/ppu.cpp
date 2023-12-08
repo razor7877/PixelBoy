@@ -27,6 +27,7 @@ uint32_t dot_counter{};
 uint32_t dot_start{};
 uint32_t dot_end{};
 bool start_frame = false;
+bool new_frame_ready = false;
 
 uint8_t frame_buffer[160 * 144 * 4]{};
 
@@ -37,7 +38,11 @@ void tick_ppu(uint8_t cycles)
 		ppu_cycle_count += cycles;
 
 		if (ppu_cycle_count > PPU_FREQ)
+		{
 			ppu_cycle_count %= PPU_FREQ;
+			printf("Ran full PPU cycle\n");
+		}
+			
 
 		if (LY == LYC)
 		{
@@ -56,6 +61,7 @@ void step_ppu(uint8_t cycles)
 	{
 		if (start_frame)
 		{
+			//printf("New frame at cpu cycle %d\n", cycle_count);
 			dot_start = cycle_count;
 			dot_end = cycle_count;
 			start_frame = false;
@@ -116,8 +122,10 @@ void step_ppu(uint8_t cycles)
 		{
 			LY = 0;
 			dot_counter %= 456;
-			printf("Finished drawing frame START %d END %d\n", dot_start, dot_end);
+			//printf("Finished drawing frame START %d END %d\n", dot_start, dot_end);
 			start_frame = true;
+			// Tells the CPU that a new frame is ready for execute_cycle() method
+			new_frame_ready = true;
 		}
 	}
 }

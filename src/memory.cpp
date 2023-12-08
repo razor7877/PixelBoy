@@ -41,7 +41,7 @@ void write_byte(uint16_t address, uint8_t value)
 	//if (address = 0xFF85)
 	//	printf("Write at adr 0xFF85 val %x\n", value);
 
-	if (address == 0xFF01) printf("Write at adr 0xFF01 val %02x ", value);
+	//if (address == 0xFF01) printf("Write at adr 0xFF01 val %02x\n", value);
 
 	if (address >= 0x0000 && address <= 0x7FFF)
 		write_rom(address, value);
