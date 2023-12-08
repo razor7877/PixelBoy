@@ -44,21 +44,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         {
             switch (key)
             {
-                case GLFW_KEY_KP_1:
+                case GLFW_KEY_1:
                     handle_instruction();
                     break;
 
-                case GLFW_KEY_KP_2:
+                case GLFW_KEY_2:
                     for (int i = 0; i < 10; i++)
                         handle_instruction();
                     break;
 
-                case GLFW_KEY_KP_3:
+                case GLFW_KEY_3:
                     for (int i = 0; i < 100; i++)
                         handle_instruction();
                     break;
 
-                case GLFW_KEY_KP_4:
+                case GLFW_KEY_4:
                     execute_cycle();
                     break;
             }
@@ -75,7 +75,7 @@ int setup_glfw()
     // GL 3.0 + GLSL 130
     glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
     // Create window with graphics context
     window = glfwCreateWindow(1920, 1080, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);

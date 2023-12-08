@@ -27,7 +27,7 @@ uint32_t TIMA_max_cycles = 1024; // GB starts with TAC clock 00
 uint8_t read_io(uint16_t address)
 {
 	if (address == 0xFF00)
-		return io_register;
+		return 0xFF;
 
 	if (address == 0xFF01)
 		return SB;
