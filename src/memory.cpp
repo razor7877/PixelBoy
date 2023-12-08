@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#include "memory.h"
-#include "io.h"
-#include "interrupts.h"
-#include "ppu.h"
-#include "rom.h"
+#include "memory.hpp"
+#include "io.hpp"
+#include "interrupts.hpp"
+#include "ppu.hpp"
+#include "rom.hpp"
 
 uint8_t memory[0x10000]{};
 

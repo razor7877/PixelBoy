@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "cpu.h"
+#include "cpu.hpp"
 
 extern const instruction cb_instructions[256];
 

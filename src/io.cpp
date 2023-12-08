@@ -1,11 +1,11 @@
 #include <cstdint>
 #include <stdio.h>
 
-#include "cpu.h"
-#include "io.h"
-#include "interrupts.h"
-#include "ppu.h"
-#include "rom.h"
+#include "cpu.hpp"
+#include "io.hpp"
+#include "interrupts.hpp"
+#include "ppu.hpp"
+#include "rom.hpp"
 
 #define DIV_FREQ 16384
 

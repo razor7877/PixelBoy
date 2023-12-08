@@ -1,7 +1,7 @@
-#include "interrupts.h"
-#include "cpu.h"
-
 #include <stdio.h>
+
+#include "interrupts.hpp"
+#include "cpu.hpp"
 
 uint8_t IE{};
 uint8_t IF = 0xE1;

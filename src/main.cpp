@@ -1,10 +1,10 @@
 #include <chrono>
 #include <thread>
 
-#include "main.h"
-#include "cpu.h"
-#include "interface.h"
-#include "rom.h"
+#include "main.hpp"
+#include "cpu.hpp"
+#include "interface.hpp"
+#include "rom.hpp"
 
 // Main code
 int main(int, char**)

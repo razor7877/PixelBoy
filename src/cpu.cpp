@@ -3,12 +3,12 @@
 #include <iostream>
 #include <fstream>
 
-#include "cpu.h"
-#include "cpu_cb.h"
-#include "memory.h"
-#include "interrupts.h"
-#include "io.h"
-#include "ppu.h"
+#include "cpu.hpp"
+#include "cpu_cb.hpp"
+#include "memory.hpp"
+#include "interrupts.hpp"
+#include "io.hpp"
+#include "ppu.hpp"
 
 uint32_t cycle_count{};
 uint16_t dma_cycles_left{};

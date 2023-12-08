@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <cstring>
 
-#include "ppu.h"
-#include "cpu.h"
-#include "interrupts.h"
-#include "memory.h"
+#include "ppu.hpp"
+#include "cpu.hpp"
+#include "interrupts.hpp"
+#include "memory.hpp"
 
 uint32_t ppu_cycle_count{};
 

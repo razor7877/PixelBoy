@@ -4,9 +4,9 @@
 
 #include <iostream>
 
-#include "rom.h"
-#include "memory.h"
-#include "cpu.h"
+#include "rom.hpp"
+#include "memory.hpp"
+#include "cpu.hpp"
 
 uint8_t boot_rom[256]{};
 bool boot_done = true;

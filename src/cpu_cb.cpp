@@ -1,6 +1,7 @@
-#include "cpu_cb.h"
-#include "memory.h"
 #include <stdio.h>
+
+#include "cpu_cb.hpp"
+#include "memory.hpp"
 
 void cb_n(uint8_t cb_opcode)
 {

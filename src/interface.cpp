@@ -4,14 +4,14 @@
 #include "ImGui/imgui_memory_editor.h"
 #include <stdio.h>
 
-#include "main.h"
-#include "interface.h"
-#include "cpu.h"
-#include "memory.h"
-#include "io.h"
-#include "interrupts.h"
-#include "rom.h"
-#include "ppu.h"
+#include "main.hpp"
+#include "interface.hpp"
+#include "cpu.hpp"
+#include "memory.hpp"
+#include "io.hpp"
+#include "interrupts.hpp"
+#include "rom.hpp"
+#include "ppu.hpp"
 
 // OpenGL context
 GLFWwindow* window;
