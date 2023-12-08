@@ -47,7 +47,7 @@ void handle_instruction()
 		IME = 1;
 	}
 	
-	//service_interrupts();
+	service_interrupts();
 
 	if (!cpu_stopped && !cpu_halted)
 	{

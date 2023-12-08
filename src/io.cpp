@@ -27,7 +27,7 @@ uint32_t TIMA_max_cycles = 1024; // GB starts with TAC clock 00
 uint8_t read_io(uint16_t address)
 {
 	if (address == 0xFF00)
-		return 0xFF;
+		return io_register;
 
 	if (address == 0xFF01)
 		return SB;
@@ -66,7 +66,7 @@ uint8_t read_io(uint16_t address)
 void write_io(uint16_t address, uint8_t value)
 {
 	if (address == 0xFF00) // Write to joypad register
-		io_register = value & 0x30; // Only bits 4-5 are writeable
+		io_register = (io_register & 0xCF) | (value & 0x30); // Only bits 4-5 are writeable
 
 	else if (address == 0xFF01) // Write to serial tranfer data
 		SB = value;
