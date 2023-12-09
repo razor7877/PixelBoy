@@ -16,6 +16,8 @@ void render_ImGui();
 void update_texture();
 uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel);
 
+void update_io();
+
 // Sets up everything required for the interface
 int start_interface();
 // Updates the interface (called once per frame)

@@ -338,22 +338,7 @@ uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
     return color;
 }
 
-int start_interface()
-{
-    if (setup_glfw() != 0)
-        return -1;
-
-    setup_ImGui();
-
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetDropCallback(window, drop_callback);
-
-    update_texture();
-
-    return 0;
-}
-
-int update_interface()
+void update_io()
 {
     if (get_key(JOYPAD_DIRECTION))
     {
@@ -401,6 +386,25 @@ int update_interface()
     }
     else { io_register = (io_register & 0xF0) | 0x0F; }
 
+}
+
+int start_interface()
+{
+    if (setup_glfw() != 0)
+        return -1;
+
+    setup_ImGui();
+
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetDropCallback(window, drop_callback);
+
+    update_texture();
+
+    return 0;
+}
+
+int update_interface()
+{
     glfwPollEvents();
 
     render_ImGui();
