@@ -61,9 +61,25 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                 case GLFW_KEY_4:
                     execute_frame();
                     break;
+
+                case GLFW_KEY_5:
+                    for (int i = 0; i < 60; i++)
+                        execute_frame();
+                    break;
+
+                case GLFW_KEY_ESCAPE:
+                    glfwSetWindowShouldClose(window, true);
+                    break;
             }
         }
     }
+}
+
+void drop_callback(GLFWwindow* window, int count, const char** paths)
+{
+    int i;
+    for (i = 0; i < count; i++)
+        printf("Dropped file: %s\n", paths[i]);
 }
 
 int setup_glfw()
@@ -78,7 +94,7 @@ int setup_glfw()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
     // Create window with graphics context
-    window = glfwCreateWindow(1920, 1080, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    window = glfwCreateWindow(1280, 720, "GameBoy Emulator", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
@@ -104,7 +120,7 @@ int setup_ImGui()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-io = ImGui::GetIO();
+    io = ImGui::GetIO();
 
 return 0;
 }
@@ -330,6 +346,7 @@ int start_interface()
     setup_ImGui();
 
     glfwSetKeyCallback(window, key_callback);
+    glfwSetDropCallback(window, drop_callback);
 
     update_texture();
 

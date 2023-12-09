@@ -41,6 +41,13 @@ void execute_frame()
 
 void handle_instruction()
 {
+	if (pc == 0xFFB5)
+	{
+		printf("0xFFB5\n");
+		return;
+	}
+		
+
 	if (IME_toggle)
 	{
 		IME_toggle = 0;

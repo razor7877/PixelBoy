@@ -12,8 +12,8 @@ int main(int, char**)
     //load_boot_rom("roms/dmg_boot.bin");
     //load_rom("roms/blargg/cpu_instrs/individual/11-op a,(hl).gb");
     //load_rom("roms/mooneye/acceptance/oam_dma_restart.gb");
-    load_rom("roms/Dr. Mario (World).gb");
-    //load_rom("roms/Tetris (World) (Rev A).gb");
+    //load_rom("roms/Dr. Mario (World).gb");
+    load_rom("roms/Tetris (World) (Rev A).gb");
 
     start_interface();
 
@@ -23,7 +23,7 @@ int main(int, char**)
         if (update_interface() == 1)
             break;
 
-        execute_frame();
+        //execute_frame();
         //std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
