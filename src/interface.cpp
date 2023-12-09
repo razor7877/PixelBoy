@@ -54,7 +54,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                     break;
 
                 case GLFW_KEY_3:
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 1000; i++)
                         handle_instruction();
                     break;
 

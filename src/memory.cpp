@@ -38,8 +38,8 @@ uint16_t read_word(uint16_t address)
 
 void write_byte(uint16_t address, uint8_t value)
 {
-	//if (address = 0xFF85)
-	//	printf("Write at adr 0xFF85 val %x\n", value);
+	if (address >= 0xFF80 && address <= 0xFFFE && value != 0)
+		printf("Write at adr 0xFFB6 val %x\n", value);
 
 	//if (address == 0xFF01) printf("Write at adr 0xFF01 val %02x\n", value);
 
@@ -59,6 +59,10 @@ void write_byte(uint16_t address, uint8_t value)
 
 	else
 		memory[address] = value;
+
+
+	if (address >= 0xFF80 && address <= 0xFFFE && value != 0)
+		printf("HRAM write adr %x val %x\n", address, value);
 }
 
 void write_word(uint16_t address, uint16_t value)

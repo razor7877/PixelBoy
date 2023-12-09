@@ -41,13 +41,6 @@ void execute_frame()
 
 void handle_instruction()
 {
-	if (pc == 0xFFB5)
-	{
-		printf("0xFFB5\n");
-		return;
-	}
-		
-
 	if (IME_toggle)
 	{
 		IME_toggle = 0;
@@ -1145,7 +1138,7 @@ extern const instruction instructions[256] = {
 	{ "RST 18H", 0, rst_18, 16 }, // 0xdf
 	{ "LDH (a8),A", 1, ldh_n_a, 12 }, // 0xe0
 	{ "POP HL", 0, pop_hl, 12 }, // 0xe1
-	{ "LD (C),A", 1, ld_ff_c_a, 8 }, // 0xe2
+	{ "LD (C),A", 0, ld_ff_c_a, 8 }, // 0xe2
 	{ "UNDEFINED", 0, undefined, 0 }, // 0xe3
 	{ "UNDEFINED", 0, undefined, 0 }, // 0xe4
 	{ "PUSH HL", 0, push_hl, 16 }, // 0xe5
@@ -1161,7 +1154,7 @@ extern const instruction instructions[256] = {
 	{ "RST 28H", 0, rst_28, 16 }, // 0xef
 	{ "LDH A,(a8)", 1, ldh_a_n, 12 }, // 0xf0
 	{ "POP AF", 0, pop_af, 12 }, // 0xf1
-	{ "LD A,(C)", 1, ld_ff_a_c, 8 }, // 0xf2
+	{ "LD A,(C)", 0, ld_ff_a_c, 8 }, // 0xf2
 	{ "DI", 0, di, 4 }, // 0xf3
 	{ "UNDEFINED", 0, undefined, 0 }, // 0xf4
 	{ "PUSH AF", 0, push_af, 16 }, // 0xf5

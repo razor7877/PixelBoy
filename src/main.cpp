@@ -23,7 +23,7 @@ int main(int, char**)
         if (update_interface() == 1)
             break;
 
-        //execute_frame();
+        execute_frame();
         //std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
