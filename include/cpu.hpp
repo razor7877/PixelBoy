@@ -49,6 +49,8 @@ extern bool cpu_stopped;
 extern bool cpu_halted;
 extern bool IME;
 
+extern float delta_time;
+
 // The CPU handles enough instructions for 1 frame
 void execute_frame();
 // The CPU handles the next instruction and progresses the internal clock

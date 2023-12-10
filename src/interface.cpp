@@ -305,6 +305,16 @@ void render_ImGui()
         ImGui::End();
     }
 
+    {
+        ImGui::Begin("Performance", 0, ImGuiWindowFlags_NoResize);
+        ImGui::SetWindowSize(ImVec2(200, 75));
+
+        ImGui::Text("Frame time: %f ms", delta_time * 1000);
+        ImGui::Text("FPS: %d", (int)round(1 / delta_time));
+
+        ImGui::End();
+    }
+
     // Rendering
     ImGui::Render();
     int display_w, display_h;

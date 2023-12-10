@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <GLFW/glfw3.h>
+
 #include "cpu.hpp"
 #include "cpu_cb.hpp"
 #include "memory.hpp"
@@ -29,17 +31,26 @@ bool cpu_halted{};
 bool IME_toggle{}; // Toggle to enable IME after one instruction with EI
 bool IME{}; // Interrupt Master Enable
 
+// A variable that stores the current frame's timestamp, to calculate time between frames
+float currentFrame;
+float delta_time = 0.0f;
+float last_frame = 0.0f;
+
 // Get info regarding the DMA (Direct Memory Access) transfers
 //#define DMA_DEBUG
 
 void execute_frame()
 {
+	new_frame_ready = false;
+	// Calculates elapsed time since last frame for time-based calculations
+	currentFrame = (float)glfwGetTime();
+	delta_time = currentFrame - last_frame;
+	last_frame = currentFrame;
+
 	while (!new_frame_ready)
 	{
 		handle_instruction();
 	}
-
-	new_frame_ready = false;
 }
 
 void handle_instruction()
