@@ -120,6 +120,20 @@ int setup_ImGui()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    // Setup texture for displaying the emulator to screen
+    glGenTextures(1, &display_texture);
+    glBindTexture(GL_TEXTURE_2D, display_texture);
+    // Setup filtering parameters for display
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Setup texture for displaying the VRAM to screen
+    glGenTextures(1, &vram_texture);
+    glBindTexture(GL_TEXTURE_2D, vram_texture);
+    // Setup filtering parameters for display
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     io = ImGui::GetIO();
 
 return 0;
@@ -223,12 +237,7 @@ void render_ImGui()
             }
         }
 
-        glGenTextures(1, &vram_texture);
         glBindTexture(GL_TEXTURE_2D, vram_texture);
-
-        // Setup filtering parameters for display
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 192, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, vram_buffer);
 
         ImGui::Begin("VRAM viewer");
@@ -329,12 +338,7 @@ void render_ImGui()
 
 void update_texture()
 {
-    glGenTextures(1, &display_texture);
     glBindTexture(GL_TEXTURE_2D, display_texture);
-
-    // Setup filtering parameters for display
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160, 144, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
 }
 
