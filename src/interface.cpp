@@ -19,7 +19,7 @@ const char* glsl_version;
 
 GLuint display_texture{};
 
-uint8_t vram_buffer[384 * 8 * 8 * 4]; // VRAM stores up to 384 8x8 tiles
+uint8_t vram_buffer[384 * 8 * 8 * 4]{}; // VRAM stores up to 384 8x8 tiles
 GLuint vram_texture{};
 
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -123,6 +123,7 @@ int setup_ImGui()
     // Setup texture for displaying the emulator to screen
     glGenTextures(1, &display_texture);
     glBindTexture(GL_TEXTURE_2D, display_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160, 144, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -130,6 +131,8 @@ int setup_ImGui()
     // Setup texture for displaying the VRAM to screen
     glGenTextures(1, &vram_texture);
     glBindTexture(GL_TEXTURE_2D, vram_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 192, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, vram_buffer);
+
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -238,7 +241,7 @@ void render_ImGui()
         }
 
         glBindTexture(GL_TEXTURE_2D, vram_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 192, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, vram_buffer);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 192, 128, GL_RGBA, GL_UNSIGNED_BYTE, vram_buffer);
 
         ImGui::Begin("VRAM viewer");
         ImGui::Image((void*)(intptr_t)vram_texture, ImVec2(192, 128));
@@ -339,7 +342,7 @@ void render_ImGui()
 void update_texture()
 {
     glBindTexture(GL_TEXTURE_2D, display_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160, 144, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
 }
 
 uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
