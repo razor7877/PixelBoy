@@ -23,11 +23,20 @@ struct CartridgeHeader
 	const uint8_t global_checksum[2]; // 0x14E - 0x14F
 };
 
+struct MBC1
+{
+	bool ram_enable;
+	uint8_t rom_bank; // 5 bit register (upper 3 bits are discarded)
+	uint8_t ram_bank;
+	uint8_t banking_mode;
+};
+
 extern uint8_t boot_rom[256];
 extern bool boot_done;
 // Enough space to load a 32 kB ROM, no MBC support for now
 extern uint8_t* rom;
 extern uint32_t rom_size;
+extern bool is_MBC_cartridge;
 
 int load_rom(std::string path);
 int load_boot_rom(std::string path);

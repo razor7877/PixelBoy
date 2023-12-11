@@ -9,12 +9,14 @@
 #include "cpu.hpp"
 
 uint8_t boot_rom[256]{};
+
 bool boot_done = true;
-//uint8_t rom[0x8000];
 uint8_t* rom;
 uint32_t rom_size{};
+bool is_MBC_cartridge{};
 
 CartridgeHeader cartridge_header{};
+MBC1 mbc1{}; // All MBC1 registers are initialized to 0 on GB, so zero-initializing struct should be fine
 
 int load_rom(std::string path)
 {
@@ -48,6 +50,7 @@ int load_rom(std::string path)
     case 0x01: // MBC1
         // With the MBC, number of ROM banks is 2 * 2**cartridge_size
         rom_size = 2 * ROM_BANK_SIZE * (1 << cartridge_header.cartridge_size);
+        is_MBC_cartridge = true;
         break;
     default:
         return -1;
@@ -105,23 +108,39 @@ void dump_header()
 
 uint8_t read_rom(uint16_t address)
 {
-    if (boot_done || address > 0xFF) // Accesses to 0x00-0xFF during startup are mapped to boot ROM
-        return rom[address];
-    else
+    if (!boot_done && address < 0xFF) // Accesses to 0x00-0xFF during startup are mapped to boot ROM
         return boot_rom[address];
+    else if (!is_MBC_cartridge || address <= 0x3FFF) // If ROM only or address lower than 0x3FFF, we are reading the fixed memory bank 0
+        return rom[address];
+
+    // Otherwise, if MBC1, and reading one of the mapped banks, return content of the currently mapped bank
+    return rom[ROM_BANK_SIZE * mbc1.rom_bank + address];
 }
 
 void write_rom(uint16_t address, uint8_t value)
 {
-    if (address >= 0000 && address <= 0x1FFF) // Ram enable/disable 
+    if (!is_MBC_cartridge)
     {
-        if ((value & 0x0F) == 0x0A)
+        printf("Rom write attempt (no MBC) ADR %x VALUE %x\n", address, value);
+    }
+    else if (address >= 0000 && address <= 0x1FFF) // Ram enable/disable 
+    {
+        if ((value & 0x0F) == 0x0A) // MBC1 enables RAM when the 4 lower bits of the written value equals 0xA
+        {
+            mbc1.ram_enable = true;
             printf("Write 0xA at ADR %x, cartridge RAM enable\n", address);
+        }  
         else
+        {
+            mbc1.ram_enable = false;
             printf("Write %x at ADR %x, cartridge RAM enable\n", value, address);
+        }
     }
     else if (address >= 0x2000 && address <= 0x3FFF) // Select ROM bank number
     {
+        // We mask the written value to the number of bits required to choose among the available number of ROM banks
+        uint8_t mask = (0b11 << cartridge_header.cartridge_size - 1);
+        mbc1.rom_bank = value & mask;
         printf("Change ROM bank number VALUE %x\n", value);
     }
     else if (address >= 0x4000 && address <= 0x5FFF) // Select RAM bank number
