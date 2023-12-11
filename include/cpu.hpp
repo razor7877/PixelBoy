@@ -59,6 +59,10 @@ void handle_instruction();
 void tick(uint8_t cycles);
 // Starts a DMA transfer from ROM to OAM
 void dma_transfer();
+// Resets the emulator to it's default state
+void reset_emulator();
+// Resets the CPU to it's default state
+void reset_cpu();
 
 // Returns the lower or upper byte of a given register
 uint8_t lower_byte(uint16_t value);

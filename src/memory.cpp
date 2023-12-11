@@ -70,3 +70,8 @@ void write_word(uint16_t address, uint16_t value)
 	write_byte(address, (value & 0x00FF));
 	write_byte(address + 1, (value & 0xFF00) >> 8);
 }
+
+void reset_memory()
+{
+	memset(&memory, 0, sizeof(memory));
+}

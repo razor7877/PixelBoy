@@ -57,6 +57,7 @@ void step_ppu(uint8_t cycles);
 void draw_scanline();
 void draw_tiles();
 void draw_sprites();
+void reset_ppu();
 uint8_t ppu_mode();
 
 uint8_t read_vram(uint16_t address);

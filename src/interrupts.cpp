@@ -72,3 +72,9 @@ void IE_clear(interrupts interrupt)
 {
 	IE &= ~interrupt;
 }
+
+void reset_interrupts()
+{
+	IE = 0;
+	IF = 0xE1;
+}

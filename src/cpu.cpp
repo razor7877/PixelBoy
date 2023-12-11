@@ -11,6 +11,7 @@
 #include "interrupts.hpp"
 #include "io.hpp"
 #include "ppu.hpp"
+#include "rom.hpp"
 
 uint32_t cycle_count{};
 uint16_t dma_cycles_left{};
@@ -32,7 +33,7 @@ bool IME_toggle{}; // Toggle to enable IME after one instruction with EI
 bool IME{}; // Interrupt Master Enable
 
 // A variable that stores the current frame's timestamp, to calculate time between frames
-float currentFrame;
+float currentFrame{};
 float delta_time = 0.0f;
 float last_frame = 0.0f;
 
@@ -41,6 +42,9 @@ float last_frame = 0.0f;
 
 void execute_frame()
 {
+	if (!rom_loaded)
+		return;
+
 	new_frame_ready = false;
 	// Calculates elapsed time since last frame for time-based calculations
 	currentFrame = (float)glfwGetTime();
@@ -55,6 +59,9 @@ void execute_frame()
 
 void handle_instruction()
 {
+	if (!rom_loaded)
+		return;
+
 	if (IME_toggle)
 	{
 		IME_toggle = 0;
@@ -135,6 +142,37 @@ void tick(uint8_t cycles)
 void dma_transfer()
 {
 	dma_cycles_left = DMA_DURATION;
+}
+
+void reset_emulator()
+{
+	reset_cpu();
+	reset_ppu();
+	reset_memory();
+	reset_interrupts();
+	reset_io();
+}
+
+void reset_cpu()
+{
+	cycle_count = 0;
+	dma_cycles_left = 0;
+
+	AF = 0x01B0;
+	BC = 0x0013;
+	DE = 0x00D8;
+	HL = 0x014D;
+
+	sp = 0xFFFE; // Stack pointer
+	pc = 0x100; // Program counter
+	uint8_t opcode = 0;
+
+	operand = 0;
+
+	cpu_stopped = false;
+	cpu_halted = false;
+	IME_toggle = false; // Toggle to enable IME after one instruction with EI
+	IME = false; // Interrupt Master Enable
 }
 
 uint8_t lower_byte(uint16_t value)

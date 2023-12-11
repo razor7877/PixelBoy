@@ -14,7 +14,8 @@
 uint8_t boot_rom[256]{};
 
 bool boot_done = true;
-uint8_t* rom;
+bool rom_loaded = false;
+uint8_t* rom{};
 uint32_t rom_size{};
 bool is_MBC_cartridge{};
 
@@ -25,6 +26,7 @@ int load_rom(std::string path)
 {
     // Make sure header info is empty
     memset(&cartridge_header, 0, sizeof(cartridge_header));
+    is_MBC_cartridge = false;
 
     FILE* romFile = fopen(path.c_str(), "rb");
     if (!romFile)
@@ -66,6 +68,10 @@ int load_rom(std::string path)
     // Finally, read full ROM contents into the array
     fread(rom, sizeof(uint8_t), rom_size, romFile);
     fclose(romFile);
+
+    rom_loaded = true;
+
+    return 0;
 }
 
 int load_boot_rom(std::string path)
@@ -86,6 +92,8 @@ int load_boot_rom(std::string path)
     rewind(romFile);
     fread(&boot_rom, sizeof(char), size, romFile);
     fclose(romFile);
+
+    return 0;
 }
 
 void unload_rom()
@@ -93,6 +101,8 @@ void unload_rom()
     delete[] rom;
     rom = nullptr;
     rom_size = 0x00;
+
+    rom_loaded = false;
 }
 
 void dump_header()
@@ -151,7 +161,7 @@ void write_rom(uint16_t address, uint8_t value)
         // We mask the written value to the number of bits required to choose among the available number of ROM banks
         uint8_t mask = (0b11 << cartridge_header.cartridge_size - 1);
         mbc1.rom_bank = value & mask;
-        if (mbc1.rom_bank == 0x00) mbc1.rom_bank == 0x01; // Assumed that we can safely change value to 1, since 0 maps to 1 anyway on real hardware
+        if (mbc1.rom_bank == 0x00) mbc1.rom_bank = 0x01; // Assumed that we can safely change value to 1, since 0 maps to 1 anyway on real hardware
 #ifdef ROM_DEBUG
         printf("Change ROM bank number VALUE %x\n", value);
 #endif

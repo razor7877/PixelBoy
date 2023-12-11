@@ -189,3 +189,19 @@ void tick_timer(uint8_t cycles)
 		}
 	}
 }
+
+void reset_io()
+{
+	io_register = 0xCF;
+
+	SB = 0;
+	SC = 0x7E;
+
+	DIV = 0xAB00;
+	TIMA = 0x00;
+	TMA = 0x00;
+	TAC = 0xF8;
+
+	TIMA_cycle_count = 0;
+	TIMA_max_cycles = 1024;
+}

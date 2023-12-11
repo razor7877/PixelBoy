@@ -15,4 +15,6 @@ void write_byte(uint16_t address, uint8_t value);
 // Attempts to write 2 bytes at given address
 void write_word(uint16_t address, uint16_t value);
 
+void reset_memory();
+
 #endif

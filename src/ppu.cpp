@@ -397,6 +397,32 @@ void draw_sprites()
 	}
 }
 
+void reset_ppu()
+{
+	ppu_cycle_count = 0;
+
+	memset(&vram, 0, sizeof(vram));
+	memset(&OAM, 0, sizeof(OAM));
+	LCDC = 0x91;
+	STAT = 0x81;
+	SCY = 0;
+	SCX = 0;
+	LY = 0x91;
+	LYC = 0x00;
+	DMA = 0xFF;
+	BGP = 0xFC;
+	OBP0 = 0;
+	OBP1 = 0;
+	WY = 0;
+	WX = 0;
+
+	dot_counter = 0;
+	dot_start = 0;
+	dot_end = 0;
+	start_frame = false;
+	new_frame_ready = false;
+}
+
 uint8_t ppu_mode()
 {
 	return STAT & 0x03;
@@ -473,6 +499,8 @@ uint8_t read_ppu(uint16_t address)
 
 	if (address == 0xFF4B)
 		return WX;
+
+	return 0;
 }
 
 void write_ppu(uint16_t address, uint8_t value)

@@ -35,4 +35,6 @@ bool get_key(joypad key);
 void update_timer_freq(uint8_t value);
 void tick_timer(uint8_t cycles);
 
+void reset_io();
+
 #endif

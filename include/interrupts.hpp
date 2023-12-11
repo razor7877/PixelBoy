@@ -23,4 +23,6 @@ void IF_clear(interrupts interrupt);
 bool IE_get(interrupts interrupt);
 void IE_clear(interrupts interrupt);
 
+void reset_interrupts();
+
 #endif

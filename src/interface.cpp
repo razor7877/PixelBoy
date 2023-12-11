@@ -82,7 +82,8 @@ void drop_callback(GLFWwindow* window, int count, const char** paths)
         printf("Dropped file: %s\n", paths[i]);
 
     unload_rom();
-    load_rom(paths[i]);
+    load_rom(paths[0]);
+    reset_emulator();
 }
 
 int setup_glfw()

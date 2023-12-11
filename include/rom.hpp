@@ -33,7 +33,8 @@ struct MBC1
 
 extern uint8_t boot_rom[256];
 extern bool boot_done;
-// Enough space to load a 32 kB ROM, no MBC support for now
+extern bool rom_loaded;
+// Space is dynamically allocated depending on the loaded ROM
 extern uint8_t* rom;
 extern uint32_t rom_size;
 extern bool is_MBC_cartridge;
