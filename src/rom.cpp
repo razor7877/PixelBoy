@@ -8,6 +8,9 @@
 #include "memory.hpp"
 #include "cpu.hpp"
 
+// Use this define for ROM related logging
+//#define ROM_DEBUG
+
 uint8_t boot_rom[256]{};
 
 bool boot_done = true;
@@ -53,6 +56,7 @@ int load_rom(std::string path)
         is_MBC_cartridge = true;
         break;
     default:
+        printf("Loaded ROM with a mapper that is not emulated: %x\n", cartridge_header.cartridge_type);
         return -1;
         break;
     }
@@ -93,7 +97,7 @@ void unload_rom()
 
 void dump_header()
 {
-    printf("Title: %s\n", cartridge_header.title);
+    printf("Loaded ROM into memory, cartridge header info:\n\nTitle: %s\n", cartridge_header.title);
     printf("New licensee code: %x%x\n", cartridge_header.new_licensee_code[0], cartridge_header.new_licensee_code[1]);
     printf("SGB flag: %x\n", cartridge_header.sgb_flag);
     printf("Cartridge type: %x\n", cartridge_header.cartridge_type);
@@ -103,7 +107,7 @@ void dump_header()
     printf("Old licensee code: %x\n", cartridge_header.old_licensee_code);
     printf("Mask ROM version: %x\n", cartridge_header.mask_rom_version);
     printf("Header checksum: %x\n", cartridge_header.header_checksum);
-    printf("Global checksum: %x%x\n", cartridge_header.global_checksum[0], cartridge_header.global_checksum[1]);
+    printf("Global checksum: %x%x\n\n", cartridge_header.global_checksum[0], cartridge_header.global_checksum[1]);
 }
 
 uint8_t read_rom(uint16_t address)
@@ -114,26 +118,32 @@ uint8_t read_rom(uint16_t address)
         return rom[address];
 
     // Otherwise, if MBC1, and reading one of the mapped banks, return content of the currently mapped bank
-    return rom[ROM_BANK_SIZE * mbc1.rom_bank + address];
+    return rom[ROM_BANK_SIZE * (mbc1.rom_bank - 1) + address];
 }
 
 void write_rom(uint16_t address, uint8_t value)
 {
     if (!is_MBC_cartridge)
     {
+#ifdef ROM_DEBUG
         printf("Rom write attempt (no MBC) ADR %x VALUE %x\n", address, value);
+#endif
     }
     else if (address >= 0000 && address <= 0x1FFF) // Ram enable/disable 
     {
         if ((value & 0x0F) == 0x0A) // MBC1 enables RAM when the 4 lower bits of the written value equals 0xA
         {
             mbc1.ram_enable = true;
+#ifdef ROM_DEBUG
             printf("Write 0xA at ADR %x, cartridge RAM enable\n", address);
+#endif
         }  
         else
         {
             mbc1.ram_enable = false;
+#ifdef ROM_DEBUG
             printf("Write %x at ADR %x, cartridge RAM enable\n", value, address);
+#endif
         }
     }
     else if (address >= 0x2000 && address <= 0x3FFF) // Select ROM bank number
@@ -141,18 +151,27 @@ void write_rom(uint16_t address, uint8_t value)
         // We mask the written value to the number of bits required to choose among the available number of ROM banks
         uint8_t mask = (0b11 << cartridge_header.cartridge_size - 1);
         mbc1.rom_bank = value & mask;
+        if (mbc1.rom_bank == 0x00) mbc1.rom_bank == 0x01; // Assumed that we can safely change value to 1, since 0 maps to 1 anyway on real hardware
+#ifdef ROM_DEBUG
         printf("Change ROM bank number VALUE %x\n", value);
+#endif
     }
     else if (address >= 0x4000 && address <= 0x5FFF) // Select RAM bank number
     {
+#ifdef ROM_DEBUG
         printf("Change RAM bank number VALUE %x\n", value);
+#endif
     }
     else if (address >= 0x6000 && address <= 0x7FFF) // Banking mode select
     {
+#ifdef ROM_DEBUG
         printf("Change banking mode VALUE %x\n", value);
+#endif
     }
     else
     {
+#ifdef ROM_DEBUG
         printf("Rom write attempt. ADR %x VALUE %x\n", address, value);
+#endif
     }
 }

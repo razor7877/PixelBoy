@@ -40,7 +40,7 @@ void tick_ppu(uint8_t cycles)
 		if (ppu_cycle_count > PPU_FREQ)
 		{
 			ppu_cycle_count %= PPU_FREQ;
-			printf("Ran full PPU cycle\n");
+			//printf("Ran full PPU cycle\n");
 		}
 			
 
@@ -303,8 +303,10 @@ void draw_sprites()
 		uint8_t tile_index = OAM[index + 2];
 		uint8_t attributes = OAM[index + 3];
 
-		bool y_flip = attributes & 0x40; // 6th bit
-		bool x_flip = attributes & 0x20; // 5th bit
+		bool x_flip = attributes & 0x10 >> 4; // 5th bit
+		bool y_flip = attributes & 0x20 >> 5; // 6th bit
+
+		x_flip = !x_flip;
 
 		uint8_t y_size = 8;
 		if (obj_large)
@@ -386,10 +388,10 @@ void draw_sprites()
 						break;
 				}
 
-				frame_buffer[LY * 160 * 4 + (tile_pixel * 4)] = buffer_color;
-				frame_buffer[LY * 160 * 4 + (tile_pixel * 4) + 1] = buffer_color;
-				frame_buffer[LY * 160 * 4 + (tile_pixel * 4) + 2] = buffer_color;
-				frame_buffer[LY * 160 * 4 + (tile_pixel * 4) + 3] = 0xFF;
+				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4)] = buffer_color;
+				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4) + 1] = buffer_color;
+				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4) + 2] = buffer_color;
+				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4) + 3] = 0xFF;
 			}
 		}
 	}

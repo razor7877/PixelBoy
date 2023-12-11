@@ -80,6 +80,9 @@ void drop_callback(GLFWwindow* window, int count, const char** paths)
     int i;
     for (i = 0; i < count; i++)
         printf("Dropped file: %s\n", paths[i]);
+
+    unload_rom();
+    load_rom(paths[i]);
 }
 
 int setup_glfw()

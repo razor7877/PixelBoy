@@ -97,7 +97,7 @@ void tick(uint8_t cycles)
 	if (cycle_count > CPU_FREQ)
 	{
 		cycle_count %= CPU_FREQ;
-		printf("Ran full CPU cycle\n");
+		//printf("Ran full CPU cycle\n");
 	}
 
 	cycle_count += cycles;
