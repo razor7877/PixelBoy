@@ -10,7 +10,9 @@
 
 uint8_t boot_rom[256]{};
 bool boot_done = true;
-uint8_t rom[0x8000]{};
+//uint8_t rom[0x8000];
+uint8_t* rom;
+uint32_t rom_size{};
 
 CartridgeHeader cartridge_header{};
 
@@ -20,7 +22,7 @@ int load_rom(std::string path)
     memset(&cartridge_header, 0, sizeof(cartridge_header));
 
     FILE* romFile = fopen(path.c_str(), "rb");
-    if (!rom)
+    if (!romFile)
     {
         std::cout << "ERROR OPENING ROM FILE" << std::endl;
         return -1;
@@ -37,8 +39,25 @@ int load_rom(std::string path)
 
     dump_header();
 
+    // We dynamically allocate rom array depending on the cartridge type and size
+    switch (cartridge_header.cartridge_type)
+    {
+    case 0x00: // ROM ONLY
+        rom_size = 0x8000;
+        break;
+    case 0x01: // MBC1
+        // With the MBC, number of ROM banks is 2 * 2**cartridge_size
+        rom_size = 2 * ROM_BANK_SIZE * (1 << cartridge_header.cartridge_size);
+        break;
+    default:
+        return -1;
+        break;
+    }
+
+    rom = new uint8_t[rom_size];
+
     // Finally, read full ROM contents into the array
-    fread(&rom, sizeof(uint8_t), 0x8000, romFile);
+    fread(rom, sizeof(uint8_t), rom_size, romFile);
     fclose(romFile);
 }
 
@@ -62,12 +81,19 @@ int load_boot_rom(std::string path)
     fclose(romFile);
 }
 
+void unload_rom()
+{
+    delete[] rom;
+    rom = nullptr;
+    rom_size = 0x00;
+}
+
 void dump_header()
 {
     printf("Title: %s\n", cartridge_header.title);
     printf("New licensee code: %x%x\n", cartridge_header.new_licensee_code[0], cartridge_header.new_licensee_code[1]);
     printf("SGB flag: %x\n", cartridge_header.sgb_flag);
-    printf("Cartridge type: %x\n", cartridge_header.cartride_type);
+    printf("Cartridge type: %x\n", cartridge_header.cartridge_type);
     printf("Cartridge size: %x\n", cartridge_header.cartridge_size);
     printf("Ram size: %x\n", cartridge_header.ram_size);
     printf("Destination code: %x\n", cartridge_header.destination_code);
@@ -87,5 +113,27 @@ uint8_t read_rom(uint16_t address)
 
 void write_rom(uint16_t address, uint8_t value)
 {
-    //printf("Rom write attempt. ADR %x VALUE %x\n", address, value);
+    if (address >= 0000 && address <= 0x1FFF) // Ram enable/disable 
+    {
+        if ((value & 0x0F) == 0x0A)
+            printf("Write 0xA at ADR %x, cartridge RAM enable\n", address);
+        else
+            printf("Write %x at ADR %x, cartridge RAM enable\n", value, address);
+    }
+    else if (address >= 0x2000 && address <= 0x3FFF) // Select ROM bank number
+    {
+        printf("Change ROM bank number VALUE %x\n", value);
+    }
+    else if (address >= 0x4000 && address <= 0x5FFF) // Select RAM bank number
+    {
+        printf("Change RAM bank number VALUE %x\n", value);
+    }
+    else if (address >= 0x6000 && address <= 0x7FFF) // Banking mode select
+    {
+        printf("Change banking mode VALUE %x\n", value);
+    }
+    else
+    {
+        printf("Rom write attempt. ADR %x VALUE %x\n", address, value);
+    }
 }

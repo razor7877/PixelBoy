@@ -13,7 +13,8 @@ int main(int, char**)
     //load_rom("roms/blargg/cpu_instrs/individual/11-op a,(hl).gb");
     //load_rom("roms/mooneye/acceptance/oam_dma_restart.gb");
     //load_rom("roms/Dr. Mario (World).gb");
-    load_rom("roms/Tetris (World) (Rev A).gb");
+    load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
+    //load_rom("roms/Tetris (World) (Rev A).gb");
 
     start_interface();
 
@@ -28,6 +29,8 @@ int main(int, char**)
     }
 
     stop_interface();
+
+    unload_rom();
 
     return 0;
 }

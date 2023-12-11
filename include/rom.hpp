@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string>
 
+#define ROM_BANK_SIZE 16384
+
 struct CartridgeHeader
 {
 	const uint8_t entry_point[4];
@@ -11,7 +13,7 @@ struct CartridgeHeader
 	const uint8_t title[16]; // 0x134 - 0x143
 	const uint8_t new_licensee_code[2]; // 0x144 - 0x145
 	const uint8_t sgb_flag; // 0x146
-	const uint8_t cartride_type; // 0x147
+	const uint8_t cartridge_type; // 0x147
 	const uint8_t cartridge_size; // 0x148
 	const uint8_t ram_size; // 0x149
 	const uint8_t destination_code; // 0x14A
@@ -24,10 +26,12 @@ struct CartridgeHeader
 extern uint8_t boot_rom[256];
 extern bool boot_done;
 // Enough space to load a 32 kB ROM, no MBC support for now
-extern uint8_t rom[0x8000];
+extern uint8_t* rom;
+extern uint32_t rom_size;
 
 int load_rom(std::string path);
 int load_boot_rom(std::string path);
+void unload_rom();
 void dump_header();
 
 uint8_t read_rom(uint16_t address);

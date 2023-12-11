@@ -212,7 +212,7 @@ void render_ImGui()
     // ROM explorer
     {
         static MemoryEditor rom_explorer;
-        rom_explorer.DrawWindow("ROM Explorer", rom, sizeof(rom));
+        rom_explorer.DrawWindow("ROM Explorer", rom, rom_size);
     }
 
     // VRAM explorer
