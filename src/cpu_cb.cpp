@@ -431,7 +431,7 @@ void set_7_l() { set_reg_lo(HL, lower_byte(HL) | 0x80); }
 void set_7_hlp() { write_byte(HL, read_byte(HL) | 0x80); }
 void set_7_a() { set_reg_hi(AF, upper_byte(AF) | 0x80); }
 
-extern const instruction cb_instructions[256] = {
+extern const Instruction cb_instructions[256] = {
 	{ "RLC B", 1, rlc_b, 8 }, // 0x0
 	{ "RLC C", 1, rlc_c, 8 }, // 0x1
 	{ "RLC D", 1, rlc_d, 8 }, // 0x2

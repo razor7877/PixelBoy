@@ -9,7 +9,7 @@
 
 // Corresponds to a CPU instruction/opcode
 // represented by a string mnemonic, the size of the operand (if any) and a pointer to the corresponding function
-struct instruction
+struct Instruction
 {
     const char* disassembly;
     uint8_t operand_length;
@@ -26,7 +26,7 @@ enum flags
     FLAG_CARRY = 0b00010000,
 };
 
-extern const instruction instructions[256];
+extern const Instruction instructions[256];
 
 extern uint32_t cycle_count;
 extern uint16_t dma_cycles_left;

@@ -931,7 +931,7 @@ void ei() { IME_toggle = 1; }
 void cp_n(uint8_t operand) { cp_r(operand); }
 void rst_38() { sp -= 2; write_word(sp, pc); pc = 0x38; }
 
-extern const instruction instructions[256] = {
+extern const Instruction instructions[256] = {
 	{ "NOP", 0, nop, 4 }, // 0x00
 	{ "LD BC,d16", 2, ld_bc_nn, 12 }, // 0x1
 	{ "LD (BC),A", 0, ld_bcp_a, 8 }, // 0x2

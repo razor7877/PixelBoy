@@ -5,7 +5,7 @@
 
 #include "cpu.hpp"
 
-extern const instruction cb_instructions[256];
+extern const Instruction cb_instructions[256];
 
 void cb_n(uint8_t cb_opcode);
 
