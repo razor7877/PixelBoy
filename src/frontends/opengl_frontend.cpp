@@ -26,6 +26,9 @@ GLuint VAO;
 GLuint VBO;
 GLuint tex_coords_BO;
 
+GLuint PBO; // Pixel buffer object
+void* pbo_mem; // Pointer to the memory allocated for the PBO
+
 // Startup resolution
 const int WINDOW_WIDTH = 480;
 const int WINDOW_HEIGHT = 432;
@@ -269,8 +272,11 @@ static void update_texture()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shader);
-    glBindVertexArray(VAO);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RED, GL_UNSIGNED_BYTE, frame_buffer);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
+    pbo_mem = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    memcpy(pbo_mem, frame_buffer, sizeof(frame_buffer));
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RED, GL_UNSIGNED_BYTE, 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -282,11 +288,15 @@ static int start_interface()
 
     compile_shaders();
     setup_quad();
+    
+    glGenBuffers(1, &PBO);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, sizeof(frame_buffer), frame_buffer, GL_STREAM_DRAW);
 
     // Setup texture for displaying the emulator to screen
     glGenTextures(1, &display_texture);
     glBindTexture(GL_TEXTURE_2D, display_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 160, 144, 0, GL_RED, GL_UNSIGNED_BYTE, frame_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 160, 144, 0, GL_RED, GL_UNSIGNED_BYTE, pbo_mem);
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
