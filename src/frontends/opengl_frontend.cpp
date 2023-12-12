@@ -26,6 +26,14 @@ GLuint VAO;
 GLuint VBO;
 GLuint tex_coords_BO;
 
+// Startup resolution
+const int WINDOW_WIDTH = 480;
+const int WINDOW_HEIGHT = 432;
+
+// Current resolution (can be changed by window resize callbacks)
+int windowWidth = WINDOW_WIDTH;
+int windowHeight = WINDOW_HEIGHT;
+
 const float quad_verts[] = {
     -1.0f, 1.0f, 0.0f, // Top left
     1.0f, 1.0f, 0.0f, // Top right
@@ -37,13 +45,13 @@ const float quad_verts[] = {
 };
 
 const float quad_tex_coords[] = {
-    0.0f, 1.0f, // Top left
-    1.0f, 1.0f, // Top right
-    0.0f, 0.0f, // Bottom left
+    0.0f, 0.0f, // Top left
+    1.0f, 0.0f, // Top right
+    0.0f, 1.0f, // Bottom left
 
-    1.0f, 1.0f, // Top right
-    1.0f, 0.0f, // Bottom right
-    0.0f, 0.0f, // Bottom left
+    1.0f, 0.0f, // Top right
+    1.0f, 1.0f, // Bottom right
+    0.0f, 1.0f, // Bottom left
 };
 
 
@@ -99,7 +107,27 @@ static void drop_callback(GLFWwindow* window, int count, const char** paths)
 
     unload_rom();
     if (load_rom(paths[0]) == 0)
+    {
         reset_emulator();
+        
+        // We create a null-terminated char array from the ROM title so that
+        // GLFW doesn't read out of bounds
+        char title[17];
+        for (int i = 0; i < 16; i++)
+        {
+            title[i] = cartridge_header.title[i];
+        }
+        title[16] = '\0';
+
+        glfwSetWindowTitle(window, title);
+    }
+}
+
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    windowWidth = width;
+    windowHeight = height;
+    glViewport(0, 0, width, height);
 }
 
 // Sets up GLFW context
@@ -115,7 +143,7 @@ static int setup_glfw()
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
-    window = glfwCreateWindow(480, 432, "GameBoy Emulator", NULL, NULL);
+    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Load a ROM file to run", NULL, NULL);
     if (window == NULL)
     {
         printf("Failed to create GLFW window\n");
@@ -128,6 +156,7 @@ static int setup_glfw()
     // Set callback functions for window resizing and handling input
     glfwSetKeyCallback(window, key_callback);
     glfwSetDropCallback(window, drop_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Check if GLAD loaded successfully
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -146,10 +175,9 @@ static void compile_shaders()
     "layout(location = 0) in vec3 aPos;"
     "layout(location = 1) in vec2 aTexCoord;"
     "out vec2 TexCoord;"
-    "uniform mat4 model;"
     "void main()"
     "{"
-    "   gl_Position = model * vec4(aPos, 1.0);"
+    "   gl_Position = vec4(aPos, 1.0);"
     "   TexCoord = aTexCoord;"
     "}";
 
@@ -161,7 +189,7 @@ static void compile_shaders()
     "void main()"
     "{"
     "   vec4 texColor = texture(texture1, TexCoord);"
-    "   FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+    "   FragColor = texColor;"
     "}";
 
     unsigned int vertex, fragment;
@@ -241,8 +269,8 @@ static void update_texture()
 
     glUseProgram(shader);
     glBindVertexArray(VAO);
-    //glBindTexture(GL_TEXTURE_2D, display_texture);
-    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
+    glBindTexture(GL_TEXTURE_2D, display_texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 

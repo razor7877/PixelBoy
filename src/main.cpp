@@ -15,11 +15,7 @@ int main(int, char**)
     //load_boot_rom("roms/dmg_boot.bin");
     //load_rom("roms/blargg/cpu_instrs/cpu_instrs.gb");
     //load_rom("roms/blargg/cpu_instrs/individual/01-special.gb");
-    //load_rom("roms/mooneye/acceptance/oam_dma_restart.gb");
-    //load_rom("roms/Dr. Mario (World).gb");
-    load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
-    //load_rom("roms/Pokemon - Blue Version (USA, Europe) (SGB Enhanced).gb");
-    //load_rom("roms/Tetris (World) (Rev A).gb");
+    //load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
 
     if (frontend.start() != 0)
         return -1;

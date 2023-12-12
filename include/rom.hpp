@@ -31,6 +31,8 @@ struct MBC1
 	uint8_t banking_mode;
 };
 
+extern CartridgeHeader cartridge_header;
+
 extern uint8_t boot_rom[256];
 extern bool boot_done;
 extern bool rom_loaded;
