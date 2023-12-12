@@ -93,6 +93,12 @@ int load_boot_rom(std::string path)
     fread(&boot_rom, sizeof(char), size, romFile);
     fclose(romFile);
 
+    // Dirty fix for blargg's indidivual test ROMs having cartridge size of 0 (which causes incorrect ROM reads)
+    if (cartridge_header.cartridge_type == 0x01 && cartridge_header.cartridge_size == 0x00)
+    {
+        memset((void*)&(cartridge_header.cartridge_size), 0x01, sizeof(char));
+    }
+
     return 0;
 }
 

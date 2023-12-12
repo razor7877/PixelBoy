@@ -132,7 +132,7 @@ void clear_key(joypad key)
 
 bool get_key(joypad key)
 {
-	return true;//!(io_register & key);
+	return !(io_register & key);
 }
 
 void update_timer_freq(uint8_t value)

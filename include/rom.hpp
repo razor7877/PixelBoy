@@ -47,4 +47,6 @@ void dump_header();
 uint8_t read_rom(uint16_t address);
 void write_rom(uint16_t address, uint8_t value);
 
+void reset_rom();
+
 #endif
