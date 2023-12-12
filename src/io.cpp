@@ -6,7 +6,7 @@
 #include "interrupts.hpp"
 #include "ppu.hpp"
 #include "rom.hpp"
-#include <interface.hpp>
+#include "frontends/imgui_frontend.hpp"
 
 #define DIV_FREQ 16384
 

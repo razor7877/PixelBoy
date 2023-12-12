@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "main.hpp"
-#include "interface.hpp"
+#include "frontends/imgui_frontend.hpp"
 #include "cpu.hpp"
 #include "memory.hpp"
 #include "io.hpp"

@@ -3,7 +3,7 @@
 
 #include "main.hpp"
 #include "cpu.hpp"
-#include "interface.hpp"
+#include "frontends/imgui_frontend.hpp"
 #include "rom.hpp"
 
 // Main code
