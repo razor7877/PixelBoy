@@ -303,8 +303,6 @@ void draw_sprites()
 		bool x_flip = attributes & 0x10 >> 4; // 5th bit
 		bool y_flip = attributes & 0x20 >> 5; // 6th bit
 
-		x_flip = !x_flip;
-
 		uint8_t y_size = 8;
 		if (obj_large)
 			y_size = 16;

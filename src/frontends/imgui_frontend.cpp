@@ -13,6 +13,7 @@
 #include "interrupts.hpp"
 #include "rom.hpp"
 #include "ppu.hpp"
+#include "timer.hpp"
 
 struct Frontend ImGui_Frontend = {
     start_interface,

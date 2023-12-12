@@ -20,20 +20,12 @@ extern uint8_t io_register; // 0xFF00 : Joypad input
 extern uint8_t SB; // 0xFF01 : Serial transfer data
 extern uint8_t SC; // 0xFF02 : Serial transfer control
 
-extern uint16_t DIV; // 0xFF04 : Divider register
-extern uint8_t TIMA; // 0xFF05 : Timer counter
-extern uint8_t TMA; // 0xFF06 : Timer modulo
-extern uint8_t TAC; // 0xFF07 : Timer control
-
 uint8_t read_io(uint16_t address);
 void write_io(uint16_t address, uint8_t value);
 
 void set_key(joypad key);
 void clear_key(joypad key);
 bool get_key(joypad key);
-
-void update_timer_freq(uint8_t value);
-void tick_timer(uint8_t cycles);
 
 void reset_io();
 

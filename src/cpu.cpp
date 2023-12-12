@@ -12,6 +12,7 @@
 #include "io.hpp"
 #include "ppu.hpp"
 #include "rom.hpp"
+#include "timer.hpp"
 
 uint32_t cycle_count{};
 uint16_t dma_cycles_left{};
@@ -42,6 +43,8 @@ float average_delta_time = 0.0f;
 int frame_count = FRAME_COUNT;
 float frame_sum = 0.0f;
 
+// Log average FPS to the console
+#define FPS_DEBUG
 // Get info regarding the DMA (Direct Memory Access) transfers
 //#define DMA_DEBUG
 
@@ -55,8 +58,9 @@ void execute_frame()
 		average_delta_time = frame_sum / frame_count;
 		frame_count = 0;
 		frame_sum = 0;
-		
+#ifdef FPS_DEBUG
 		printf("FPS: %f\n", 1.0f / average_delta_time);
+#endif
 	}
 	else
 	{
