@@ -6,9 +6,11 @@
 #include "interrupts.hpp"
 #include "ppu.hpp"
 #include "rom.hpp"
-#include "frontends/imgui_frontend.hpp"
+#include "frontends/frontend.hpp"
 
 #define DIV_FREQ 16384
+
+extern Frontend frontend;
 
 uint8_t io_register = 0xCF;
 
@@ -32,7 +34,7 @@ uint8_t read_io(uint16_t address)
 {
 	if (address == 0xFF00)
 	{
-		update_io();
+		frontend.update_io();
 		return io_register;
 	}
 

@@ -4,8 +4,9 @@
 #include "ImGui/imgui_memory_editor.h"
 #include <stdio.h>
 
-#include "main.hpp"
+#include "frontends/frontend.hpp"
 #include "frontends/imgui_frontend.hpp"
+#include "main.hpp"
 #include "cpu.hpp"
 #include "memory.hpp"
 #include "io.hpp"
@@ -13,11 +14,17 @@
 #include "rom.hpp"
 #include "ppu.hpp"
 
-// OpenGL context
-GLFWwindow* window;
-const char* glsl_version;
+struct Frontend ImGui_Frontend = {
+    start_interface,
+    update_interface,
+    stop_interface,
+    update_io
+};
 
-GLuint display_texture{};
+// OpenGL context
+static GLFWwindow* window;
+static GLuint display_texture{};
+const char* glsl_version;
 
 uint8_t vram_buffer[384 * 8 * 8 * 4]{}; // VRAM stores up to 384 8x8 tiles
 GLuint vram_texture{};
@@ -29,7 +36,7 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 
@@ -75,7 +82,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
-void drop_callback(GLFWwindow* window, int count, const char** paths)
+static void drop_callback(GLFWwindow* window, int count, const char** paths)
 {
     int i;
     for (i = 0; i < count; i++)
@@ -86,7 +93,7 @@ void drop_callback(GLFWwindow* window, int count, const char** paths)
         reset_emulator();
 }
 
-int setup_glfw()
+static int setup_glfw()
 {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -107,7 +114,7 @@ int setup_glfw()
     return 0;
 }
 
-int setup_ImGui()
+static int setup_ImGui()
 {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -146,7 +153,7 @@ int setup_ImGui()
 return 0;
 }
 
-void render_ImGui()
+static void render_ImGui()
 {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -343,13 +350,13 @@ void render_ImGui()
     glfwSwapBuffers(window);
 }
 
-void update_texture()
+static void update_texture()
 {
     glBindTexture(GL_TEXTURE_2D, display_texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
 }
 
-uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
+static uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
 {
     uint8_t row = vram[tile_start + (pixel / 8) + (pixel % 8)];
     uint8_t upper_byte_mask = 0x1 << (8 + pixel % 8); // 0b10000000
@@ -359,7 +366,48 @@ uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
     return color;
 }
 
-void update_io()
+// Sets up everything required for the interface
+static int start_interface()
+{
+    if (setup_glfw() != 0)
+        return -1;
+
+    setup_ImGui();
+
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetDropCallback(window, drop_callback);
+
+    update_texture();
+
+    return 0;
+}
+
+// Updates the interface (called once per frame)
+static int update_interface()
+{
+    glfwPollEvents();
+
+    render_ImGui();
+
+    if (glfwWindowShouldClose(window))
+        return 1;
+
+    return 0;
+}
+
+// Closes the interface and cleans up
+static void stop_interface()
+{
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+
+static void update_io()
 {
     if (get_key(JOYPAD_DIRECTION))
     {
@@ -407,42 +455,4 @@ void update_io()
     }
     else { io_register = (io_register & 0xF0) | 0x0F; }
 
-}
-
-int start_interface()
-{
-    if (setup_glfw() != 0)
-        return -1;
-
-    setup_ImGui();
-
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetDropCallback(window, drop_callback);
-
-    update_texture();
-
-    return 0;
-}
-
-int update_interface()
-{
-    glfwPollEvents();
-
-    render_ImGui();
-
-    if (glfwWindowShouldClose(window))
-        return 1;
-
-    return 0;
-}
-
-void stop_interface()
-{
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }
