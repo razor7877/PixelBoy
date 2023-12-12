@@ -188,8 +188,9 @@ static void compile_shaders()
     "uniform sampler2D texture1;"
     "void main()"
     "{"
-    "   vec4 texColor = texture(texture1, TexCoord);"
-    "   FragColor = vec4(texColor.r, 0.0, 0.0, 1.0);"
+    "   float col = texture(texture1, TexCoord).r;"
+    "   vec3 green_scale = vec3(col * (128.0f / 255.0f), col * (160.0f / 255.0f), 48.0f / 255.0f);"
+    "   FragColor = vec4(green_scale, 1.0);"
     "}";
 
     unsigned int vertex, fragment;
@@ -269,8 +270,7 @@ static void update_texture()
 
     glUseProgram(shader);
     glBindVertexArray(VAO);
-    glBindTexture(GL_TEXTURE_2D, display_texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGB, GL_UNSIGNED_BYTE, frame_buffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RED, GL_UNSIGNED_BYTE, frame_buffer);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -286,7 +286,7 @@ static int start_interface()
     // Setup texture for displaying the emulator to screen
     glGenTextures(1, &display_texture);
     glBindTexture(GL_TEXTURE_2D, display_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 160, 144, 0, GL_RGB, GL_UNSIGNED_BYTE, frame_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 160, 144, 0, GL_RED, GL_UNSIGNED_BYTE, frame_buffer);
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

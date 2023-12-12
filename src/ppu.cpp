@@ -29,7 +29,7 @@ uint32_t dot_end{};
 bool start_frame = false;
 bool new_frame_ready = false;
 
-uint8_t frame_buffer[160 * 144 * 3]{};
+uint8_t frame_buffer[160 * 144]{};
 
 void tick_ppu(uint8_t cycles)
 {
@@ -281,9 +281,7 @@ void draw_tiles()
 				break;
 		}
 
-		frame_buffer[LY * 160 * 3 + (pixel * 3)] = buffer_color;
-		frame_buffer[LY * 160 * 3 + (pixel * 3) + 1] = buffer_color;
-		frame_buffer[LY * 160 * 3 + (pixel * 3) + 2] = buffer_color;
+		frame_buffer[LY * 160 + pixel] = buffer_color;
 	}
 }
 
@@ -387,10 +385,7 @@ void draw_sprites()
 						break;
 				}
 
-				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4)] = buffer_color;
-				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4) + 1] = buffer_color;
-				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4) + 2] = buffer_color;
-				frame_buffer[LY * 160 * 4 + ((x_pos + tile_pixel) * 4) + 3] = 0xFF;
+				frame_buffer[LY * 160 + x_pos + tile_pixel] = buffer_color;
 			}
 		}
 	}

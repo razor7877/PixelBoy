@@ -50,7 +50,8 @@ extern uint8_t OBP1; // 0xFF49 : OBJ palette 1
 extern uint8_t WY; // 0xFF4A : Window Y position
 extern uint8_t WX; // 0xFF4B : Window X position
 
-extern uint8_t frame_buffer[160 * 144 * 3];
+// Frame buffer contains 8 bits per pixel
+extern uint8_t frame_buffer[160 * 144];
 
 void tick_ppu(uint8_t cycles);
 void step_ppu(uint8_t cycles);

@@ -134,7 +134,7 @@ static int setup_ImGui()
     // Setup texture for displaying the emulator to screen
     glGenTextures(1, &display_texture);
     glBindTexture(GL_TEXTURE_2D, display_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 160, 144, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 160, 144, 0, GL_RED, GL_UNSIGNED_BYTE, frame_buffer);
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -142,7 +142,7 @@ static int setup_ImGui()
     // Setup texture for displaying the VRAM to screen
     glGenTextures(1, &vram_texture);
     glBindTexture(GL_TEXTURE_2D, vram_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 192, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, vram_buffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 192, 128, 0, GL_RED, GL_UNSIGNED_BYTE, vram_buffer);
 
     // Setup filtering parameters for display
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -244,15 +244,12 @@ static void render_ImGui()
                     uint32_t pixel_address = (64 * 4 * tile) + ((row * 8 + pixel) * 4);
 
                     vram_buffer[pixel_address] = 0x3F * color;
-                    vram_buffer[pixel_address + 1] = 0x3F * color;
-                    vram_buffer[pixel_address + 2] = 0x3F * color;
-                    vram_buffer[pixel_address + 3] = 0x3F * color;
                 }
             }
         }
 
         glBindTexture(GL_TEXTURE_2D, vram_texture);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 192, 128, GL_RGBA, GL_UNSIGNED_BYTE, vram_buffer);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 192, 128, GL_RED, GL_UNSIGNED_BYTE, vram_buffer);
 
         ImGui::Begin("VRAM viewer");
         ImGui::Image((void*)(intptr_t)vram_texture, ImVec2(192, 128));
@@ -353,7 +350,7 @@ static void render_ImGui()
 static void update_texture()
 {
     glBindTexture(GL_TEXTURE_2D, display_texture);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, frame_buffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RED, GL_UNSIGNED_BYTE, frame_buffer);
 }
 
 static uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel)
