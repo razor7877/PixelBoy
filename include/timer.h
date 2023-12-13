@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include <cstdint>
+#include <stdint.h>
 
 #define DIV_FREQ 16384
 

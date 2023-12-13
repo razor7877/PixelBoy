@@ -1,20 +1,21 @@
-#include <cstdint>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
-#include "frontends/frontend.hpp"
-#include "cpu.hpp"
-#include "io.hpp"
-#include "interrupts.hpp"
-#include "ppu.hpp"
-#include "rom.hpp"
-#include "timer.hpp"
-#include "apu.hpp"
+#include "frontends/frontend.h"
+#include "cpu.h"
+#include "io.h"
+#include "interrupts.h"
+#include "ppu.h"
+#include "rom.h"
+#include "timer.h"
+#include "apu.h"
 
-extern Frontend frontend;
+extern struct Frontend frontend;
 
 uint8_t io_register = 0xCF;
 
-uint8_t SB{};
+uint8_t SB = 0;
 uint8_t SC = 0x7E;
 
 // Get logs for IO register writes

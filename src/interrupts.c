@@ -1,9 +1,9 @@
-#include <iostream>
+#include <stdbool.h>
 
-#include "interrupts.hpp"
-#include "cpu.hpp"
+#include "interrupts.h"
+#include "cpu.h"
 
-uint8_t IE{};
+uint8_t IE = 0;
 uint8_t IF = 0xE1;
 
 void service_interrupts()

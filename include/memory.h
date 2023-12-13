@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <cstdint>
+#include <stdint.h>
 
 extern uint8_t memory[0x10000];
 

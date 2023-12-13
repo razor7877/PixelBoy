@@ -2,14 +2,14 @@
 
 #include <glad/glad.h>
 
-#include "frontends/opengl_frontend.hpp"
-#include "main.hpp"
-#include "cpu.hpp"
-#include "memory.hpp"
-#include "io.hpp"
-#include "interrupts.hpp"
-#include "rom.hpp"
-#include "ppu.hpp"
+#include "frontends/opengl_frontend.h"
+#include "main.h"
+#include "cpu.h"
+#include "memory.h"
+#include "io.h"
+#include "interrupts.h"
+#include "rom.h"
+#include "ppu.h"
 
 struct Frontend OpenGL_Frontend = {
     start_interface,
@@ -19,7 +19,7 @@ struct Frontend OpenGL_Frontend = {
 };
 
 static GLFWwindow* window;
-static GLuint display_texture{};
+static GLuint display_texture = 0;
 
 GLuint shader;
 GLuint VAO;
@@ -30,8 +30,8 @@ GLuint PBO; // Pixel buffer object
 void* pbo_mem; // Pointer to the memory allocated for the PBO
 
 // Startup resolution
-const int WINDOW_WIDTH = 480;
-const int WINDOW_HEIGHT = 432;
+#define WINDOW_WIDTH 480
+#define WINDOW_HEIGHT 432
 
 // Current resolution (can be changed by window resize callbacks)
 int windowWidth = WINDOW_WIDTH;

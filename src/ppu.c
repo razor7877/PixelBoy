@@ -1,35 +1,35 @@
 #include <stdio.h>
-#include <cstring>
+#include <stdbool.h>
 
-#include "ppu.hpp"
-#include "cpu.hpp"
-#include "interrupts.hpp"
-#include "memory.hpp"
+#include "ppu.h"
+#include "cpu.h"
+#include "interrupts.h"
+#include "memory.h"
 
-uint32_t ppu_cycle_count{};
+uint32_t ppu_cycle_count = 0;
 
-uint8_t vram[8192]{};
-uint8_t OAM[160]{};
+uint8_t vram[8192] = {0};
+uint8_t OAM[160] = {0};
 uint8_t LCDC = 0x91;
 uint8_t STAT = 0x81;
-uint8_t SCY{};
-uint8_t SCX{};
+uint8_t SCY = 0;
+uint8_t SCX = 0;
 uint8_t LY = 0x91;
 uint8_t LYC = 0x00;
 uint8_t DMA = 0xFF;
 uint8_t BGP = 0xFC;
-uint8_t OBP0{};
-uint8_t OBP1{};
-uint8_t WY{};
-uint8_t WX{};
+uint8_t OBP0 = 0;
+uint8_t OBP1 = 0;
+uint8_t WY = 0;
+uint8_t WX = 0;
 
-uint32_t dot_counter{};
-uint32_t dot_start{};
-uint32_t dot_end{};
+uint32_t dot_counter = 0;
+uint32_t dot_start = 0;
+uint32_t dot_end = 0;
 bool start_frame = false;
 bool new_frame_ready = false;
 
-uint8_t frame_buffer[160 * 144]{};
+uint8_t frame_buffer[160 * 144] = {0};
 
 void tick_ppu(uint8_t cycles)
 {
@@ -138,8 +138,8 @@ void draw_scanline()
 
 void draw_tiles()
 {
-	uint16_t tile_data{};
-	uint16_t background_memory{};
+	uint16_t tile_data = 0;
+	uint16_t background_memory = 0;
 	bool unsig = true;
 
 	uint8_t win_x = WX - 7;
@@ -177,7 +177,7 @@ void draw_tiles()
 			background_memory = 0x9800;
 	}
 
-	uint8_t y_pos{};
+	uint8_t y_pos = 0;
 
 	// y_pos is used to calculate which of 32 vertical tiles the current
 	// scanline is drawing
@@ -237,7 +237,7 @@ void draw_tiles()
 		uint8_t second_bit = (data_2 & color_mask) >> color_bit;
 		uint8_t color_num = first_bit | (second_bit << 1);
 
-		uint8_t color{};
+		uint8_t color = 0;
 
 		// Get actual color from palette as 2 bit value
 		switch (color_num)
@@ -259,7 +259,7 @@ void draw_tiles()
 				break;
 		}
 		
-		uint8_t buffer_color{};
+		uint8_t buffer_color = 0;
 
 		// Get corresponding RGBA color from the 2 bit value
 		switch (color)
@@ -339,7 +339,7 @@ void draw_sprites()
 				uint8_t second_bit = (data_2 & color_mask) >> color_bit;
 				uint8_t color_num = first_bit | (second_bit << 1);
 
-				uint8_t color{};
+				uint8_t color = 0;
 
 				// Get actual color from palette as 2 bit value
 				switch (color_num)
@@ -361,7 +361,7 @@ void draw_sprites()
 						break;
 				}
 
-				uint8_t buffer_color{};
+				uint8_t buffer_color = 0;
 
 				// Get corresponding RGBA color from the 2 bit value
 				switch (color)

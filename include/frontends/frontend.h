@@ -1,5 +1,5 @@
-#ifndef FRONTEND_HPP
-#define FRONTEND_HPP
+#ifndef FRONTEND_H
+#define FRONTEND_H
 
 struct Frontend
 {

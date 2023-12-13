@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "apu.hpp"
+#include "apu.h"
 
 // Sound channel 1
 uint8_t NR10 = 0x80;
@@ -33,7 +33,7 @@ uint8_t NR50 = 0x77;
 uint8_t NR51 = 0xF3;
 uint8_t NR52 = 0xF1;
 
-uint8_t wave_ram[16]{};
+uint8_t wave_ram[16] = {0};
 
 uint8_t read_apu(uint16_t address)
 {

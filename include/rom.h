@@ -1,8 +1,8 @@
 #ifndef ROM_H
 #define ROM_H
 
-#include <cstdint>
-#include <string>
+#include <stdint.h>
+#include <stdbool.h>
 
 #define ROM_BANK_SIZE 16384
 
@@ -31,7 +31,7 @@ struct MBC1
 	uint8_t banking_mode;
 };
 
-extern CartridgeHeader cartridge_header;
+extern struct CartridgeHeader cartridge_header;
 
 extern uint8_t boot_rom[256];
 extern bool boot_done;
@@ -41,14 +41,12 @@ extern uint8_t* rom;
 extern uint32_t rom_size;
 extern bool is_MBC_cartridge;
 
-int load_rom(std::string path);
-int load_boot_rom(std::string path);
+int load_rom(const char* path);
+int load_boot_rom(const char* path);
 void unload_rom();
 void dump_header();
 
 uint8_t read_rom(uint16_t address);
 void write_rom(uint16_t address, uint8_t value);
-
-void reset_rom();
 
 #endif

@@ -1,7 +1,7 @@
-#ifndef APU_HPP
-#define APU_HPP
+#ifndef APU_H
+#define APU_H
 
-#include <cstdint>
+#include <stdint.h>
 
 // Sound channel 1
 extern uint8_t NR10;

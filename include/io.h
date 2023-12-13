@@ -1,7 +1,9 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-enum joypad
+#include <stdbool.h>
+
+typedef enum
 {
 	JOYPAD_ACTION = 0b00100000,
 	JOYPAD_DIRECTION = 0b00010000,
@@ -13,7 +15,7 @@ enum joypad
 	JOYPAD_B = 0b00000010,
 	JOYPAD_RIGHT = 0b00000001,
 	JOYPAD_A = 0b00000001,
-};
+} joypad;
 
 extern uint8_t io_register; // 0xFF00 : Joypad input
 

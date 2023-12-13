@@ -1,11 +1,11 @@
 #ifndef CPU_CB_H
 #define CPU_CB_H
 
-#include <cstdint>
+#include <stdint.h>
 
-#include "cpu.hpp"
+#include "cpu.h"
 
-extern const Instruction cb_instructions[256];
+extern const struct Instruction cb_instructions[];
 
 void cb_n(uint8_t cb_opcode);
 

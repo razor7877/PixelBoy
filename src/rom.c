@@ -2,36 +2,37 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "rom.hpp"
-#include "memory.hpp"
-#include "cpu.hpp"
+#include "rom.h"
+#include "memory.h"
+#include "cpu.h"
 
 // Use this define for ROM related logging
 //#define ROM_DEBUG
 
-uint8_t boot_rom[256]{};
+uint8_t boot_rom[256] = {0};
 
 bool boot_done = true;
 bool rom_loaded = false;
-uint8_t* rom{};
-uint32_t rom_size{};
-bool is_MBC_cartridge{};
+uint8_t* rom = 0;
+uint32_t rom_size = 0;
+bool is_MBC_cartridge = false;
 
-CartridgeHeader cartridge_header{};
-MBC1 mbc1{}; // All MBC1 registers are initialized to 0 on GB, so zero-initializing struct should be fine
+struct CartridgeHeader cartridge_header = {0};
+struct MBC1 mbc1 = {0}; // All MBC1 registers are initialized to 0 on GB, so zero-initializing struct should be fine
 
-int load_rom(std::string path)
+int load_rom(const char* path)
 {
     // Make sure header info is empty
     memset(&cartridge_header, 0, sizeof(cartridge_header));
     is_MBC_cartridge = false;
 
-    FILE* romFile = fopen(path.c_str(), "rb");
+    FILE* romFile = fopen(path, "rb");
     if (!romFile)
     {
-        std::cout << "ERROR OPENING ROM FILE" << std::endl;
+        printf("Error opening ROM file!\n");
         return -1;
     }
 
@@ -63,7 +64,14 @@ int load_rom(std::string path)
         break;
     }
 
-    rom = new uint8_t[rom_size];
+    rom = malloc(rom_size);
+
+    if (rom == NULL)
+    {
+        // Handle allocation failure
+        fprintf(stderr, "Memory allocation failed\n");
+        return -1;
+    }
 
     // Finally, read full ROM contents into the array
     fread(rom, sizeof(uint8_t), rom_size, romFile);
@@ -74,15 +82,15 @@ int load_rom(std::string path)
     return 0;
 }
 
-int load_boot_rom(std::string path)
+int load_boot_rom(const char* path)
 {
     boot_done = false;
     pc = 0x00;
 
-    FILE* romFile = fopen(path.c_str(), "rb");
+    FILE* romFile = fopen(path, "rb");
     if (!rom)
     {
-        std::cout << "ERROR OPENING ROM FILE" << std::endl;
+        printf("Error opening BOOT ROM file!\n");
         return -1;
     }
 
@@ -104,8 +112,8 @@ int load_boot_rom(std::string path)
 
 void unload_rom()
 {
-    delete[] rom;
-    rom = nullptr;
+    free(rom);
+    rom = NULL;
     rom_size = 0x00;
 
     rom_loaded = false;

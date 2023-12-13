@@ -1,11 +1,11 @@
-#ifndef IMGUI_FRONTEND_H
-#define IMGUI_FRONTEND_H
+#ifndef OPENGL_FRONTEND_H
+#define OPENGL_FRONTEND_H
 
 #include <GLFW/glfw3.h>
 
-#include "frontends/frontend.hpp"
+#include "frontends/frontend.h"
 
-extern struct Frontend ImGui_Frontend;
+extern struct Frontend OpenGL_Frontend;
 
 static void glfw_error_callback(int error, const char* description);
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -13,13 +13,11 @@ static void drop_callback(GLFWwindow* window, int count, const char** paths);
 
 // Sets up GLFW context
 static int setup_glfw();
-// Sets up ImGui context
-static int setup_ImGui();
+static void compile_shaders();
+static void setup_quad();
 
-static void render_ImGui();
 // Update the texture that is used to display the emulator screen
 static void update_texture();
-static uint8_t get_vram_pixel(uint16_t tile_start, uint8_t pixel);
 
 // Sets up everything required for the interface
 static int start_interface();

@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdbool.h>
 
-#include "cpu_cb.hpp"
-#include "memory.hpp"
+#include "cpu.h"
+#include "cpu_cb.h"
+#include "memory.h"
 
 void cb_n(uint8_t cb_opcode)
 {
@@ -159,73 +161,73 @@ void bit(uint8_t bit, uint8_t value)
 	set_flags(FLAG_HALFCARRY);
 }
 
-void rlc_b() { set_reg_hi(BC, rlc(upper_byte(BC))); }
-void rlc_c() { set_reg_lo(BC, rlc(lower_byte(BC))); }
-void rlc_d() { set_reg_hi(DE, rlc(upper_byte(DE))); }
-void rlc_e() { set_reg_lo(DE, rlc(lower_byte(DE))); }
-void rlc_h() { set_reg_hi(HL, rlc(upper_byte(HL))); }
-void rlc_l() { set_reg_lo(HL, rlc(lower_byte(HL))); }
+void rlc_b() { set_reg_hi(&BC, rlc(upper_byte(BC))); }
+void rlc_c() { set_reg_lo(&BC, rlc(lower_byte(BC))); }
+void rlc_d() { set_reg_hi(&DE, rlc(upper_byte(DE))); }
+void rlc_e() { set_reg_lo(&DE, rlc(lower_byte(DE))); }
+void rlc_h() { set_reg_hi(&HL, rlc(upper_byte(HL))); }
+void rlc_l() { set_reg_lo(&HL, rlc(lower_byte(HL))); }
 void rlc_hlp() { write_byte(HL, rlc(read_byte(HL))); }
-void rlc_a() { set_reg_hi(AF, rlc(upper_byte(AF))); }
-void rrc_b() { set_reg_hi(BC, rrc(upper_byte(BC))); }
-void rrc_c() { set_reg_lo(BC, rrc(lower_byte(BC))); }
-void rrc_d() { set_reg_hi(DE, rrc(upper_byte(DE))); }
-void rrc_e() { set_reg_lo(DE, rrc(lower_byte(DE))); }
-void rrc_h() { set_reg_hi(HL, rrc(upper_byte(HL))); }
-void rrc_l() { set_reg_lo(HL, rrc(lower_byte(HL))); }
+void rlc_a() { set_reg_hi(&AF, rlc(upper_byte(AF))); }
+void rrc_b() { set_reg_hi(&BC, rrc(upper_byte(BC))); }
+void rrc_c() { set_reg_lo(&BC, rrc(lower_byte(BC))); }
+void rrc_d() { set_reg_hi(&DE, rrc(upper_byte(DE))); }
+void rrc_e() { set_reg_lo(&DE, rrc(lower_byte(DE))); }
+void rrc_h() { set_reg_hi(&HL, rrc(upper_byte(HL))); }
+void rrc_l() { set_reg_lo(&HL, rrc(lower_byte(HL))); }
 void rrc_hlp() { write_byte(HL, rrc(read_byte(HL))); }
-void rrc_a() { set_reg_hi(AF, rrc(upper_byte(AF))); }
+void rrc_a() { set_reg_hi(&AF, rrc(upper_byte(AF))); }
 
-void rl_b() { set_reg_hi(BC, rl(upper_byte(BC))); }
-void rl_c() { set_reg_lo(BC, rl(lower_byte(BC))); }
-void rl_d() { set_reg_hi(DE, rl(upper_byte(DE))); }
-void rl_e() { set_reg_lo(DE, rl(lower_byte(DE))); }
-void rl_h() { set_reg_hi(HL, rl(upper_byte(HL))); }
-void rl_l() { set_reg_lo(HL, rl(lower_byte(HL))); }
+void rl_b() { set_reg_hi(&BC, rl(upper_byte(BC))); }
+void rl_c() { set_reg_lo(&BC, rl(lower_byte(BC))); }
+void rl_d() { set_reg_hi(&DE, rl(upper_byte(DE))); }
+void rl_e() { set_reg_lo(&DE, rl(lower_byte(DE))); }
+void rl_h() { set_reg_hi(&HL, rl(upper_byte(HL))); }
+void rl_l() { set_reg_lo(&HL, rl(lower_byte(HL))); }
 void rl_hlp() { write_byte(HL, rl(read_byte(HL))); }
-void rl_a() { set_reg_hi(AF, rl(upper_byte(AF))); }
-void rr_b() { set_reg_hi(BC, rr(upper_byte(BC))); }
-void rr_c() { set_reg_lo(BC, rr(lower_byte(BC))); }
-void rr_d() { set_reg_hi(DE, rr(upper_byte(DE))); }
-void rr_e() { set_reg_lo(DE, rr(lower_byte(DE))); }
-void rr_h() { set_reg_hi(HL, rr(upper_byte(HL))); }
-void rr_l() { set_reg_lo(HL, rr(lower_byte(HL))); }
+void rl_a() { set_reg_hi(&AF, rl(upper_byte(AF))); }
+void rr_b() { set_reg_hi(&BC, rr(upper_byte(BC))); }
+void rr_c() { set_reg_lo(&BC, rr(lower_byte(BC))); }
+void rr_d() { set_reg_hi(&DE, rr(upper_byte(DE))); }
+void rr_e() { set_reg_lo(&DE, rr(lower_byte(DE))); }
+void rr_h() { set_reg_hi(&HL, rr(upper_byte(HL))); }
+void rr_l() { set_reg_lo(&HL, rr(lower_byte(HL))); }
 void rr_hlp() { write_byte(HL, rr(read_byte(HL))); }
-void rr_a() { set_reg_hi(AF, rr(upper_byte(AF))); }
+void rr_a() { set_reg_hi(&AF, rr(upper_byte(AF))); }
 
-void sla_b() { set_reg_hi(BC, sla(upper_byte(BC))); }
-void sla_c() { set_reg_lo(BC, sla(lower_byte(BC))); }
-void sla_d() { set_reg_hi(DE, sla(upper_byte(DE))); }
-void sla_e() { set_reg_lo(DE, sla(lower_byte(DE))); }
-void sla_h() { set_reg_hi(HL, sla(upper_byte(HL))); }
-void sla_l() { set_reg_lo(HL, sla(lower_byte(HL))); }
+void sla_b() { set_reg_hi(&BC, sla(upper_byte(BC))); }
+void sla_c() { set_reg_lo(&BC, sla(lower_byte(BC))); }
+void sla_d() { set_reg_hi(&DE, sla(upper_byte(DE))); }
+void sla_e() { set_reg_lo(&DE, sla(lower_byte(DE))); }
+void sla_h() { set_reg_hi(&HL, sla(upper_byte(HL))); }
+void sla_l() { set_reg_lo(&HL, sla(lower_byte(HL))); }
 void sla_hlp() { write_byte(HL, sla(read_byte(HL))); }
-void sla_a() { set_reg_hi(AF, sla(upper_byte(AF))); }
-void sra_b() { set_reg_hi(BC, sra(upper_byte(BC))); }
-void sra_c() { set_reg_lo(BC, sra(lower_byte(BC))); }
-void sra_d() { set_reg_hi(DE, sra(upper_byte(DE))); }
-void sra_e() { set_reg_lo(DE, sra(lower_byte(DE))); }
-void sra_h() { set_reg_hi(HL, sra(upper_byte(HL))); }
-void sra_l() { set_reg_lo(HL, sra(lower_byte(HL))); }
+void sla_a() { set_reg_hi(&AF, sla(upper_byte(AF))); }
+void sra_b() { set_reg_hi(&BC, sra(upper_byte(BC))); }
+void sra_c() { set_reg_lo(&BC, sra(lower_byte(BC))); }
+void sra_d() { set_reg_hi(&DE, sra(upper_byte(DE))); }
+void sra_e() { set_reg_lo(&DE, sra(lower_byte(DE))); }
+void sra_h() { set_reg_hi(&HL, sra(upper_byte(HL))); }
+void sra_l() { set_reg_lo(&HL, sra(lower_byte(HL))); }
 void sra_hlp() { write_byte(HL, sra(read_byte(HL))); }
-void sra_a() { set_reg_hi(AF, sra(upper_byte(AF))); }
+void sra_a() { set_reg_hi(&AF, sra(upper_byte(AF))); }
 
-void swap_b() { set_reg_hi(BC, swap(upper_byte(BC))); }
-void swap_c() { set_reg_lo(BC, swap(lower_byte(BC))); }
-void swap_d() { set_reg_hi(DE, swap(upper_byte(DE))); }
-void swap_e() { set_reg_lo(DE, swap(lower_byte(DE))); }
-void swap_h() { set_reg_hi(HL, swap(upper_byte(HL))); }
-void swap_l() { set_reg_lo(HL, swap(lower_byte(HL))); }
+void swap_b() { set_reg_hi(&BC, swap(upper_byte(BC))); }
+void swap_c() { set_reg_lo(&BC, swap(lower_byte(BC))); }
+void swap_d() { set_reg_hi(&DE, swap(upper_byte(DE))); }
+void swap_e() { set_reg_lo(&DE, swap(lower_byte(DE))); }
+void swap_h() { set_reg_hi(&HL, swap(upper_byte(HL))); }
+void swap_l() { set_reg_lo(&HL, swap(lower_byte(HL))); }
 void swap_hlp() { write_byte(HL, swap(read_byte(HL))); }
-void swap_a() { set_reg_hi(AF, swap(upper_byte(AF))); }
-void srl_b() { set_reg_hi(BC, srl(upper_byte(BC))); }
-void srl_c() { set_reg_lo(BC, srl(lower_byte(BC))); }
-void srl_d() { set_reg_hi(DE, srl(upper_byte(DE))); }
-void srl_e() { set_reg_lo(DE, srl(lower_byte(DE))); }
-void srl_h() { set_reg_hi(HL, srl(upper_byte(HL))); }
-void srl_l() { set_reg_lo(HL, srl(lower_byte(HL))); }
+void swap_a() { set_reg_hi(&AF, swap(upper_byte(AF))); }
+void srl_b() { set_reg_hi(&BC, srl(upper_byte(BC))); }
+void srl_c() { set_reg_lo(&BC, srl(lower_byte(BC))); }
+void srl_d() { set_reg_hi(&DE, srl(upper_byte(DE))); }
+void srl_e() { set_reg_lo(&DE, srl(lower_byte(DE))); }
+void srl_h() { set_reg_hi(&HL, srl(upper_byte(HL))); }
+void srl_l() { set_reg_lo(&HL, srl(lower_byte(HL))); }
 void srl_hlp() { write_byte(HL, srl(read_byte(HL))); }
-void srl_a() { set_reg_hi(AF, srl(upper_byte(AF))); }
+void srl_a() { set_reg_hi(&AF, srl(upper_byte(AF))); }
 
 void bit_0_b() { bit(0, upper_byte(BC)); }
 void bit_0_c() { bit(0, lower_byte(BC)); }
@@ -295,143 +297,143 @@ void bit_7_l() { bit(7, lower_byte(HL)); }
 void bit_7_hlp() { bit(7, read_byte(HL)); }
 void bit_7_a() { bit(7, upper_byte(AF)); }
 
-void res_0_b() { set_reg_hi(BC, upper_byte(BC) & ~0x01); }
-void res_0_c() { set_reg_lo(BC, lower_byte(BC) & ~0x01); }
-void res_0_d() { set_reg_hi(DE, upper_byte(DE) & ~0x01); }
-void res_0_e() { set_reg_lo(DE, lower_byte(DE) & ~0x01); }
-void res_0_h() { set_reg_hi(HL, upper_byte(HL) & ~0x01); }
-void res_0_l() { set_reg_lo(HL, lower_byte(HL) & ~0x01); }
+void res_0_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x01); }
+void res_0_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x01); }
+void res_0_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x01); }
+void res_0_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x01); }
+void res_0_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x01); }
+void res_0_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x01); }
 void res_0_hlp() { write_byte(HL, read_byte(HL) & ~0x01); }
-void res_0_a() { set_reg_hi(AF, upper_byte(AF) & ~0x01); }
-void res_1_b() { set_reg_hi(BC, upper_byte(BC) & ~0x02); }
-void res_1_c() { set_reg_lo(BC, lower_byte(BC) & ~0x02); }
-void res_1_d() { set_reg_hi(DE, upper_byte(DE) & ~0x02); }
-void res_1_e() { set_reg_lo(DE, lower_byte(DE) & ~0x02); }
-void res_1_h() { set_reg_hi(HL, upper_byte(HL) & ~0x02); }
-void res_1_l() { set_reg_lo(HL, lower_byte(HL) & ~0x02); }
+void res_0_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x01); }
+void res_1_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x02); }
+void res_1_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x02); }
+void res_1_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x02); }
+void res_1_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x02); }
+void res_1_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x02); }
+void res_1_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x02); }
 void res_1_hlp() { write_byte(HL, read_byte(HL) & ~0x02); }
-void res_1_a() { set_reg_hi(AF, upper_byte(AF) & ~0x02); }
+void res_1_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x02); }
 
-void res_2_b() { set_reg_hi(BC, upper_byte(BC) & ~0x04); }
-void res_2_c() { set_reg_lo(BC, lower_byte(BC) & ~0x04); }
-void res_2_d() { set_reg_hi(DE, upper_byte(DE) & ~0x04); }
-void res_2_e() { set_reg_lo(DE, lower_byte(DE) & ~0x04); }
-void res_2_h() { set_reg_hi(HL, upper_byte(HL) & ~0x04); }
-void res_2_l() { set_reg_lo(HL, lower_byte(HL) & ~0x04); }
+void res_2_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x04); }
+void res_2_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x04); }
+void res_2_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x04); }
+void res_2_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x04); }
+void res_2_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x04); }
+void res_2_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x04); }
 void res_2_hlp() { write_byte(HL, read_byte(HL) & ~0x04); }
-void res_2_a() { set_reg_hi(AF, upper_byte(AF) & ~0x04); }
-void res_3_b() { set_reg_hi(BC, upper_byte(BC) & ~0x08); }
-void res_3_c() { set_reg_lo(BC, lower_byte(BC) & ~0x08); }
-void res_3_d() { set_reg_hi(DE, upper_byte(DE) & ~0x08); }
-void res_3_e() { set_reg_lo(DE, lower_byte(DE) & ~0x08); }
-void res_3_h() { set_reg_hi(HL, upper_byte(HL) & ~0x08); }
-void res_3_l() { set_reg_lo(HL, lower_byte(HL) & ~0x08); }
+void res_2_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x04); }
+void res_3_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x08); }
+void res_3_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x08); }
+void res_3_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x08); }
+void res_3_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x08); }
+void res_3_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x08); }
+void res_3_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x08); }
 void res_3_hlp() { write_byte(HL, read_byte(HL) & ~0x08); }
-void res_3_a() { set_reg_hi(AF, upper_byte(AF) & ~0x08); }
+void res_3_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x08); }
 
-void res_4_b() { set_reg_hi(BC, upper_byte(BC) & ~0x10); }
-void res_4_c() { set_reg_lo(BC, lower_byte(BC) & ~0x10); }
-void res_4_d() { set_reg_hi(DE, upper_byte(DE) & ~0x10); }
-void res_4_e() { set_reg_lo(DE, lower_byte(DE) & ~0x10); }
-void res_4_h() { set_reg_hi(HL, upper_byte(HL) & ~0x10); }
-void res_4_l() { set_reg_lo(HL, lower_byte(HL) & ~0x10); }
+void res_4_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x10); }
+void res_4_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x10); }
+void res_4_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x10); }
+void res_4_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x10); }
+void res_4_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x10); }
+void res_4_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x10); }
 void res_4_hlp() { write_byte(HL, read_byte(HL) & ~0x10); }
-void res_4_a() { set_reg_hi(AF, upper_byte(AF) & ~0x10); }
-void res_5_b() { set_reg_hi(BC, upper_byte(BC) & ~0x20); }
-void res_5_c() { set_reg_lo(BC, lower_byte(BC) & ~0x20); }
-void res_5_d() { set_reg_hi(DE, upper_byte(DE) & ~0x20); }
-void res_5_e() { set_reg_lo(DE, lower_byte(DE) & ~0x20); }
-void res_5_h() { set_reg_hi(HL, upper_byte(HL) & ~0x20); }
-void res_5_l() { set_reg_lo(HL, lower_byte(HL) & ~0x20); }
+void res_4_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x10); }
+void res_5_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x20); }
+void res_5_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x20); }
+void res_5_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x20); }
+void res_5_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x20); }
+void res_5_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x20); }
+void res_5_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x20); }
 void res_5_hlp() { write_byte(HL, read_byte(HL) & ~0x20); }
-void res_5_a() { set_reg_hi(AF, upper_byte(AF) & ~0x20); }
+void res_5_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x20); }
 
-void res_6_b() { set_reg_hi(BC, upper_byte(BC) & ~0x40); }
-void res_6_c() { set_reg_lo(BC, lower_byte(BC) & ~0x40); }
-void res_6_d() { set_reg_hi(DE, upper_byte(DE) & ~0x40); }
-void res_6_e() { set_reg_lo(DE, lower_byte(DE) & ~0x40); }
-void res_6_h() { set_reg_hi(HL, upper_byte(HL) & ~0x40); }
-void res_6_l() { set_reg_lo(HL, lower_byte(HL) & ~0x40); }
+void res_6_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x40); }
+void res_6_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x40); }
+void res_6_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x40); }
+void res_6_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x40); }
+void res_6_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x40); }
+void res_6_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x40); }
 void res_6_hlp() { write_byte(HL, read_byte(HL) & ~0x40); }
-void res_6_a() { set_reg_hi(AF, upper_byte(AF) & ~0x40); }
-void res_7_b() { set_reg_hi(BC, upper_byte(BC) & ~0x80); }
-void res_7_c() { set_reg_lo(BC, lower_byte(BC) & ~0x80); }
-void res_7_d() { set_reg_hi(DE, upper_byte(DE) & ~0x80); }
-void res_7_e() { set_reg_lo(DE, lower_byte(DE) & ~0x80); }
-void res_7_h() { set_reg_hi(HL, upper_byte(HL) & ~0x80); }
-void res_7_l() { set_reg_lo(HL, lower_byte(HL) & ~0x80); }
+void res_6_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x40); }
+void res_7_b() { set_reg_hi(&BC, upper_byte(BC) & ~0x80); }
+void res_7_c() { set_reg_lo(&BC, lower_byte(BC) & ~0x80); }
+void res_7_d() { set_reg_hi(&DE, upper_byte(DE) & ~0x80); }
+void res_7_e() { set_reg_lo(&DE, lower_byte(DE) & ~0x80); }
+void res_7_h() { set_reg_hi(&HL, upper_byte(HL) & ~0x80); }
+void res_7_l() { set_reg_lo(&HL, lower_byte(HL) & ~0x80); }
 void res_7_hlp() { write_byte(HL, read_byte(HL) & ~0x80); }
-void res_7_a() { set_reg_hi(AF, upper_byte(AF) & ~0x80); }
+void res_7_a() { set_reg_hi(&AF, upper_byte(AF) & ~0x80); }
 
-void set_0_b() { set_reg_hi(BC, upper_byte(BC) | 0x01); }
-void set_0_c() { set_reg_lo(BC, lower_byte(BC) | 0x01); }
-void set_0_d() { set_reg_hi(DE, upper_byte(DE) | 0x01); }
-void set_0_e() { set_reg_lo(DE, lower_byte(DE) | 0x01); }
-void set_0_h() { set_reg_hi(HL, upper_byte(HL) | 0x01); }
-void set_0_l() { set_reg_lo(HL, lower_byte(HL) | 0x01); }
+void set_0_b() { set_reg_hi(&BC, upper_byte(BC) | 0x01); }
+void set_0_c() { set_reg_lo(&BC, lower_byte(BC) | 0x01); }
+void set_0_d() { set_reg_hi(&DE, upper_byte(DE) | 0x01); }
+void set_0_e() { set_reg_lo(&DE, lower_byte(DE) | 0x01); }
+void set_0_h() { set_reg_hi(&HL, upper_byte(HL) | 0x01); }
+void set_0_l() { set_reg_lo(&HL, lower_byte(HL) | 0x01); }
 void set_0_hlp() { write_byte(HL, read_byte(HL) | 0x01); }
-void set_0_a() { set_reg_hi(AF, upper_byte(AF) | 0x01); }
-void set_1_b() { set_reg_hi(BC, upper_byte(BC) | 0x02); }
-void set_1_c() { set_reg_lo(BC, lower_byte(BC) | 0x02); }
-void set_1_d() { set_reg_hi(DE, upper_byte(DE) | 0x02); }
-void set_1_e() { set_reg_lo(DE, lower_byte(DE) | 0x02); }
-void set_1_h() { set_reg_hi(HL, upper_byte(HL) | 0x02); }
-void set_1_l() { set_reg_lo(HL, lower_byte(HL) | 0x02); }
+void set_0_a() { set_reg_hi(&AF, upper_byte(AF) | 0x01); }
+void set_1_b() { set_reg_hi(&BC, upper_byte(BC) | 0x02); }
+void set_1_c() { set_reg_lo(&BC, lower_byte(BC) | 0x02); }
+void set_1_d() { set_reg_hi(&DE, upper_byte(DE) | 0x02); }
+void set_1_e() { set_reg_lo(&DE, lower_byte(DE) | 0x02); }
+void set_1_h() { set_reg_hi(&HL, upper_byte(HL) | 0x02); }
+void set_1_l() { set_reg_lo(&HL, lower_byte(HL) | 0x02); }
 void set_1_hlp() { write_byte(HL, read_byte(HL) | 0x02); }
-void set_1_a(){ set_reg_hi(AF, upper_byte(AF) | 0x02); }
+void set_1_a(){ set_reg_hi(&AF, upper_byte(AF) | 0x02); }
 
-void set_2_b() { set_reg_hi(BC, upper_byte(BC) | 0x04); }
-void set_2_c() { set_reg_lo(BC, lower_byte(BC) | 0x04); }
-void set_2_d() { set_reg_hi(DE, upper_byte(DE) | 0x04); }
-void set_2_e() { set_reg_lo(DE, lower_byte(DE) | 0x04); }
-void set_2_h() { set_reg_hi(HL, upper_byte(HL) | 0x04); }
-void set_2_l() { set_reg_lo(HL, lower_byte(HL) | 0x04); }
+void set_2_b() { set_reg_hi(&BC, upper_byte(BC) | 0x04); }
+void set_2_c() { set_reg_lo(&BC, lower_byte(BC) | 0x04); }
+void set_2_d() { set_reg_hi(&DE, upper_byte(DE) | 0x04); }
+void set_2_e() { set_reg_lo(&DE, lower_byte(DE) | 0x04); }
+void set_2_h() { set_reg_hi(&HL, upper_byte(HL) | 0x04); }
+void set_2_l() { set_reg_lo(&HL, lower_byte(HL) | 0x04); }
 void set_2_hlp() { write_byte(HL, read_byte(HL) | 0x04); }
-void set_2_a() { set_reg_hi(AF, upper_byte(AF) | 0x04); }
-void set_3_b() { set_reg_hi(BC, upper_byte(BC) | 0x08); }
-void set_3_c() { set_reg_lo(BC, lower_byte(BC) | 0x08); }
-void set_3_d() { set_reg_hi(DE, upper_byte(DE) | 0x08); }
-void set_3_e() { set_reg_lo(DE, lower_byte(DE) | 0x08); }
-void set_3_h() { set_reg_hi(HL, upper_byte(HL) | 0x08); }
-void set_3_l() { set_reg_lo(HL, lower_byte(HL) | 0x08); }
+void set_2_a() { set_reg_hi(&AF, upper_byte(AF) | 0x04); }
+void set_3_b() { set_reg_hi(&BC, upper_byte(BC) | 0x08); }
+void set_3_c() { set_reg_lo(&BC, lower_byte(BC) | 0x08); }
+void set_3_d() { set_reg_hi(&DE, upper_byte(DE) | 0x08); }
+void set_3_e() { set_reg_lo(&DE, lower_byte(DE) | 0x08); }
+void set_3_h() { set_reg_hi(&HL, upper_byte(HL) | 0x08); }
+void set_3_l() { set_reg_lo(&HL, lower_byte(HL) | 0x08); }
 void set_3_hlp() { write_byte(HL, read_byte(HL) | 0x08); }
-void set_3_a() { set_reg_hi(AF, upper_byte(AF) | 0x08); }
+void set_3_a() { set_reg_hi(&AF, upper_byte(AF) | 0x08); }
 
-void set_4_b() { set_reg_hi(BC, upper_byte(BC) | 0x10); }
-void set_4_c() { set_reg_lo(BC, lower_byte(BC) | 0x10); }
-void set_4_d() { set_reg_hi(DE, upper_byte(DE) | 0x10); }
-void set_4_e() { set_reg_lo(DE, lower_byte(DE) | 0x10); }
-void set_4_h() { set_reg_hi(HL, upper_byte(HL) | 0x10); }
-void set_4_l() { set_reg_lo(HL, lower_byte(HL) | 0x10); }
+void set_4_b() { set_reg_hi(&BC, upper_byte(BC) | 0x10); }
+void set_4_c() { set_reg_lo(&BC, lower_byte(BC) | 0x10); }
+void set_4_d() { set_reg_hi(&DE, upper_byte(DE) | 0x10); }
+void set_4_e() { set_reg_lo(&DE, lower_byte(DE) | 0x10); }
+void set_4_h() { set_reg_hi(&HL, upper_byte(HL) | 0x10); }
+void set_4_l() { set_reg_lo(&HL, lower_byte(HL) | 0x10); }
 void set_4_hlp() { write_byte(HL, read_byte(HL) | 0x10); }
-void set_4_a() { set_reg_hi(AF, upper_byte(AF) | 0x10); }
-void set_5_b() { set_reg_hi(BC, upper_byte(BC) | 0x20); }
-void set_5_c() { set_reg_lo(BC, lower_byte(BC) | 0x20); }
-void set_5_d() { set_reg_hi(DE, upper_byte(DE) | 0x20); }
-void set_5_e() { set_reg_lo(DE, lower_byte(DE) | 0x20); }
-void set_5_h() { set_reg_hi(HL, upper_byte(HL) | 0x20); }
-void set_5_l() { set_reg_lo(HL, lower_byte(HL) | 0x20); }
+void set_4_a() { set_reg_hi(&AF, upper_byte(AF) | 0x10); }
+void set_5_b() { set_reg_hi(&BC, upper_byte(BC) | 0x20); }
+void set_5_c() { set_reg_lo(&BC, lower_byte(BC) | 0x20); }
+void set_5_d() { set_reg_hi(&DE, upper_byte(DE) | 0x20); }
+void set_5_e() { set_reg_lo(&DE, lower_byte(DE) | 0x20); }
+void set_5_h() { set_reg_hi(&HL, upper_byte(HL) | 0x20); }
+void set_5_l() { set_reg_lo(&HL, lower_byte(HL) | 0x20); }
 void set_5_hlp() { write_byte(HL, read_byte(HL) | 0x20); }
-void set_5_a() { set_reg_hi(AF, upper_byte(AF) | 0x20); }
+void set_5_a() { set_reg_hi(&AF, upper_byte(AF) | 0x20); }
 
-void set_6_b() { set_reg_hi(BC, upper_byte(BC) | 0x40); }
-void set_6_c() { set_reg_lo(BC, lower_byte(BC) | 0x40); }
-void set_6_d() { set_reg_hi(DE, upper_byte(DE) | 0x40); }
-void set_6_e() { set_reg_lo(DE, lower_byte(DE) | 0x40); }
-void set_6_h() { set_reg_hi(HL, upper_byte(HL) | 0x40); }
-void set_6_l() { set_reg_lo(HL, lower_byte(HL) | 0x40); }
+void set_6_b() { set_reg_hi(&BC, upper_byte(BC) | 0x40); }
+void set_6_c() { set_reg_lo(&BC, lower_byte(BC) | 0x40); }
+void set_6_d() { set_reg_hi(&DE, upper_byte(DE) | 0x40); }
+void set_6_e() { set_reg_lo(&DE, lower_byte(DE) | 0x40); }
+void set_6_h() { set_reg_hi(&HL, upper_byte(HL) | 0x40); }
+void set_6_l() { set_reg_lo(&HL, lower_byte(HL) | 0x40); }
 void set_6_hlp() { write_byte(HL, read_byte(HL) | 0x40); }
-void set_6_a() { set_reg_hi(AF, upper_byte(AF) | 0x40); }
-void set_7_b() { set_reg_hi(BC, upper_byte(BC) | 0x80); }
-void set_7_c() { set_reg_lo(BC, lower_byte(BC) | 0x80); }
-void set_7_d() { set_reg_hi(DE, upper_byte(DE) | 0x80); }
-void set_7_e() { set_reg_lo(DE, lower_byte(DE) | 0x80); }
-void set_7_h() { set_reg_hi(HL, upper_byte(HL) | 0x80); }
-void set_7_l() { set_reg_lo(HL, lower_byte(HL) | 0x80); }
+void set_6_a() { set_reg_hi(&AF, upper_byte(AF) | 0x40); }
+void set_7_b() { set_reg_hi(&BC, upper_byte(BC) | 0x80); }
+void set_7_c() { set_reg_lo(&BC, lower_byte(BC) | 0x80); }
+void set_7_d() { set_reg_hi(&DE, upper_byte(DE) | 0x80); }
+void set_7_e() { set_reg_lo(&DE, lower_byte(DE) | 0x80); }
+void set_7_h() { set_reg_hi(&HL, upper_byte(HL) | 0x80); }
+void set_7_l() { set_reg_lo(&HL, lower_byte(HL) | 0x80); }
 void set_7_hlp() { write_byte(HL, read_byte(HL) | 0x80); }
-void set_7_a() { set_reg_hi(AF, upper_byte(AF) | 0x80); }
+void set_7_a() { set_reg_hi(&AF, upper_byte(AF) | 0x80); }
 
-extern const Instruction cb_instructions[256] = {
+const struct Instruction cb_instructions[256] = {
 	{ "RLC B", 1, rlc_b, 8 }, // 0x0
 	{ "RLC C", 1, rlc_c, 8 }, // 0x1
 	{ "RLC D", 1, rlc_d, 8 }, // 0x2

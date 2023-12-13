@@ -1,7 +1,8 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include <cstdint>
+#include <stdint.h>
+#include <stdbool.h>
 
 #define CPU_FREQ 4194304
 #define FRAME_CYCLES 70224
@@ -17,6 +18,8 @@ struct Instruction
     uint8_t duration; // Expressed in t-cycles
 };
 
+extern const struct Instruction instructions[];
+
 // The flags of the F register
 enum flags
 {
@@ -25,8 +28,6 @@ enum flags
     FLAG_HALFCARRY = 0b00100000,
     FLAG_CARRY = 0b00010000,
 };
-
-extern const Instruction instructions[256];
 
 extern uint32_t cycle_count;
 extern uint16_t dma_cycles_left;
@@ -69,9 +70,9 @@ uint8_t lower_byte(uint16_t value);
 uint8_t upper_byte(uint16_t value);
 
 // Sets the value of the upper 8 bits of the register passed as argument
-void set_reg_hi(uint16_t& reg, uint8_t value);
+void set_reg_hi(uint16_t* reg, uint8_t value);
 // Sets the value of the lower 8 bits of the register passed as argument
-void set_reg_lo(uint16_t& reg, uint8_t value);
+void set_reg_lo(uint16_t* reg, uint8_t value);
 
 void set_flags(uint8_t flags);
 void clear_flags(uint8_t flags);

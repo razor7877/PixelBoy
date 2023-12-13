@@ -1,6 +1,6 @@
-#include "timer.hpp"
-#include "cpu.hpp"
-#include "interrupts.hpp"
+#include "timer.h"
+#include "cpu.h"
+#include "interrupts.h"
 
 // 16-bit timer, but only upper 8 bits exposed by memory controller
 // Therefore, gets incremented every 256 cycles
@@ -9,7 +9,7 @@ uint8_t TIMA = 0x00;
 uint8_t TMA = 0x00;
 uint8_t TAC = 0xF8;
 
-uint32_t TIMA_cycle_count{};
+uint32_t TIMA_cycle_count = 0;
 uint32_t TIMA_max_cycles = 1024; // GB starts with TAC clock 00
 
 uint8_t read_timer(uint16_t address)

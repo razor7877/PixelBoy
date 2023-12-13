@@ -1,12 +1,12 @@
 #include <stdio.h>
 
-#include "memory.hpp"
-#include "io.hpp"
-#include "interrupts.hpp"
-#include "ppu.hpp"
-#include "rom.hpp"
+#include "memory.h"
+#include "io.h"
+#include "interrupts.h"
+#include "ppu.h"
+#include "rom.h"
 
-uint8_t memory[0x10000]{};
+uint8_t memory[0x10000] = {0};
 
 uint8_t read_byte(uint16_t address)
 {

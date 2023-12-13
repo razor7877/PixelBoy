@@ -4,17 +4,17 @@
 #include "ImGui/imgui_memory_editor.h"
 #include <stdio.h>
 
-#include "frontends/frontend.hpp"
+#include "frontends/frontend.h"
 #include "frontends/imgui_frontend.hpp"
-#include "main.hpp"
-#include "cpu.hpp"
-#include "memory.hpp"
-#include "io.hpp"
-#include "interrupts.hpp"
-#include "rom.hpp"
-#include "ppu.hpp"
-#include "timer.hpp"
-#include "apu.hpp"
+#include "main.h"
+#include "cpu.h"
+#include "memory.h"
+#include "io.h"
+#include "interrupts.h"
+#include "rom.h"
+#include "ppu.h"
+#include "timer.h"
+#include "apu.h"
 
 struct Frontend ImGui_Frontend = {
     start_interface,

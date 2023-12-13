@@ -1,7 +1,7 @@
 #ifndef PPU_H
 #define PPU_H
 
-#include <cstdint>
+#include <stdint.h>
 
 #define PPU_FREQ 2097152
 
