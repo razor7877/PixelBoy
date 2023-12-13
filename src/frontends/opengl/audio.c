@@ -1,13 +1,18 @@
+#include <stdint.h>
+#include <string.h>
+
 #include "portaudio.h"
 
 #include "frontends/opengl/audio.h"
+#include "apu.h"
+#include "io.h"
 
 #define SAMPLE_RATE (44100)
 
 typedef struct
 {
-	float left_phase;
-	float right_phase;
+	uint8_t left_phase;
+	uint8_t right_phase;
 }
 paTestData;
 
@@ -25,22 +30,50 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 {
 	/* Cast data passed through stream to our structure. */
 	paTestData* data = (paTestData*)userData;
-	float* out = (float*)outputBuffer;
-	unsigned int i;
+	uint8_t* in = (uint8_t*)inputBuffer;
+	uint8_t* out = (uint8_t*)outputBuffer;
+
 	(void)inputBuffer; /* Prevent unused variable warning. */
 
-	for (i = 0; i < framesPerBuffer; i++)
+	for (unsigned int i = 0; i < framesPerBuffer; i++)
 	{
-		*out++ = data->left_phase;  /* left */
-		*out++ = data->right_phase;  /* right */
-		/* Generate simple sawtooth phaser that ranges between -1.0 and 1.0. */
-		data->left_phase += 0.001;
-		/* When signal reaches top, drop back down. */
-		if (data->left_phase >= 1.0f) data->left_phase -= 2.0f;
-		/* higher pitch so we can distinguish left and right. */
-		data->right_phase += 0.003f;
-		if (data->right_phase >= 1.0f) data->right_phase -= 2.0f;
+		// If audio master control enabled
+		if (NR52 & 0b10000000)
+		{
+			/*
+			*out++ = data->left_phase;
+			*out++ = data->right_phase;
+			// Generate simple sawtooth phaser that ranges between -1.0 and 1.0.
+			data->left_phase += 1;
+			// When signal reaches top, drop back down
+			if (data->left_phase >= 255) data->left_phase -= 255;
+			// higher pitch so we can distinguish left and right
+			data->right_phase += 5;
+			if (data->right_phase >= 255) data->right_phase -= 255;
+			*/
+
+			if (i < (framesPerBuffer / 2))
+			{
+				data->left_phase = 255;
+				data->right_phase = 255;
+			}
+			else
+			{
+				data->left_phase = 0;
+				data->right_phase = 0;
+			}
+		}
+		else
+		{
+			data->left_phase = 0;
+			data->right_phase = 0;
+		}
+
+		*out++ = data->left_phase;
+		*out++ = data->right_phase;
 	}
+
+	printf("Audio buffer callback\n");
 	return 0;
 }
 
@@ -56,9 +89,9 @@ int start_audio()
     err = Pa_OpenDefaultStream(&stream,
         0,          /* no input channels */
         2,          /* stereo output */
-        paFloat32,  /* 32 bit floating point output */
+        paUInt8,  /* 32 bit floating point output */
         SAMPLE_RATE,
-        2048,        /* frames per buffer, i.e. the number
+		64,        /* frames per buffer, i.e. the number
                            of sample frames that PortAudio will
                            request from the callback. Many apps
                            may want to use
