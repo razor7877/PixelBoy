@@ -4,7 +4,8 @@ project(GameBoy_Emulator LANGUAGES C)
 find_package(OpenGL REQUIRED)
 
 # Add library subfolders
-add_subdirectory(libs/glfw)
+add_subdirectory(libs/glfw EXCLUDE_FROM_ALL)
+add_subdirectory(libs/portaudio EXCLUDE_FROM_ALL)
 
 # Recursively find all source files
 file(GLOB_RECURSE sources src/*.c include/*.h)
@@ -32,6 +33,7 @@ target_include_directories(GameBoy_Emulator PUBLIC
 # Link all required libraries
 target_link_libraries(GameBoy_Emulator PUBLIC
 	glfw
+	PortAudio
 	OpenGL::GL)
 
 # No console on MSVC release builds

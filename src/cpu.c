@@ -11,6 +11,13 @@
 #include "rom.h"
 #include "timer.h"
 
+#define FRAME_COUNT 10000
+
+// Log average FPS to the console
+#define FPS_DEBUG
+// Get info regarding the DMA (Direct Memory Access) transfers
+//#define DMA_DEBUG
+
 uint32_t cycle_count = 0;
 uint16_t dma_cycles_left = 0;
 
@@ -30,8 +37,6 @@ bool cpu_halted = false;
 bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
 bool IME = false; // Interrupt Master Enable
 
-#define FRAME_COUNT 10000
-
 // A variable that stores the current frame's timestamp, to calculate time between frames
 float currentFrame = 0;
 float delta_time = 0.0f;
@@ -39,11 +44,6 @@ float last_frame = 0.0f;
 float average_delta_time = 0.0f;
 int frame_count = FRAME_COUNT;
 float frame_sum = 0.0f;
-
-// Log average FPS to the console
-#define FPS_DEBUG
-// Get info regarding the DMA (Direct Memory Access) transfers
-//#define DMA_DEBUG
 
 void execute_frame()
 {

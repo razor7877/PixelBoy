@@ -2,7 +2,8 @@
 
 #include <glad/glad.h>
 
-#include "frontends/opengl_frontend.h"
+#include "frontends/opengl/frontend.h"
+#include "frontends/opengl/audio.h"
 #include "main.h"
 #include "cpu.h"
 #include "memory.h"
@@ -301,6 +302,9 @@ static int start_interface()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    if (start_audio() != 0)
+        printf("Error while trying to start PortAudio!\n");
+
     return 0;
 }
 
@@ -322,6 +326,8 @@ static int update_interface()
 // Closes the interface and cleans up
 static void stop_interface()
 {
+    stop_audio();
+
     glfwDestroyWindow(window);
     glfwTerminate();
 }

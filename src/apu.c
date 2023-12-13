@@ -1,6 +1,11 @@
 #include <stdio.h>
 
+#include "portaudio.h"
+
 #include "apu.h"
+
+// Logging info regarding APU registers and wave ram R/W
+//#define APU_DEBUG
 
 // Sound channel 1
 uint8_t NR10 = 0x80;
@@ -106,11 +111,15 @@ uint8_t read_apu(uint16_t address)
 
 	else if (address >= 0xFF30 && address <= 0xFF3F)
 	{
+#ifdef APU_DEBUG
 		printf("Wave RAM read ADR %x\n", address);
+#endif
 		return wave_ram[address - 0xFF30];
 	}
 
-	if (address >= 0xFF10 && address <= 0xFF26) { printf("Audio register read ADR %x\n", address); } // Audio
+#ifdef APU_DEBUG
+	if (address >= 0xFF10 && address <= 0xFF26) { printf("Audio register read ADR %x\n", address); }
+#endif
 
 	return 0xFF;
 }
@@ -190,6 +199,8 @@ void write_apu(uint16_t address, uint8_t value)
 		wave_ram[address - 0xFF30] = value;
 	}
 
+#ifdef APU_DEBUG
 	if (address >= 0xFF10 && address <= 0xFF26) { printf("Audio register write ADR %x value %x\n", address, value); } // Audio
 	else if (address >= 0xFF30 && address <= 0xFF3F) { printf("Wave pattern write ADR %x value %x\n", address, value); } // Wave pattern
+#endif
 }
