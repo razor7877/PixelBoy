@@ -1,13 +1,14 @@
 #include <cstdint>
 #include <stdio.h>
 
+#include "frontends/frontend.hpp"
 #include "cpu.hpp"
 #include "io.hpp"
 #include "interrupts.hpp"
 #include "ppu.hpp"
 #include "rom.hpp"
 #include "timer.hpp"
-#include "frontends/frontend.hpp"
+#include "apu.hpp"
 
 extern Frontend frontend;
 
@@ -36,8 +37,8 @@ uint8_t read_io(uint16_t address)
 	if (address >= 0xFF04 && address <= 0xFF07) // Timer
 		return read_timer(address);
 
-	if (address >= 0xFF10 && address <= 0xFF26) {} // Audio
-	if (address >= 0xFF30 && address <= 0xFF3F) {} // Wave pattern
+	if (address >= 0xFF10 && address <= 0xFF26) { read_apu(address); } // Audio
+	if (address >= 0xFF30 && address <= 0xFF3F) { read_apu(address); } // Wave pattern
 
 	if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
 		return read_ppu(address);
@@ -68,23 +69,11 @@ void write_io(uint16_t address, uint8_t value)
 	else if (address == 0xFF02) // Write to serial transfer control
 		SC = value;
 
-	else if (address == 0xFF04) // Reset timer
-	{
-		DIV = 0x00;
-		TIMA = 0x00;
-	}
+	else if (address >= 0xFF04 && address <= 0xFF07)
+		write_timer(address, value);
 
-	else if (address == 0xFF05)
-		TIMA = value;
-
-	else if (address == 0xFF06)
-		TMA = value;
-
-	else if (address == 0xFF07)
-		update_timer_freq(value);
-
-	else if (address >= 0xFF10 && address <= 0xFF26) {} // Audio
-	else if (address >= 0xFF30 && address <= 0xFF3F) {} // Wave pattern
+	else if (address >= 0xFF10 && address <= 0xFF26) { write_apu(address, value); } // Audio
+	else if (address >= 0xFF30 && address <= 0xFF3F) { write_apu(address, value); } // Wave pattern
 
 	else if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
 		write_ppu(address, value);

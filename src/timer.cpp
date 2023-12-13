@@ -27,6 +27,24 @@ uint8_t read_timer(uint16_t address)
 		return TAC;
 }
 
+void write_timer(uint16_t address, uint8_t value)
+{
+	if (address == 0xFF04) // Reset timer
+	{
+		DIV = 0x00;
+		TIMA = 0x00;
+	}
+
+	else if (address == 0xFF05)
+		TIMA = value;
+
+	else if (address == 0xFF06)
+		TMA = value;
+
+	else if (address == 0xFF07)
+		update_timer_freq(value);
+}
+
 void update_timer_freq(uint8_t value)
 {
 	if ((TAC & 0x03) != (value & 0x03)) // If timer clock is changed

@@ -336,6 +336,38 @@ static void render_ImGui()
         ImGui::End();
     }
 
+    // APU
+    {
+        ImGui::Begin("APU");
+        
+        if (ImGui::CollapsingHeader("Channel 1"), ImGuiTreeNodeFlags_DefaultOpen)
+        {
+            ImGui::Text("NR10");
+        }
+        
+        if (ImGui::CollapsingHeader("Channel 2"), ImGuiTreeNodeFlags_DefaultOpen)
+        {
+
+        }
+
+        if (ImGui::CollapsingHeader("Channel 3"), ImGuiTreeNodeFlags_DefaultOpen)
+        {
+
+        }
+
+        if (ImGui::CollapsingHeader("Channel 4"), ImGuiTreeNodeFlags_DefaultOpen)
+        {
+
+        }
+
+        if (ImGui::CollapsingHeader("Global registers"))
+        {
+
+        }
+
+        ImGui::End();
+    }
+
     // Rendering
     ImGui::Render();
     int display_w, display_h;

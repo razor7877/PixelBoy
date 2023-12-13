@@ -7,8 +7,8 @@
 #include "cpu.hpp"
 #include "rom.hpp"
 
-//Frontend frontend = ImGui_Frontend;
-Frontend frontend = OpenGL_Frontend;
+Frontend frontend = ImGui_Frontend;
+//Frontend frontend = OpenGL_Frontend;
 
 // Main code
 int main(int, char**)
@@ -16,7 +16,7 @@ int main(int, char**)
     //load_boot_rom("roms/dmg_boot.bin");
     //load_rom("roms/blargg/cpu_instrs/cpu_instrs.gb");
     //load_rom("roms/blargg/cpu_instrs/individual/01-special.gb");
-    //load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
+    load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
 
     if (frontend.start() != 0)
         return -1;
