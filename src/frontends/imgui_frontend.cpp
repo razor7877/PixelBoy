@@ -14,6 +14,7 @@
 #include "rom.hpp"
 #include "ppu.hpp"
 #include "timer.hpp"
+#include "apu.hpp"
 
 struct Frontend ImGui_Frontend = {
     start_interface,
@@ -342,30 +343,52 @@ static void render_ImGui()
         
         if (ImGui::CollapsingHeader("Channel 1"), ImGuiTreeNodeFlags_DefaultOpen)
         {
-            ImGui::Text("NR10");
+            ImGui::Text("NR10: %x", NR10);
+            ImGui::Text("NR11: %x", NR11);
+            ImGui::Text("NR12: %x", NR12);
+            ImGui::Text("NR13: %x", NR13);
+            ImGui::Text("NR14: %x", NR14);
         }
         
         if (ImGui::CollapsingHeader("Channel 2"), ImGuiTreeNodeFlags_DefaultOpen)
         {
-
+            ImGui::Text("NR21: %x", NR21);
+            ImGui::Text("NR22: %x", NR22);
+            ImGui::Text("NR23: %x", NR23);
+            ImGui::Text("NR24: %x", NR24);
         }
 
         if (ImGui::CollapsingHeader("Channel 3"), ImGuiTreeNodeFlags_DefaultOpen)
         {
-
+            ImGui::Text("NR30: %x", NR30);
+            ImGui::Text("NR31: %x", NR31);
+            ImGui::Text("NR32: %x", NR32);
+            ImGui::Text("NR33: %x", NR33);
+            ImGui::Text("NR34: %x", NR34);
         }
 
         if (ImGui::CollapsingHeader("Channel 4"), ImGuiTreeNodeFlags_DefaultOpen)
         {
-
+            ImGui::Text("NR41: %x", NR41);
+            ImGui::Text("NR42: %x", NR42);
+            ImGui::Text("NR43: %x", NR43);
+            ImGui::Text("NR44: %x", NR44);
         }
 
-        if (ImGui::CollapsingHeader("Global registers"))
+        if (ImGui::CollapsingHeader("Global registers"), ImGuiTreeNodeFlags_DefaultOpen)
         {
-
+            ImGui::Text("NR50: %x", NR50);
+            ImGui::Text("NR51: %x", NR51);
+            ImGui::Text("NR52: %x", NR52);
         }
 
         ImGui::End();
+    }
+
+    // Wave RAM
+    {
+        static MemoryEditor wave_ram_explorer;
+        wave_ram_explorer.DrawWindow("Wave RAM", wave_ram, sizeof(wave_ram));
     }
 
     // Rendering

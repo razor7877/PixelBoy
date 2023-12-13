@@ -40,17 +40,17 @@ uint8_t read_apu(uint16_t address)
 	if (address == 0xFF10)
 		return NR10;
 
-	else if (address == 0xFF11) // TODO: Lower bits write only?
-		return NR11;
+	else if (address == 0xFF11) // Only bits 6-7 are readable
+		return (NR11 & 0xC0);
 
 	else if (address == 0xFF12)
 		return NR12;
 
-	else if (address == 0xFF13)
-		return NR13;
+	else if (address == 0xFF13) // NR13 is write-only
+		return 0xFF;
 
-	else if (address == 0xFF14)
-		return NR14;
+	else if (address == 0xFF14) // Return bits 3-6 (0-2 and 7 are write-only)
+		return (NR14 & 0x78);
 
 	// 0xFF15 unused
 
@@ -60,26 +60,40 @@ uint8_t read_apu(uint16_t address)
 	else if (address == 0xFF17)
 		return NR22;
 
-	else if (address == 0xFF18)
-		return NR23;
+	else if (address == 0xFF18) // NR23 is write-only
+		return 0xFF;
 
-	else if (address == 0xFF19)
-		return NR24;
+	else if (address == 0xFF19) // Return bits 3-6 (0-2 and 7 are write-only)
+		return (NR24 & 0x78);
 
 	else if (address == 0xFF1A)
 		return NR30;
 
-	else if (address == 0xFF1B)
-		return NR31;
+	else if (address == 0xFF1B) // Write-only
+		return 0xFF;
 
 	else if (address == 0xFF1C)
 		return NR32;
 
-	else if (address == 0xFF1D)
-		return NR33;
+	else if (address == 0xFF1D) // Write-only
+		return 0xFF;
 
-	else if (address == 0xFF1E) // TODO : Only bit 6 readable?
-		return NR34;
+	else if (address == 0xFF1E) // Only bit 6 readable
+		return (NR34 & 0x40);
+
+	// 0xFF1F unused?
+
+	else if (address == 0xFF20)
+		return NR41;
+
+	else if (address == 0xFF21)
+		return NR42;
+
+	else if (address == 0xFF22)
+		return NR43;
+
+	else if (address == 0xFF23) // Highest bit is write only
+		return (NR44 & 0x7F);
 
 	else if (address == 0xFF24)
 		return NR50;
@@ -103,6 +117,79 @@ uint8_t read_apu(uint16_t address)
 
 void write_apu(uint16_t address, uint8_t value)
 {
+	if (address == 0xFF10)
+		NR10 = value;
+
+	else if (address == 0xFF11)
+		NR11 = value;
+
+	else if (address == 0xFF12)
+		NR12 = value;
+
+	else if (address == 0xFF13)
+		NR13 = value;
+
+	else if (address == 0xFF14)
+		NR14 = value;
+
+	// 0xFF15 unused
+
+	else if (address == 0xFF16)
+		NR21 = value;
+
+	else if (address == 0xFF17)
+		NR22 = value;
+
+	else if (address == 0xFF18)
+		NR23 = value;
+
+	else if (address == 0xFF19)
+		NR24 = value;
+
+	else if (address == 0xFF1A)
+		NR30 = (NR30 & 0x7F) | (value & 0x80); // Only bit 7 is used
+
+	else if (address == 0xFF1B)
+		NR31 = value;
+
+	else if (address == 0xFF1C)
+		NR32 = (NR32 & 0x9F) | (value & 0x60); // Only bits 5-6 are used
+
+	else if (address == 0xFF1D)
+		NR33 = value;
+
+	else if (address == 0xFF1E) // Bits 3-5 are unused
+		NR34 = (NR34 & 0x38) | (value & 0xC7);
+
+	// 0xFF1F unused?
+
+	else if (address == 0xFF20)
+		NR41 = value;
+
+	else if (address == 0xFF21)
+		NR42 = value;
+
+	else if (address == 0xFF22)
+		NR43 = value;
+
+	else if (address == 0xFF23) // Only bits 6-7 used
+		NR44 = (NR44 & 0x3F) | (value & 0xC0);
+
+	else if (address == 0xFF24)
+		NR50 = value;
+
+	else if (address == 0xFF25)
+		NR51 = value;
+
+	else if (address == 0xFF26)
+		NR52 = (NR52 & 0x7F) | (value & 0x80); // Only the highest bit is writeable
+
+	else if (address >= 0xFF30 && address <= 0xFF3F) // TODO : Wave RAM isn't always accessible depending on other audio registers
+	{
+		printf("Wave RAM write ADR %x VAL %x\n", address, value);
+		wave_ram[address - 0xFF30] = value;
+	}
+
 	if (address >= 0xFF10 && address <= 0xFF26) { printf("Audio register write ADR %x value %x\n", address, value); } // Audio
 	else if (address >= 0xFF30 && address <= 0xFF3F) { printf("Wave pattern write ADR %x value %x\n", address, value); } // Wave pattern
 }
