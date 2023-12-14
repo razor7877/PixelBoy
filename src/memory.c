@@ -60,7 +60,8 @@ void write_byte(uint16_t address, uint8_t value)
 	else
 		memory[address] = value;
 
-
+	if (address == 0xFF01)
+		printf("%x", value);
 	//if (address >= 0xFF80 && address <= 0xFFFE && value != 0)
 	//	printf("HRAM write adr %x val %x\n", address, value);
 }

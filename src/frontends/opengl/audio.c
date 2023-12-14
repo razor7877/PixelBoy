@@ -1,22 +1,31 @@
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
 
 #include "portaudio.h"
 
 #include "frontends/opengl/audio.h"
 #include "apu.h"
 #include "io.h"
+#include <corecrt_math_defines.h>
+#include "cpu.h"
+#include "frontends/opengl/frontend.h"
 
 #define SAMPLE_RATE (44100)
 
 typedef struct
 {
-	uint8_t left_phase;
-	uint8_t right_phase;
-}
-paTestData;
+	float phase;
+	float increment;
+} paData;
 
+static paData audio_data;
 PaStream* stream;
+
+double current = 0;
+double delta = 0.0f;
+double last = 0.0f;
 
 /* This routine will be called by the PortAudio engine when audio is needed.
  * It may called at interrupt level on some machines so don't do anything
@@ -28,78 +37,69 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 	PaStreamCallbackFlags statusFlags,
 	void* userData)
 {
+	current = glfwGetTime();
+	delta = current - last;
+	last = current;
+
 	/* Cast data passed through stream to our structure. */
-	paTestData* data = (paTestData*)userData;
-	uint8_t* in = (uint8_t*)inputBuffer;
-	uint8_t* out = (uint8_t*)outputBuffer;
+	paData* data = (paData*)userData;
+	float* in = (uint8_t*)inputBuffer;
+	float* out = (uint8_t*)outputBuffer;
 
 	(void)inputBuffer; /* Prevent unused variable warning. */
+
+#define COUNT 16
+	uint8_t count = COUNT;
+	bool isHigh = false;
 
 	for (unsigned int i = 0; i < framesPerBuffer; i++)
 	{
 		// If audio master control enabled
 		if (NR52 & 0b10000000)
 		{
-			/*
-			*out++ = data->left_phase;
-			*out++ = data->right_phase;
-			// Generate simple sawtooth phaser that ranges between -1.0 and 1.0.
-			data->left_phase += 1;
-			// When signal reaches top, drop back down
-			if (data->left_phase >= 255) data->left_phase -= 255;
-			// higher pitch so we can distinguish left and right
-			data->right_phase += 5;
-			if (data->right_phase >= 255) data->right_phase -= 255;
-			*/
+			//update_audio();
 
-			if (i < (framesPerBuffer / 2))
+			//printf("%d\n", *out);
+			if (count-- == 0)
 			{
-				data->left_phase = 255;
-				data->right_phase = 255;
+				isHigh = !isHigh;
+				count = COUNT;
 			}
+			if (isHigh)
+				*out++ = (float)rand() / RAND_MAX;
 			else
-			{
-				data->left_phase = 0;
-				data->right_phase = 0;
-			}
+				*out++ = (float)rand() / RAND_MAX;
 		}
 		else
 		{
-			data->left_phase = 0;
-			data->right_phase = 0;
+			data->phase = 0;
+			*out++ = data->phase;
 		}
-
-		*out++ = data->left_phase;
-		*out++ = data->right_phase;
 	}
 
-	printf("Audio buffer callback\n");
+	//printf("\n\n\n\n");
+
+	//printf("Audio buffer callback: %f\n", delta);
 	return 0;
 }
 
 int start_audio()
 {
+	srand(time(NULL));
+
 	PaError err = Pa_Initialize();
 	if (err != paNoError)
 		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
 
-    static paTestData data;
-
     /* Open an audio I/O stream. */
     err = Pa_OpenDefaultStream(&stream,
-        0,          /* no input channels */
-        2,          /* stereo output */
-        paUInt8,  /* 32 bit floating point output */
+        0,
+        1,
+        paFloat32,
         SAMPLE_RATE,
-		64,        /* frames per buffer, i.e. the number
-                           of sample frames that PortAudio will
-                           request from the callback. Many apps
-                           may want to use
-                           paFramesPerBufferUnspecified, which
-                           tells PortAudio to pick the best,
-                           possibly changing, buffer size.*/
+		2048,
         patestCallback, /* this is your callback function */
-        &data); /*This is a pointer that will be passed to
+        &audio_data); /*This is a pointer that will be passed to
                            your callback*/
     if (err != paNoError)
 		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
@@ -112,6 +112,21 @@ int start_audio()
 	printf("Started audio successfully\n");
 
 	return 0;
+}
+
+int update_audio()
+{
+	paData* data = &audio_data;
+
+	// Square wave
+	float sample = (data->phase < M_PI) ? 127 : -127;
+
+	// Increment phase and handle wrap-around
+	data->phase += 0.05;
+	if (data->phase > 2.0 * M_PI)
+	{
+		data->phase -= 2.0 * M_PI;
+	}
 }
 
 int stop_audio()

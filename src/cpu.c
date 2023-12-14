@@ -38,7 +38,7 @@ bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
 bool IME = false; // Interrupt Master Enable
 
 // A variable that stores the current frame's timestamp, to calculate time between frames
-float currentFrame = 0;
+float current_frame = 0;
 float delta_time = 0.0f;
 float last_frame = 0.0f;
 float average_delta_time = 0.0f;
@@ -62,9 +62,9 @@ void execute_frame()
 	else
 	{
 		// Calculates elapsed time since last frame for time-based calculations
-		currentFrame = (float)glfwGetTime();
-		delta_time = currentFrame - last_frame;
-		last_frame = currentFrame;
+		current_frame = (float)glfwGetTime();
+		delta_time = current_frame - last_frame;
+		last_frame = current_frame;
 
 		frame_sum += delta_time;
 	}

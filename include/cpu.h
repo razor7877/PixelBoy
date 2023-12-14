@@ -51,6 +51,7 @@ extern bool cpu_halted;
 extern bool IME;
 
 extern float delta_time;
+extern float current_frame;
 
 // The CPU handles enough instructions for 1 frame
 void execute_frame();

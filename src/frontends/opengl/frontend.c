@@ -315,6 +315,7 @@ static int update_interface()
     glfwSwapBuffers(window);
     glfwPollEvents();
 
+    //update_audio();
     update_texture();
 
     if (glfwWindowShouldClose(window))
