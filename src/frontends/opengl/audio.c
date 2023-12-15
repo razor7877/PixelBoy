@@ -8,7 +8,6 @@
 #include "frontends/opengl/audio.h"
 #include "apu.h"
 #include "io.h"
-#include <corecrt_math_defines.h>
 #include "cpu.h"
 #include "frontends/opengl/frontend.h"
 
@@ -51,15 +50,21 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 
 	for (unsigned int i = 0; i < framesPerBuffer; i++)
 	{
-		/*
-		// Square wave
-		float sample = (ch1.phase < ch1.dutyCycle) ? 1.0 : -1.0;
-		out[i] = ch1.amplitude * sample;
-		ch1.phase += ch1.frequency / SAMPLE_RATE;
-		if (ch1.phase > 1.0)
+		if (NR52 & AUDIO_ON)
 		{
-			ch1.phase -= 1.0;
-		}*/
+			if (NR52 & CH1_ON)
+			{
+				// Square wave
+				float sample = (ch1.phase < ch1.dutyCycle) ? 1.0 : -1.0;
+				out[i] = ch1.amplitude * sample;
+				ch1.phase += ch1.frequency / SAMPLE_RATE;
+				if (ch1.phase > 1.0)
+				{
+					ch1.phase -= 1.0;
+				}
+			}
+			
+		}
 	}
 
 	return 0;

@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
         if (frontend.update() == 1)
             break;
 
-        //execute_frame();
+        execute_frame();
     }
 
     frontend.stop();

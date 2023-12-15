@@ -87,8 +87,8 @@ void tick_timer(uint8_t cycles)
 		// Falling edge of bit 5 (in the upper byte of DIV) ticks APU forward
 		if (DIV == 0x2000)
 		{
-			printf("APU Tick at DIV = %x\n", DIV);
-			tick_apu();
+			//printf("APU Tick at DIV = %x\n", DIV);
+			tick_frame_sequencer();
 		}
 
 		if (TAC & 0x04) // Bit 2 enabled : TIMA timer enabled

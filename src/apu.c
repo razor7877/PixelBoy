@@ -128,6 +128,10 @@ uint8_t read_apu(uint16_t address)
 
 void write_apu(uint16_t address, uint8_t value)
 {
+	// If APU disabled, registers are read only
+	if ((NR52 & 0x80) == 0)
+		return;
+
 	if (address == 0xFF10)
 		NR10 = value;
 
@@ -141,7 +145,20 @@ void write_apu(uint16_t address, uint8_t value)
 		NR13 = value;
 
 	else if (address == 0xFF14)
-		NR14 = value;
+	{
+		NR14 = (NR14 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
+		if (value & 0x80)
+		{
+			NR52 |= 0x01;
+			//printf("Toggle on CH1\n");
+		}
+		else
+		{
+			NR52 &= ~0x01;
+			//printf("Toggle off CH1\n");
+		}
+	}
+		
 
 	// 0xFF15 unused
 
@@ -155,7 +172,19 @@ void write_apu(uint16_t address, uint8_t value)
 		NR23 = value;
 
 	else if (address == 0xFF19)
-		NR24 = value;
+	{
+		NR24 = (NR24 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
+		if (value & 0x80)
+		{
+			NR52 |= 0x02;
+			//printf("Toggle on CH2\n");
+		}
+		else
+		{
+			NR52 &= ~0x02;
+			//printf("Toggle off CH2\n");
+		}
+	}
 
 	else if (address == 0xFF1A)
 		NR30 = (NR30 & 0x7F) | (value & 0x80); // Only bit 7 is used
@@ -169,8 +198,20 @@ void write_apu(uint16_t address, uint8_t value)
 	else if (address == 0xFF1D)
 		NR33 = value;
 
-	else if (address == 0xFF1E) // Bits 3-5 are unused
-		NR34 = (NR34 & 0x38) | (value & 0xC7);
+	else if (address == 0xFF1E)
+	{
+		NR34 = (NR34 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
+		if (value & 0x80)
+		{
+			NR52 |= 0x04;
+			//printf("Toggle on CH3\n");
+		}
+		else
+		{
+			NR52 &= ~0x04;
+			//printf("Toggle off CH3\n");
+		}
+	}
 
 	// 0xFF1F unused?
 
@@ -183,8 +224,20 @@ void write_apu(uint16_t address, uint8_t value)
 	else if (address == 0xFF22)
 		NR43 = value;
 
-	else if (address == 0xFF23) // Only bits 6-7 used
-		NR44 = (NR44 & 0x3F) | (value & 0xC0);
+	else if (address == 0xFF23)
+	{
+		NR44 = (NR44 & 0x3F) | (value & 0xC0); // Only bits 6-7 used
+		if (value & 0x80)
+		{
+			NR52 |= 0x08;
+			//printf("Toggle on CH4\n");
+		}
+		else
+		{
+			NR52 &= ~0x08;
+			//printf("Toggle off CH4\n");
+		}
+	}
 
 	else if (address == 0xFF24)
 		NR50 = value;
@@ -197,7 +250,9 @@ void write_apu(uint16_t address, uint8_t value)
 
 	else if (address >= 0xFF30 && address <= 0xFF3F) // TODO : Wave RAM isn't always accessible depending on other audio registers
 	{
+
 		printf("Wave RAM write ADR %x VAL %x\n", address, value);
+
 		wave_ram[address - 0xFF30] = value;
 	}
 
@@ -207,17 +262,71 @@ void write_apu(uint16_t address, uint8_t value)
 #endif
 }
 
-void tick_apu()
+void tick_apu(uint8_t cycles)
 {
+	
+}
+
+void tick_frame_sequencer()
+{
+	// If APU disabled
+	if ((NR52 & AUDIO_ON) == 0)
+		return;
+
+	// Length control clock
 	if (frame_sequencer % 2 == 0)
-		printf("Length ctrl clock\n");
+	{
+		//printf("Length ctrl clock\n");
+		// If channel 1 on and length timer enabled
+		if ((NR14 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
+		{
+			uint8_t counter = NR11 & LENGTH_TIMER;
+			// When length timer reaches 64, disable the channel
+			if (counter++ >= 64)
+			{
+				NR14 &= ~CH_TRIGGER;
+			}
+			else
+			{
+				NR11 = (NR11 & WAVE_DUTY) | (counter & LENGTH_TIMER);
+			}
+		}
+		// If channel 2 on and length timer enabled
+		if ((NR24 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
+		{
+			uint8_t counter = NR21 & LENGTH_TIMER;
+			// When length timer reaches 64, disable the channel
+			if (counter++ >= 64)
+			{
+				NR14 &= ~CH_TRIGGER;
+			}
+			else
+			{
+				NR21 = (NR21 & WAVE_DUTY) | (counter & LENGTH_TIMER);
+			}
+		}
+		// If channel 1 on and length timer enabled
+		if ((NR34 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
+		{
 
+		}
+		// If channel 1 on and length timer enabled
+		if ((NR44 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
+		{
+
+		}
+	}
+		
+	// Sweep clock
 	if (frame_sequencer == 2 || frame_sequencer == 6)
-		printf("Sweep clock\n");
+	{
+		//printf("Sweep clock\n");
+	}
 
+	// Envelope clock
 	if (frame_sequencer++ == 7)
 	{
 		frame_sequencer = 0;
-		printf("Vol env clock\n");
+		//printf("Vol env clock\n");
 	}
 }
