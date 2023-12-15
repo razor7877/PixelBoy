@@ -40,6 +40,8 @@ uint8_t NR52 = 0xF1;
 
 uint8_t wave_ram[16] = {0};
 
+uint8_t frame_sequencer = 0;
+
 uint8_t read_apu(uint16_t address)
 {
 	if (address == 0xFF10)
@@ -203,4 +205,19 @@ void write_apu(uint16_t address, uint8_t value)
 	if (address >= 0xFF10 && address <= 0xFF26) { printf("Audio register write ADR %x value %x\n", address, value); } // Audio
 	else if (address >= 0xFF30 && address <= 0xFF3F) { printf("Wave pattern write ADR %x value %x\n", address, value); } // Wave pattern
 #endif
+}
+
+void tick_apu()
+{
+	if (frame_sequencer % 2 == 0)
+		printf("Length ctrl clock\n");
+
+	if (frame_sequencer == 2 || frame_sequencer == 6)
+		printf("Sweep clock\n");
+
+	if (frame_sequencer++ == 7)
+	{
+		frame_sequencer = 0;
+		printf("Vol env clock\n");
+	}
 }

@@ -1,6 +1,9 @@
+#include <stdio.h>
+
 #include "timer.h"
 #include "cpu.h"
 #include "interrupts.h"
+#include "apu.h"
 
 // 16-bit timer, but only upper 8 bits exposed by memory controller
 // Therefore, gets incremented every 256 cycles
@@ -79,6 +82,14 @@ void tick_timer(uint8_t cycles)
 	for (uint8_t i = 0; i < cycles; i += 4)
 	{
 		DIV += 4;
+
+		// If DIV == 0x2000 / 0b0010 0000 0000 0000
+		// Falling edge of bit 5 (in the upper byte of DIV) ticks APU forward
+		if (DIV == 0x2000)
+		{
+			printf("APU Tick at DIV = %x\n", DIV);
+			tick_apu();
+		}
 
 		if (TAC & 0x04) // Bit 2 enabled : TIMA timer enabled
 		{

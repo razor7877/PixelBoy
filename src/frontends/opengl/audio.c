@@ -16,11 +16,16 @@
 
 typedef struct
 {
+	float frequency;
+	float amplitude;
 	float phase;
-	float increment;
-} paData;
+	float dutyCycle;  // For square waves
+	int isNoise;      // Indicates if it's a noise channel
+	float noiseValue; // Current value for the noise channel
+} Channel;
 
-static paData audio_data;
+Channel ch1;
+
 PaStream* stream;
 
 double current = 0;
@@ -41,45 +46,22 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 	delta = current - last;
 	last = current;
 
-	/* Cast data passed through stream to our structure. */
-	paData* data = (paData*)userData;
 	float* in = (uint8_t*)inputBuffer;
 	float* out = (uint8_t*)outputBuffer;
 
-	(void)inputBuffer; /* Prevent unused variable warning. */
-
-#define COUNT 16
-	uint8_t count = COUNT;
-	bool isHigh = false;
-
 	for (unsigned int i = 0; i < framesPerBuffer; i++)
 	{
-		// If audio master control enabled
-		if (NR52 & 0b10000000)
+		/*
+		// Square wave
+		float sample = (ch1.phase < ch1.dutyCycle) ? 1.0 : -1.0;
+		out[i] = ch1.amplitude * sample;
+		ch1.phase += ch1.frequency / SAMPLE_RATE;
+		if (ch1.phase > 1.0)
 		{
-			//update_audio();
-
-			//printf("%d\n", *out);
-			if (count-- == 0)
-			{
-				isHigh = !isHigh;
-				count = COUNT;
-			}
-			if (isHigh)
-				*out++ = (float)rand() / RAND_MAX;
-			else
-				*out++ = (float)rand() / RAND_MAX;
-		}
-		else
-		{
-			data->phase = 0;
-			*out++ = data->phase;
-		}
+			ch1.phase -= 1.0;
+		}*/
 	}
 
-	//printf("\n\n\n\n");
-
-	//printf("Audio buffer callback: %f\n", delta);
 	return 0;
 }
 
@@ -87,20 +69,25 @@ int start_audio()
 {
 	srand(time(NULL));
 
+	ch1.frequency = 440.0;
+	ch1.amplitude = 0.05;
+	ch1.phase = 0.0;
+	ch1.dutyCycle = .50;
+
 	PaError err = Pa_Initialize();
 	if (err != paNoError)
 		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
 
     /* Open an audio I/O stream. */
-    err = Pa_OpenDefaultStream(&stream,
-        0,
-        1,
-        paFloat32,
-        SAMPLE_RATE,
-		2048,
-        patestCallback, /* this is your callback function */
-        &audio_data); /*This is a pointer that will be passed to
-                           your callback*/
+	err = Pa_OpenDefaultStream(&stream,
+		0,
+		1,
+		paFloat32,
+		SAMPLE_RATE,
+		256,
+		patestCallback,
+		NULL);
+
     if (err != paNoError)
 		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
 
@@ -116,17 +103,7 @@ int start_audio()
 
 int update_audio()
 {
-	paData* data = &audio_data;
 
-	// Square wave
-	float sample = (data->phase < M_PI) ? 127 : -127;
-
-	// Increment phase and handle wrap-around
-	data->phase += 0.05;
-	if (data->phase > 2.0 * M_PI)
-	{
-		data->phase -= 2.0 * M_PI;
-	}
 }
 
 int stop_audio()

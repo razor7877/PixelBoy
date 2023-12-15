@@ -36,10 +36,13 @@ extern uint8_t NR52;
 
 extern uint8_t wave_ram[16];
 
+extern uint8_t frame_sequencer;
+
 // Reads to the APU registers and wave RAM
 uint8_t read_apu(uint16_t address);
-
 // Writes to the APU registers and wave RAM
 void write_apu(uint16_t address, uint8_t value);
+
+void tick_apu();
 
 #endif
