@@ -28,6 +28,8 @@ typedef struct
 	uint8_t r2;
 	uint8_t r3;
 	uint8_t r4;
+	uint8_t volume; // Between 0x0 and 0xF, varies with envelope
+	uint8_t sweep_count
 } Channel;
 
 extern Channel NR1;

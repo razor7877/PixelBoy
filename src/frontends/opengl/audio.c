@@ -23,7 +23,21 @@ typedef struct
 	float noiseValue; // Current value for the noise channel
 } PAChannel;
 
-PAChannel PA_NR1;
+// Square channel 1
+PAChannel PA_NR1 = {
+	440.0,
+	0.05,
+	0.0,
+	0.50
+};
+
+// Square channel 2
+PAChannel PA_NR2 = {
+	440.0,
+	0.05,
+	0.0,
+	0.50
+};
 
 PaStream* stream;
 
@@ -35,7 +49,7 @@ double last = 0.0f;
  * It may called at interrupt level on some machines so don't do anything
  * that could mess up the system like calling malloc() or free().
 */
-static int patestCallback(const void* inputBuffer, void* outputBuffer,
+static int paCallback(const void* inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
@@ -50,22 +64,57 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 
 	for (unsigned int i = 0; i < framesPerBuffer; i++)
 	{
+		out[i] = 0;
+
 		if (NR52 & AUDIO_ON)
 		{
+
+			// Square channel 1
 			if (NR52 & CH1_ON)
 			{
+				if (NR1.r2 & 0xF8 == 0)
+					printf("NR12 DAC off\n");
+				printf("NR12 volume: %d\n", NR1.r2 & 0b11110000);
 				uint16_t period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
-				PA_NR1.frequency = 131072.0 / (2048 - period_value);
+				float gb_frequency = 131072 / (2048 - period_value);
+				float gb_sample_rate = 1048576 / (2048 - period_value);
+
+				uint8_t duty_cycle = (NR1.r1 & WAVE_DUTY) >> 6;
+				PA_NR1.dutyCycle = duty_cycle == 0 ? 0.125 : (duty_cycle * 0.25);
+
+				//printf("Frequency, %f -- Sample rate, %f\n", frequency, gb_sample_rate);
+				PA_NR1.frequency = gb_frequency;
 				// Square wave
 				float sample = (PA_NR1.phase < PA_NR1.dutyCycle) ? 1.0 : -1.0;
-				out[i] = PA_NR1.amplitude * sample;
+				out[i] += PA_NR1.amplitude * sample;
 				PA_NR1.phase += PA_NR1.frequency / SAMPLE_RATE;
 				if (PA_NR1.phase > 1.0)
 				{
 					PA_NR1.phase -= 1.0;
 				}
 			}
-			
+			if (NR52 & CH2_ON)
+			{
+				if (NR2.r2 & 0xF8 == 0)
+					printf("NR22 DAC off\n");
+				uint16_t period_value = NR2.r3 | ((NR2.r4 & 0b111) << 8);
+				float gb_frequency = 131072 / (2048 - period_value);
+				float gb_sample_rate = 1048576 / (2048 - period_value);
+
+				uint8_t duty_cycle = (NR2.r1 & WAVE_DUTY) >> 6;
+				PA_NR2.dutyCycle = duty_cycle == 0 ? 0.125 : (duty_cycle * 0.25);
+
+				//printf("Frequency, %f -- Sample rate, %f\n", frequency, gb_sample_rate);
+				PA_NR2.frequency = gb_frequency;
+				// Square wave
+				float sample = (PA_NR2.phase < PA_NR2.dutyCycle) ? 1.0 : -1.0;
+				out[i] += PA_NR2.amplitude * sample;
+				PA_NR2.phase += PA_NR2.frequency / SAMPLE_RATE;
+				if (PA_NR2.phase > 1.0)
+				{
+					PA_NR2.phase -= 1.0;
+				}
+			}
 		}
 	}
 
@@ -75,11 +124,6 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 int start_audio()
 {
 	srand(time(NULL));
-
-	PA_NR1.frequency = 440.0;
-	PA_NR1.amplitude = 0.05;
-	PA_NR1.phase = 0.0;
-	PA_NR1.dutyCycle = .50;
 
 	PaError err = Pa_Initialize();
 	if (err != paNoError)
@@ -92,7 +136,7 @@ int start_audio()
 		paFloat32,
 		SAMPLE_RATE,
 		256,
-		patestCallback,
+		paCallback,
 		NULL);
 
     if (err != paNoError)
@@ -106,11 +150,6 @@ int start_audio()
 	printf("Started audio successfully\n");
 
 	return 0;
-}
-
-int update_audio()
-{
-
 }
 
 int stop_audio()

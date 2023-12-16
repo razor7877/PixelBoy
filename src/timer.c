@@ -79,6 +79,8 @@ void update_timer_freq(uint8_t value)
 
 void tick_timer(uint8_t cycles)
 {
+	tick_apu(cycles);
+
 	for (uint8_t i = 0; i < cycles; i += 4)
 	{
 		DIV += 4;

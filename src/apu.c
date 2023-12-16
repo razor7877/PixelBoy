@@ -14,6 +14,7 @@ Channel NR1 = {
 	0xF3,
 	0xFF,
 	0xBF,
+	0
 };
 
 // Square channel 2
@@ -23,6 +24,7 @@ Channel NR2 = {
 	0x00,
 	0xFF,
 	0xBF,
+	0
 };
 
 // Wave channel
@@ -32,6 +34,7 @@ Channel NR3 = {
 	0x9F,
 	0xFF,
 	0xBF,
+	0
 };
 
 // Noise channel
@@ -41,6 +44,7 @@ Channel NR4 = {
 	0x00,
 	0x00,
 	0xBF,
+	0
 };
 
 // Global registers
@@ -273,7 +277,7 @@ void write_apu(uint16_t address, uint8_t value)
 
 void tick_apu(uint8_t cycles)
 {
-	
+
 }
 
 void tick_frame_sequencer()
