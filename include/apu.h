@@ -23,40 +23,17 @@ typedef enum
 
 typedef struct
 {
-	uint8_t in; // The 4 bit input signal
-	float out; // The output analog signal
-} DAC;
+	uint8_t r0;
+	uint8_t r1;
+	uint8_t r2;
+	uint8_t r3;
+	uint8_t r4;
+} Channel;
 
-extern DAC ch1_dac;
-extern DAC ch2_dac;
-extern DAC ch3_dac;
-extern DAC ch4_dac;
-
-// Sound channel 1
-extern uint8_t NR10;
-extern uint8_t NR11;
-extern uint8_t NR12;
-extern uint8_t NR13;
-extern uint8_t NR14;
-
-// Sound channel 2
-extern uint8_t NR21;
-extern uint8_t NR22;
-extern uint8_t NR23;
-extern uint8_t NR24;
-
-// Sound channel 3
-extern uint8_t NR30;
-extern uint8_t NR31;
-extern uint8_t NR32;
-extern uint8_t NR33;
-extern uint8_t NR34;
-
-// Sound channel 4
-extern uint8_t NR41;
-extern uint8_t NR42;
-extern uint8_t NR43;
-extern uint8_t NR44;
+extern Channel NR1;
+extern Channel NR2;
+extern Channel NR3;
+extern Channel NR4;
 
 // Global registers
 extern uint8_t NR50;
@@ -74,5 +51,11 @@ void write_apu(uint16_t address, uint8_t value);
 
 void tick_apu(uint8_t cycles);
 void tick_frame_sequencer();
+void tick_length_clocks();
+void tick_sweep_clocks();
+void tick_envelope_clocks();
+
+void set_NR52(uint8_t value);
+void unset_NR52(uint8_t value);
 
 #endif

@@ -21,9 +21,9 @@ typedef struct
 	float dutyCycle;  // For square waves
 	int isNoise;      // Indicates if it's a noise channel
 	float noiseValue; // Current value for the noise channel
-} Channel;
+} PAChannel;
 
-Channel ch1;
+PAChannel ch1;
 
 PaStream* stream;
 
