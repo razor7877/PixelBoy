@@ -130,8 +130,9 @@ static void drop_callback(GLFWwindow* window, int count, const char** paths)
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     windowWidth = width;
-    windowHeight = height;
-    glViewport(0, 0, width, height);
+    windowHeight = (float)width / (160.0 / 144.0); // Keep the original aspect ratio
+    glfwSetWindowSize(window, windowWidth, windowHeight);
+    glViewport(0, 0, windowWidth, windowHeight);
 }
 
 // Sets up GLFW context

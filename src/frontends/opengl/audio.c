@@ -95,6 +95,7 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 					PA_NR1.phase -= 1.0;
 				}
 			}
+			// Square channel 2
 			if (NR52 & CH2_ON)
 			{
 				if (NR2.r2 & 0xF8 == 0)
@@ -119,6 +120,16 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 				{
 					PA_NR2.phase -= 1.0;
 				}
+			}
+			// Wave channel
+			if (NR52 & CH3_ON)
+			{
+
+			}
+			// Noise channel
+			if (NR52 & CH4_ON)
+			{
+
 			}
 		}
 	}

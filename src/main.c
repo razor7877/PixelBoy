@@ -9,7 +9,12 @@ struct Frontend frontend;
 int main(int argc, char* argv[])
 {
     frontend = OpenGL_Frontend;
-    load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
+    //load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
+    //load_rom("roms/Boxxle (USA, Europe) (Rev A).gb");
+
+    // Drag and drop ROM loading
+    if (argc > 1)
+        load_rom(argv[1]);
 
     if (frontend.start() != 0)
         return -1;
@@ -20,7 +25,7 @@ int main(int argc, char* argv[])
         if (frontend.update() == 1)
             break;
 
-        execute_frame();
+        //execute_frame();
     }
 
     frontend.stop();
