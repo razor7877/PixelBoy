@@ -300,8 +300,8 @@ void draw_sprites()
 		uint8_t tile_index = OAM[index + 2];
 		uint8_t attributes = OAM[index + 3];
 
-		bool x_flip = attributes & 0x10 >> 4; // 5th bit
-		bool y_flip = attributes & 0x20 >> 5; // 6th bit
+		bool x_flip = (attributes & 0x20) >> 4; // 5th bit
+		bool y_flip = (attributes & 0x40) >> 5; // 6th bit
 
 		uint8_t y_size = 8;
 		if (obj_large)
@@ -388,6 +388,7 @@ void draw_sprites()
 
 				int pixel = x_pos + x_pix;
 
+				//printf("Draw pixel at x %d y %d\n", LY, pixel);
 				// White pixel for sprites is transparent
 				if (buffer_color != 0xFF)
 					frame_buffer[LY * 160 + pixel] = buffer_color;
