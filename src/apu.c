@@ -153,7 +153,10 @@ void write_apu(uint16_t address, uint8_t value)
 		NR1.r1 = value;
 
 	else if (address == 0xFF12)
+	{
 		NR1.r2 = value;
+		NR1.volume = (value & 0xF0) >> 4;
+	}
 
 	else if (address == 0xFF13)
 		NR1.r3 = value;
@@ -164,7 +167,8 @@ void write_apu(uint16_t address, uint8_t value)
 		if (value & 0x80)
 		{
 			set_apu_reg(&NR52, CH2_ON);
-			//printf("Toggle on CH1\n");
+			NR1.volume = (NR1.r2 & 0xF0) >> 4;
+			printf("Toggle on CH1\n");
 		}
 		else
 		{
@@ -177,10 +181,16 @@ void write_apu(uint16_t address, uint8_t value)
 	// 0xFF15 unused
 
 	else if (address == 0xFF16)
+	{
+		printf("NR21 write\n");
 		NR2.r1 = value;
+	}	
 
 	else if (address == 0xFF17)
+	{
 		NR2.r2 = value;
+		NR2.volume = (value & 0xF0) >> 4;
+	}	
 
 	else if (address == 0xFF18)
 		NR2.r3 = value;
@@ -191,12 +201,13 @@ void write_apu(uint16_t address, uint8_t value)
 		if (value & 0x80)
 		{
 			set_apu_reg(&NR52, CH2_ON);
-			//printf("Toggle on CH2\n");
+			NR2.volume = (NR2.r2 & 0xF0) >> 4;
+			NR2.env_count = 4;
+			printf("Toggle on CH2\n");
 		}
 		else
 		{
 			unset_apu_reg(&NR52, CH2_ON);
-			//printf("Toggle off CH2\n");
 		}
 	}
 
@@ -309,7 +320,7 @@ void tick_length_clocks()
 	{
 		uint8_t counter = NR1.r1 & LENGTH_TIMER;
 		// When length timer reaches 64, disable the channel
-		if (counter++ >= 64)
+		if (++counter >= 64)
 		{
 			unset_apu_reg(&NR1.r4, CH_TRIGGER);
 			unset_apu_reg(&NR52, CH1_ON);
@@ -319,9 +330,10 @@ void tick_length_clocks()
 	// If channel 2 on and length timer enabled
 	if ((NR2.r4 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
 	{
+		printf("Length clock\n");
 		uint8_t counter = NR2.r1 & LENGTH_TIMER;
 		// When length timer reaches 64, disable the channel
-		if (counter++ >= 64)
+		if (++counter >= 64)
 		{
 			unset_apu_reg(&NR1.r4, CH_TRIGGER);
 			unset_apu_reg(&NR52, CH2_ON);
@@ -333,7 +345,7 @@ void tick_length_clocks()
 	{
 		// This register is a timer only
 		uint16_t counter = NR3.r1;
-		if (counter++ >= 256)
+		if (++counter >= 256)
 		{
 			unset_apu_reg(&NR3.r4, CH_TRIGGER);
 			unset_apu_reg(&NR52, CH3_ON);
@@ -344,7 +356,7 @@ void tick_length_clocks()
 	if ((NR4.r4 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
 	{
 		uint8_t counter = NR4.r1;
-		if (counter++ >= 64)
+		if (++counter >= 64)
 		{
 			unset_apu_reg(&NR4.r4, CH_TRIGGER);
 			unset_apu_reg(&NR52, CH4_ON);
@@ -355,12 +367,43 @@ void tick_length_clocks()
 
 void tick_sweep_clocks()
 {
-
 }
 
 void tick_envelope_clocks()
 {
+	// Envelope disabled if sweep pace is 0
+	if ((NR1.r2 & 0x8) != 0)
+	{
+		if (NR1.env_count <= 0)
+		{
+			NR1.env_count = NR1.r2 & 0xF;
+			uint8_t env_dir = (NR1.r2 & 0x4) >> 3;
+			if (env_dir == 1)
+				NR1.volume = (NR1.volume == 0xF) ? 0xF : (NR1.volume + 1);
+			else
+				NR1.volume = (NR1.volume == 0x0) ? 0x0 : (NR1.volume - 1);
 
+			printf("NR1 Vol: %x -- Env dir: %x\n", NR1.volume, env_dir);
+		}
+		NR1.env_count--;
+	}
+
+	// Envelope disabled if sweep pace is 0
+	if ((NR2.r2 & 0x8) != 0)
+	{
+		if (NR2.env_count <= 0)
+		{
+			NR2.env_count = NR2.r2 & 0xF;
+			uint8_t env_dir = (NR2.r2 & 0x4) >> 3;
+			if (env_dir == 1)
+				NR2.volume = (NR2.volume == 0xF) ? 0xF : (NR2.volume + 1);
+			else
+				NR2.volume = (NR2.volume == 0x0) ? 0x0 : (NR2.volume - 1);
+
+			printf("NR2 Vol: %x -- Env dir: %x\n", NR2.volume, env_dir);
+		}
+		NR2.env_count--;
+	}
 }
 
 void set_apu_reg(uint8_t* reg, uint8_t bitmask)
