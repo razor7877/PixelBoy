@@ -383,7 +383,14 @@ void draw_sprites()
 						break;
 				}
 
-				frame_buffer[LY * 160 + x_pos + tile_pixel] = buffer_color;
+				int x_pix = 0 - tile_pixel;
+				x_pix += 7;
+
+				int pixel = x_pos + x_pix;
+
+				// White pixel for sprites is transparent
+				if (buffer_color != 0xFF)
+					frame_buffer[LY * 160 + pixel] = buffer_color;
 			}
 		}
 	}
