@@ -23,7 +23,7 @@ typedef struct
 	float noiseValue; // Current value for the noise channel
 } PAChannel;
 
-PAChannel ch1;
+PAChannel PA_NR1;
 
 PaStream* stream;
 
@@ -54,13 +54,15 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 		{
 			if (NR52 & CH1_ON)
 			{
+				uint16_t period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
+				PA_NR1.frequency = 131072.0 / (2048 - period_value);
 				// Square wave
-				float sample = (ch1.phase < ch1.dutyCycle) ? 1.0 : -1.0;
-				out[i] = ch1.amplitude * sample;
-				ch1.phase += ch1.frequency / SAMPLE_RATE;
-				if (ch1.phase > 1.0)
+				float sample = (PA_NR1.phase < PA_NR1.dutyCycle) ? 1.0 : -1.0;
+				out[i] = PA_NR1.amplitude * sample;
+				PA_NR1.phase += PA_NR1.frequency / SAMPLE_RATE;
+				if (PA_NR1.phase > 1.0)
 				{
-					ch1.phase -= 1.0;
+					PA_NR1.phase -= 1.0;
 				}
 			}
 			
@@ -74,10 +76,10 @@ int start_audio()
 {
 	srand(time(NULL));
 
-	ch1.frequency = 440.0;
-	ch1.amplitude = 0.05;
-	ch1.phase = 0.0;
-	ch1.dutyCycle = .50;
+	PA_NR1.frequency = 440.0;
+	PA_NR1.amplitude = 0.05;
+	PA_NR1.phase = 0.0;
+	PA_NR1.dutyCycle = .50;
 
 	PaError err = Pa_Initialize();
 	if (err != paNoError)

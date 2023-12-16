@@ -55,7 +55,7 @@ void tick_length_clocks();
 void tick_sweep_clocks();
 void tick_envelope_clocks();
 
-void set_NR52(uint8_t value);
-void unset_NR52(uint8_t value);
+void set_apu_reg(uint8_t* reg, uint8_t bitmask);
+void unset_apu_reg(uint8_t* reg, uint8_t bitmask);
 
 #endif

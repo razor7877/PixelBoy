@@ -159,12 +159,12 @@ void write_apu(uint16_t address, uint8_t value)
 		NR1.r4 = (NR1.r4 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
 		if (value & 0x80)
 		{
-			set_NR52(CH2_ON);
+			set_apu_reg(&NR52, CH2_ON);
 			//printf("Toggle on CH1\n");
 		}
 		else
 		{
-			unset_NR52(CH2_ON);
+			unset_apu_reg(&NR52, CH2_ON);
 			//printf("Toggle off CH1\n");
 		}
 	}
@@ -186,12 +186,12 @@ void write_apu(uint16_t address, uint8_t value)
 		NR2.r4 = (NR2.r4 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
 		if (value & 0x80)
 		{
-			set_NR52(CH2_ON);
+			set_apu_reg(&NR52, CH2_ON);
 			//printf("Toggle on CH2\n");
 		}
 		else
 		{
-			unset_NR52(CH2_ON);
+			unset_apu_reg(&NR52, CH2_ON);
 			//printf("Toggle off CH2\n");
 		}
 	}
@@ -213,12 +213,12 @@ void write_apu(uint16_t address, uint8_t value)
 		NR3.r4 = (NR3.r4 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
 		if (value & 0x80)
 		{
-			set_NR52(CH3_ON);
+			set_apu_reg(&NR52, CH3_ON);
 			//printf("Toggle on CH3\n");
 		}
 		else
 		{
-			unset_NR52(CH3_ON);
+			unset_apu_reg(&NR52, CH3_ON);
 			//printf("Toggle off CH3\n");
 		}
 	}
@@ -239,12 +239,12 @@ void write_apu(uint16_t address, uint8_t value)
 		NR4.r4 = (NR4.r4 & 0x3F) | (value & 0xC0); // Only bits 6-7 used
 		if (value & 0x80)
 		{
-			set_NR52(CH4_ON);
+			set_apu_reg(&NR52, CH4_ON);
 			//printf("Toggle on CH4\n");
 		}
 		else
 		{
-			unset_NR52(CH4_ON);
+			unset_apu_reg(&NR52, CH4_ON);
 			//printf("Toggle off CH4\n");
 		}
 	}
@@ -284,15 +284,11 @@ void tick_frame_sequencer()
 
 	// Length control clock
 	if (frame_sequencer % 2 == 0)
-	{
 		tick_length_clocks();
-	}
 		
 	// Sweep clock
 	if (frame_sequencer == 2 || frame_sequencer == 6)
-	{
 		tick_sweep_clocks();
-	}
 
 	// Envelope clock
 	if (frame_sequencer++ == 7)
@@ -311,8 +307,8 @@ void tick_length_clocks()
 		// When length timer reaches 64, disable the channel
 		if (counter++ >= 64)
 		{
-			NR1.r4 &= ~CH_TRIGGER;
-			unset_NR52(CH1_ON);
+			unset_apu_reg(&NR1.r4, CH_TRIGGER);
+			unset_apu_reg(&NR52, CH1_ON);
 		}
 		NR1.r1 = (NR1.r1 & WAVE_DUTY) | (counter & LENGTH_TIMER);
 	}
@@ -323,8 +319,8 @@ void tick_length_clocks()
 		// When length timer reaches 64, disable the channel
 		if (counter++ >= 64)
 		{
-			NR1.r4 &= ~CH_TRIGGER;
-			unset_NR52(CH2_ON);
+			unset_apu_reg(&NR1.r4, CH_TRIGGER);
+			unset_apu_reg(&NR52, CH2_ON);
 		}
 		NR2.r1 = (NR2.r1 & WAVE_DUTY) | (counter & LENGTH_TIMER);
 	}
@@ -335,8 +331,8 @@ void tick_length_clocks()
 		uint16_t counter = NR3.r1;
 		if (counter++ >= 256)
 		{
-			NR3.r4 &= ~CH_TRIGGER;
-			unset_NR52(CH3_ON);
+			unset_apu_reg(&NR3.r4, CH_TRIGGER);
+			unset_apu_reg(&NR52, CH3_ON);
 		}
 		NR3.r1 = counter;
 	}
@@ -346,27 +342,29 @@ void tick_length_clocks()
 		uint8_t counter = NR4.r1;
 		if (counter++ >= 64)
 		{
-			NR4.r4 &= ~CH_TRIGGER;
-			unset_NR52(CH4_ON);
+			unset_apu_reg(&NR4.r4, CH_TRIGGER);
+			unset_apu_reg(&NR52, CH4_ON);
 		}
 		NR4.r1 = (NR4.r1 & WAVE_DUTY) | (counter & LENGTH_TIMER);
 	}
 }
+
 void tick_sweep_clocks()
 {
 
 }
+
 void tick_envelope_clocks()
 {
 
 }
 
-void set_NR52(uint8_t value)
+void set_apu_reg(uint8_t* reg, uint8_t bitmask)
 {
-	NR52 |= value;
+	*reg |= bitmask;
 }
 
-void unset_NR52(uint8_t value)
+void unset_apu_reg(uint8_t* reg, uint8_t bitmask)
 {
-	NR52 &= ~value;
+	*reg &= ~bitmask;
 }
