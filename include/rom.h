@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// Use this define for ROM related logging
+//#define ROM_DEBUG
+
 struct CartridgeHeader
 {
 	const uint8_t entry_point[4];
@@ -24,12 +27,16 @@ struct CartridgeHeader
 extern struct CartridgeHeader cartridge_header;
 
 extern uint8_t boot_rom[256];
+
 extern bool boot_done;
 extern bool rom_loaded;
+extern bool is_MBC_cartridge;
 // Space is dynamically allocated depending on the loaded ROM
 extern uint8_t* rom;
 extern uint32_t rom_size;
-extern bool is_MBC_cartridge;
+// Same for RAM
+extern uint8_t* external_ram;
+extern uint32_t external_ram_size;
 
 int load_rom(const char* path);
 int load_boot_rom(const char* path);
@@ -38,5 +45,8 @@ void dump_header();
 
 uint8_t read_rom(uint16_t address);
 void write_rom(uint16_t address, uint8_t value);
+
+uint8_t read_external_ram(uint16_t address);
+void write_external_ram(uint16_t address, uint8_t value);
 
 #endif

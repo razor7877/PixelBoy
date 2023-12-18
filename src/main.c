@@ -9,9 +9,8 @@ struct Frontend frontend;
 int main(int argc, char* argv[])
 {
     frontend = OpenGL_Frontend;
-    load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
-    //load_rom("roms/blargg/cpu_instrs/individual/01-special.gb");
-    //load_rom("roms/Boxxle (USA, Europe) (Rev A).gb");
+    //load_rom("roms/Super Mario Land (JUE) (V1.1) [!].gb");
+    //load_rom("roms/Legend of Zelda, The - Link's Awakening (U) (V1.2) [!].gb");
 
     // Drag and drop ROM loading
     if (argc > 1)

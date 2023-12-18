@@ -12,26 +12,23 @@
 #include "mbc/mbc.h"
 #include "mbc/mbc1.h"
 
-// Use this define for ROM related logging
-//#define ROM_DEBUG
-
-uint8_t boot_rom[256] = {0};
-
-bool boot_done = true;
-bool rom_loaded = false;
-uint8_t* rom = 0;
-uint32_t rom_size = 0;
-bool is_MBC_cartridge = false;
-
 struct CartridgeHeader cartridge_header = {0};
 struct MBC mbc;
 
+uint8_t boot_rom[256] = { 0 };
+
+bool boot_done = true;
+bool rom_loaded = false;
+bool is_MBC_cartridge = false;
+
+uint8_t* rom = 0;
+uint32_t rom_size = 0;
+
+uint8_t* external_ram = 0;
+uint32_t external_ram_size = 0;
+
 int load_rom(const char* path)
 {
-    // Make sure header info is empty
-    memset(&cartridge_header, 0, sizeof(cartridge_header));
-    is_MBC_cartridge = false;
-
     FILE* romFile = fopen(path, "rb");
     if (!romFile)
     {
@@ -60,7 +57,7 @@ int load_rom(const char* path)
 
     if (checksum != cartridge_header.header_checksum)
     {
-        printf("Incorrect header checksum!\n");
+        printf("Incorrect header checksum, file is invalid!\n");
         return -1;
     }
 
@@ -70,12 +67,16 @@ int load_rom(const char* path)
     switch (cartridge_header.cartridge_type)
     {
     case 0x00: // ROM ONLY
-        rom_size = 0x8000;
         break;
     case 0x01: // MBC1
-        // With the MBC, number of ROM banks is 2 * 2**cartridge_size
-        rom_size = 2 * ROM_BANK_SIZE * (1 << cartridge_header.cartridge_size);
-        printf("ROM SIZE: %x\n", rom_size);
+        mbc = mbc1;
+        is_MBC_cartridge = true;
+        break;
+    case 0x02: // MBC1 + RAM
+        mbc = mbc1;
+        is_MBC_cartridge = true;
+        break;
+    case 0x03: // MBC3 + RAM + battery
         mbc = mbc1;
         is_MBC_cartridge = true;
         break;
@@ -85,12 +86,42 @@ int load_rom(const char* path)
         break;
     }
 
+    // Calculate how much size we need to allocate to fit in the full ROM
+    rom_size = 2 * ROM_BANK_SIZE * (1 << cartridge_header.cartridge_size);
+
     rom = malloc(rom_size);
     if (rom == NULL)
     {
         // Handle allocation failure
-        fprintf(stderr, "Memory allocation failed\n");
+        fprintf(stderr, "ROM memory allocation failed\n");
         return -1;
+    }
+
+    switch (cartridge_header.ram_size)
+    {
+    case 0x02:
+        external_ram_size = 0x2000; // 8 KiB
+        break;
+    case 0x03:
+        external_ram_size = 0x8000; // 32 KiB
+        break;
+    case 0x04:
+        external_ram_size = 0x20000; // 128 KiB
+        break;
+    case 0x05:
+        external_ram_size = 0x10000; // 64 KiB
+        break;
+    }
+
+    if (external_ram_size != 0)
+    {
+        external_ram = malloc(external_ram_size);
+        if (external_ram == NULL)
+        {
+            // Handle allocation failure
+            fprintf(stderr, "External RAM memory allocation failed\n");
+            return -1;
+        }
     }
 
     // Finally, read full ROM contents into the array
@@ -126,9 +157,17 @@ int load_boot_rom(const char* path)
 
 void unload_rom()
 {
+    // Make sure header info is empty
+    memset(&cartridge_header, 0, sizeof(cartridge_header));
+    is_MBC_cartridge = false;
+
     free(rom);
     rom = NULL;
     rom_size = 0x00;
+
+    free(external_ram);
+    external_ram = NULL;
+    external_ram_size = 0x00;
 
     rom_loaded = false;
 }
@@ -152,7 +191,7 @@ uint8_t read_rom(uint16_t address)
 {
     if (!boot_done && address < 0xFF) // Accesses to 0x00-0xFF during startup are mapped to boot ROM
         return boot_rom[address];
-    else if (!is_MBC_cartridge || address <= 0x3FFF) // If ROM only or address lower than 0x3FFF, we are reading the fixed memory bank 0
+    else if (!is_MBC_cartridge) // If ROM only
         return rom[address];
 
     return mbc1.read_rom(address);
@@ -170,4 +209,24 @@ void write_rom(uint16_t address, uint8_t value)
     {
         mbc1.write_rom(address, value);
     }
+}
+
+uint8_t read_external_ram(uint16_t address)
+{
+    if (!mbc.ram_enable)
+        return 0xFF;
+
+    return external_ram[address - 0xA000];
+    //printf("External RAM read ADR %x\n", address);
+}
+
+void write_external_ram(uint16_t address, uint8_t value)
+{
+    if (!mbc.ram_enable)
+        return;
+
+    if (mbc1.banking_mode == 1)
+
+    external_ram[address - 0xA000] = value;
+    //printf("External RAM write ADR %x VALUE %x\n", address, value);
 }
