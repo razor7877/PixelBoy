@@ -4,10 +4,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "rom.h"
 #include "memory.h"
 #include "cpu.h"
+#include "mbc/mbc.h"
+#include "mbc/mbc1.h"
 
 // Use this define for ROM related logging
 //#define ROM_DEBUG
@@ -21,7 +24,7 @@ uint32_t rom_size = 0;
 bool is_MBC_cartridge = false;
 
 struct CartridgeHeader cartridge_header = {0};
-struct MBC1 mbc1 = {0}; // All MBC1 registers are initialized to 0 on GB, so zero-initializing struct should be fine
+struct MBC mbc;
 
 int load_rom(const char* path)
 {
@@ -45,6 +48,22 @@ int load_rom(const char* path)
     fread(&cartridge_header, sizeof(uint8_t), 80, romFile);
     rewind(romFile);
 
+    uint8_t header[80] = {0};
+    memcpy(header, &cartridge_header, 80);
+
+    // Validate the checksum to ensure we have a valid ROM
+    uint8_t checksum = 0;
+    for (uint16_t address = 0x134; address <= 0x14C; address++)
+    {
+        checksum = checksum - header[address - 0x100] - 1;
+    }
+
+    if (checksum != cartridge_header.header_checksum)
+    {
+        printf("Incorrect header checksum!\n");
+        return -1;
+    }
+
     dump_header();
 
     // We dynamically allocate rom array depending on the cartridge type and size
@@ -56,6 +75,8 @@ int load_rom(const char* path)
     case 0x01: // MBC1
         // With the MBC, number of ROM banks is 2 * 2**cartridge_size
         rom_size = 2 * ROM_BANK_SIZE * (1 << cartridge_header.cartridge_size);
+        printf("ROM SIZE: %x\n", rom_size);
+        mbc = mbc1;
         is_MBC_cartridge = true;
         break;
     default:
@@ -65,7 +86,6 @@ int load_rom(const char* path)
     }
 
     rom = malloc(rom_size);
-
     if (rom == NULL)
     {
         // Handle allocation failure
@@ -101,12 +121,6 @@ int load_boot_rom(const char* path)
     fread(&boot_rom, sizeof(char), size, romFile);
     fclose(romFile);
 
-    // Dirty fix for blargg's indidivual test ROMs having cartridge size of 0 (which causes incorrect ROM reads)
-    if (cartridge_header.cartridge_type == 0x01 && cartridge_header.cartridge_size == 0x00)
-    {
-        memset((void*)&(cartridge_header.cartridge_size), 0x01, sizeof(char));
-    }
-
     return 0;
 }
 
@@ -141,8 +155,7 @@ uint8_t read_rom(uint16_t address)
     else if (!is_MBC_cartridge || address <= 0x3FFF) // If ROM only or address lower than 0x3FFF, we are reading the fixed memory bank 0
         return rom[address];
 
-    // Otherwise, if MBC1, and reading one of the mapped banks, return content of the currently mapped bank
-    return rom[ROM_BANK_SIZE * (mbc1.rom_bank - 1) + address];
+    return mbc1.read_rom(address);
 }
 
 void write_rom(uint16_t address, uint8_t value)
@@ -153,49 +166,8 @@ void write_rom(uint16_t address, uint8_t value)
         printf("Rom write attempt (no MBC) ADR %x VALUE %x\n", address, value);
 #endif
     }
-    else if (address >= 0000 && address <= 0x1FFF) // Ram enable/disable 
-    {
-        if ((value & 0x0F) == 0x0A) // MBC1 enables RAM when the 4 lower bits of the written value equals 0xA
-        {
-            mbc1.ram_enable = true;
-#ifdef ROM_DEBUG
-            printf("Write 0xA at ADR %x, cartridge RAM enable\n", address);
-#endif
-        }  
-        else
-        {
-            mbc1.ram_enable = false;
-#ifdef ROM_DEBUG
-            printf("Write %x at ADR %x, cartridge RAM enable\n", value, address);
-#endif
-        }
-    }
-    else if (address >= 0x2000 && address <= 0x3FFF) // Select ROM bank number
-    {
-        // We mask the written value to the number of bits required to choose among the available number of ROM banks
-        uint8_t mask = (0b11 << cartridge_header.cartridge_size - 1);
-        mbc1.rom_bank = value & mask;
-        if (mbc1.rom_bank == 0x00) mbc1.rom_bank = 0x01; // Assumed that we can safely change value to 1, since 0 maps to 1 anyway on real hardware
-#ifdef ROM_DEBUG
-        printf("Change ROM bank number VALUE %x\n", value);
-#endif
-    }
-    else if (address >= 0x4000 && address <= 0x5FFF) // Select RAM bank number
-    {
-#ifdef ROM_DEBUG
-        printf("Change RAM bank number VALUE %x\n", value);
-#endif
-    }
-    else if (address >= 0x6000 && address <= 0x7FFF) // Banking mode select
-    {
-#ifdef ROM_DEBUG
-        printf("Change banking mode VALUE %x\n", value);
-#endif
-    }
     else
     {
-#ifdef ROM_DEBUG
-        printf("Rom write attempt. ADR %x VALUE %x\n", address, value);
-#endif
+        mbc1.write_rom(address, value);
     }
 }

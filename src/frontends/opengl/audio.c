@@ -68,7 +68,6 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 
 		if (NR52 & AUDIO_ON)
 		{
-
 			// Square channel 1
 			if (NR52 & CH1_ON)
 			{
@@ -76,8 +75,8 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 					printf("NR12 DAC off\n");
 				//printf("NR12 volume: %d - Curr volume: %d\n", (NR1.r2 & 0b11110000) >> 4, NR1.volume);
 				uint16_t period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
-				float gb_frequency = 131072 / (2048 - period_value);
-				float gb_sample_rate = 1048576 / (2048 - period_value);
+				float gb_frequency = 131072.0 / (2048 - period_value);
+				float gb_sample_rate = 1048576.0 / (2048 - period_value);
 
 				uint8_t duty_cycle = (NR1.r1 & WAVE_DUTY) >> 6;
 				PA_NR1.dutyCycle = duty_cycle == 0 ? 0.125 : (duty_cycle * 0.25);
@@ -102,8 +101,8 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 					printf("NR22 DAC off\n");
 				//printf("NR22 volume: %d - Curr volume: %d\n", (NR2.r2 & 0b11110000) >> 4, NR2.volume);
 				uint16_t period_value = NR2.r3 | ((NR2.r4 & 0b111) << 8);
-				float gb_frequency = 131072 / (2048 - period_value);
-				float gb_sample_rate = 1048576 / (2048 - period_value);
+				float gb_frequency = 131072.0 / (2048 - period_value);
+				float gb_sample_rate = 1048576.0 / (2048 - period_value);
 
 				uint8_t duty_cycle = (NR2.r1 & WAVE_DUTY) >> 6;
 				PA_NR2.dutyCycle = duty_cycle == 0 ? 0.125 : (duty_cycle * 0.25);

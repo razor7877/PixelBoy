@@ -168,7 +168,7 @@ void write_apu(uint16_t address, uint8_t value)
 		{
 			set_apu_reg(&NR52, CH2_ON);
 			NR1.volume = (NR1.r2 & 0xF0) >> 4;
-			printf("Toggle on CH1\n");
+			//printf("Toggle on CH1\n");
 		}
 		else
 		{
@@ -182,7 +182,7 @@ void write_apu(uint16_t address, uint8_t value)
 
 	else if (address == 0xFF16)
 	{
-		printf("NR21 write\n");
+		//printf("NR21 write\n");
 		NR2.r1 = value;
 	}	
 
@@ -203,7 +203,7 @@ void write_apu(uint16_t address, uint8_t value)
 			set_apu_reg(&NR52, CH2_ON);
 			NR2.volume = (NR2.r2 & 0xF0) >> 4;
 			NR2.env_count = 4;
-			printf("Toggle on CH2\n");
+			//printf("Toggle on CH2\n");
 		}
 		else
 		{
