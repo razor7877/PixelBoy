@@ -128,13 +128,13 @@ uint8_t read_apu(uint16_t address)
 	else if (address >= 0xFF30 && address <= 0xFF3F)
 	{
 #ifdef APU_DEBUG
-		printf("Wave RAM read ADR %x\n", address);
+		log_debug("Wave RAM read ADR %x\n", address);
 #endif
 		return wave_ram[address - 0xFF30];
 	}
 
 #ifdef APU_DEBUG
-	if (address >= 0xFF10 && address <= 0xFF26) { printf("Audio register read ADR %x\n", address); }
+	if (address >= 0xFF10 && address <= 0xFF26) { log_debug("Audio register read ADR %x\n", address); }
 #endif
 
 	return 0xFF;
@@ -168,12 +168,12 @@ void write_apu(uint16_t address, uint8_t value)
 		{
 			set_apu_reg(&NR52, CH2_ON);
 			NR1.volume = (NR1.r2 & 0xF0) >> 4;
-			//printf("Toggle on CH1\n");
+			//log_debug("Toggle on CH1\n");
 		}
 		else
 		{
 			unset_apu_reg(&NR52, CH2_ON);
-			//printf("Toggle off CH1\n");
+			//log_debug("Toggle off CH1\n");
 		}
 	}
 		
@@ -182,7 +182,7 @@ void write_apu(uint16_t address, uint8_t value)
 
 	else if (address == 0xFF16)
 	{
-		//printf("NR21 write\n");
+		//log_debug("NR21 write\n");
 		NR2.r1 = value;
 	}	
 
@@ -203,7 +203,7 @@ void write_apu(uint16_t address, uint8_t value)
 			set_apu_reg(&NR52, CH2_ON);
 			NR2.volume = (NR2.r2 & 0xF0) >> 4;
 			NR2.env_count = 4;
-			//printf("Toggle on CH2\n");
+			//log_debug("Toggle on CH2\n");
 		}
 		else
 		{
@@ -229,12 +229,12 @@ void write_apu(uint16_t address, uint8_t value)
 		if (value & 0x80)
 		{
 			set_apu_reg(&NR52, CH3_ON);
-			//printf("Toggle on CH3\n");
+			//log_debug("Toggle on CH3\n");
 		}
 		else
 		{
 			unset_apu_reg(&NR52, CH3_ON);
-			//printf("Toggle off CH3\n");
+			//log_debug("Toggle off CH3\n");
 		}
 	}
 
@@ -255,12 +255,12 @@ void write_apu(uint16_t address, uint8_t value)
 		if (value & 0x80)
 		{
 			set_apu_reg(&NR52, CH4_ON);
-			//printf("Toggle on CH4\n");
+			//log_debug("Toggle on CH4\n");
 		}
 		else
 		{
 			unset_apu_reg(&NR52, CH4_ON);
-			//printf("Toggle off CH4\n");
+			//log_debug("Toggle off CH4\n");
 		}
 	}
 
@@ -275,14 +275,14 @@ void write_apu(uint16_t address, uint8_t value)
 
 	else if (address >= 0xFF30 && address <= 0xFF3F) // TODO : Wave RAM isn't always accessible depending on other audio registers
 	{
-		//printf("Wave RAM write ADR %x VAL %x\n", address, value);
+		//log_debug("Wave RAM write ADR %x VAL %x\n", address, value);
 
 		wave_ram[address - 0xFF30] = value;
 	}
 
 #ifdef APU_DEBUG
-	if (address >= 0xFF10 && address <= 0xFF26) { printf("Audio register write ADR %x value %x\n", address, value); } // Audio
-	else if (address >= 0xFF30 && address <= 0xFF3F) { printf("Wave pattern write ADR %x value %x\n", address, value); } // Wave pattern
+	if (address >= 0xFF10 && address <= 0xFF26) { log_debug("Audio register write ADR %x value %x\n", address, value); } // Audio
+	else if (address >= 0xFF30 && address <= 0xFF3F) { log_debug("Wave pattern write ADR %x value %x\n", address, value); } // Wave pattern
 #endif
 }
 
@@ -330,7 +330,7 @@ void tick_length_clocks()
 	// If channel 2 on and length timer enabled
 	if ((NR2.r4 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
 	{
-		printf("Length clock\n");
+		log_debug("Length clock\n");
 		uint8_t counter = NR2.r1 & LENGTH_TIMER;
 		// When length timer reaches 64, disable the channel
 		if (++counter >= 64)
@@ -383,7 +383,7 @@ void tick_envelope_clocks()
 			else
 				NR1.volume = (NR1.volume == 0x0) ? 0x0 : (NR1.volume - 1);
 
-			printf("NR1 Vol: %x -- Env dir: %x\n", NR1.volume, env_dir);
+			log_debug("NR1 Vol: %x -- Env dir: %x\n", NR1.volume, env_dir);
 		}
 		NR1.env_count--;
 	}
@@ -400,7 +400,7 @@ void tick_envelope_clocks()
 			else
 				NR2.volume = (NR2.volume == 0x0) ? 0x0 : (NR2.volume - 1);
 
-			printf("NR2 Vol: %x -- Env dir: %x\n", NR2.volume, env_dir);
+			log_debug("NR2 Vol: %x -- Env dir: %x\n", NR2.volume, env_dir);
 		}
 		NR2.env_count--;
 	}
