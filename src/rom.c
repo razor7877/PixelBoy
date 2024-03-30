@@ -2,6 +2,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#ifdef __linux__
+#include <sys/stat.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -180,12 +183,18 @@ void unload_rom()
 void save_ram_to_file()
 {
     // We create a null-terminated char array from the ROM title
-    char title[17];
+    char title[23] = "saves/";
     for (int i = 0; i < 16; i++)
     {
-        title[i] = cartridge_header.title[i];
+        title[i + 6] = cartridge_header.title[i];
     }
-    title[16] = '\0';
+    title[22] = '\0';
+
+#ifdef _WIN32
+    _mkdir("saves/");
+#else
+    mkdir("saves/", 0755);
+#endif
 
     FILE* save_file;
     save_file = fopen(title, "w");
@@ -203,12 +212,12 @@ void save_ram_to_file()
 void load_ram_from_file()
 {
     // We create a null-terminated char array from the ROM title
-    char title[17];
+    char title[23] = "saves/";
     for (int i = 0; i < 16; i++)
     {
-        title[i] = cartridge_header.title[i];
+        title[i + 6] = cartridge_header.title[i];
     }
-    title[16] = '\0';
+    title[22] = '\0';
 
     FILE* save_file;
     save_file = fopen(title, "r");
