@@ -72,7 +72,7 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 			if (NR52 & CH1_ON)
 			{
 				if (NR1.r2 & 0xF8 == 0)
-					printf("NR12 DAC off\n");
+					log_debug("NR12 DAC off\n");
 				//printf("NR12 volume: %d - Curr volume: %d\n", (NR1.r2 & 0b11110000) >> 4, NR1.volume);
 				uint16_t period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
 				float gb_frequency = 131072.0 / (2048 - period_value);
@@ -98,7 +98,7 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 			if (NR52 & CH2_ON)
 			{
 				if (NR2.r2 & 0xF8 == 0)
-					printf("NR22 DAC off\n");
+					log_debug("NR22 DAC off\n");
 				//printf("NR22 volume: %d - Curr volume: %d\n", (NR2.r2 & 0b11110000) >> 4, NR2.volume);
 				uint16_t period_value = NR2.r3 | ((NR2.r4 & 0b111) << 8);
 				float gb_frequency = 131072.0 / (2048 - period_value);
@@ -142,7 +142,7 @@ int start_audio()
 
 	PaError err = Pa_Initialize();
 	if (err != paNoError)
-		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+		log_error("PortAudio error: %s\n", Pa_GetErrorText(err));
 
     /* Open an audio I/O stream. */
 	err = Pa_OpenDefaultStream(&stream,
@@ -155,14 +155,14 @@ int start_audio()
 		NULL);
 
     if (err != paNoError)
-		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+		log_error("PortAudio error: %s\n", Pa_GetErrorText(err));
 
 	// Start the audio stream
 	err = Pa_StartStream(stream);
 	if (err != paNoError)
-		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+		log_error("PortAudio error: %s\n", Pa_GetErrorText(err));
 
-	printf("Started audio successfully\n");
+	log_info("Started audio successfully\n");
 
 	return 0;
 }
@@ -171,13 +171,13 @@ int stop_audio()
 {
 	PaError err = Pa_CloseStream(stream);
 	if (err != paNoError)
-		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+		log_error("PortAudio error: %s\n", Pa_GetErrorText(err));
 
 	err = Pa_Terminate();
 	if (err != paNoError)
-		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+		log_error("PortAudio error: %s\n", Pa_GetErrorText(err));
 
-	printf("Stopped audio successfully\n");
+	log_info("Stopped audio successfully\n");
 
 	return 0;
 }

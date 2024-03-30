@@ -11,6 +11,7 @@
 #include "cpu.h"
 #include "mbc/mbc.h"
 #include "mbc/mbc1.h"
+#include "logging.h"
 
 struct CartridgeHeader cartridge_header = {0};
 struct MBC mbc;
@@ -32,7 +33,7 @@ int load_rom(const char* path)
     FILE* romFile = fopen(path, "rb");
     if (!romFile)
     {
-        printf("Error opening ROM file!\n");
+        log_error("Error opening ROM file!\n");
         return -1;
     }
 
@@ -57,7 +58,7 @@ int load_rom(const char* path)
 
     if (checksum != cartridge_header.header_checksum)
     {
-        printf("Incorrect header checksum, file is invalid!\n");
+        log_error("Incorrect header checksum, file is invalid!\n");
         return -1;
     }
 
@@ -81,7 +82,7 @@ int load_rom(const char* path)
         is_MBC_cartridge = true;
         break;
     default:
-        printf("Loaded ROM with a mapper that is not emulated: %x\n", cartridge_header.cartridge_type);
+        log_error("Loaded ROM with a mapper that is not emulated: %x\n", cartridge_header.cartridge_type);
         return -1;
         break;
     }
@@ -141,7 +142,7 @@ int load_boot_rom(const char* path)
     FILE* romFile = fopen(path, "rb");
     if (!rom)
     {
-        printf("Error opening BOOT ROM file!\n");
+        log_error("Error opening BOOT ROM file!\n");
         return -1;
     }
 
@@ -174,17 +175,17 @@ void unload_rom()
 
 void dump_header()
 {
-    printf("Loaded ROM into memory, cartridge header info:\n\nTitle: %s\n", cartridge_header.title);
-    printf("New licensee code: %x%x\n", cartridge_header.new_licensee_code[0], cartridge_header.new_licensee_code[1]);
-    printf("SGB flag: %x\n", cartridge_header.sgb_flag);
-    printf("Cartridge type: %x\n", cartridge_header.cartridge_type);
-    printf("Cartridge size: %x\n", cartridge_header.cartridge_size);
-    printf("Ram size: %x\n", cartridge_header.ram_size);
-    printf("Destination code: %x\n", cartridge_header.destination_code);
-    printf("Old licensee code: %x\n", cartridge_header.old_licensee_code);
-    printf("Mask ROM version: %x\n", cartridge_header.mask_rom_version);
-    printf("Header checksum: %x\n", cartridge_header.header_checksum);
-    printf("Global checksum: %x%x\n\n", cartridge_header.global_checksum[0], cartridge_header.global_checksum[1]);
+    log_info("Loaded ROM into memory, cartridge header info:\n\nTitle: %s\n", cartridge_header.title);
+    log_info("New licensee code: %x%x\n", cartridge_header.new_licensee_code[0], cartridge_header.new_licensee_code[1]);
+    log_info("SGB flag: %x\n", cartridge_header.sgb_flag);
+    log_info("Cartridge type: %x\n", cartridge_header.cartridge_type);
+    log_info("Cartridge size: %x\n", cartridge_header.cartridge_size);
+    log_info("Ram size: %x\n", cartridge_header.ram_size);
+    log_info("Destination code: %x\n", cartridge_header.destination_code);
+    log_info("Old licensee code: %x\n", cartridge_header.old_licensee_code);
+    log_info("Mask ROM version: %x\n", cartridge_header.mask_rom_version);
+    log_info("Header checksum: %x\n", cartridge_header.header_checksum);
+    log_info("Global checksum: %x%x\n\n", cartridge_header.global_checksum[0], cartridge_header.global_checksum[1]);
 }
 
 uint8_t read_rom(uint16_t address)
@@ -202,7 +203,7 @@ void write_rom(uint16_t address, uint8_t value)
     if (!is_MBC_cartridge)
     {
 #ifdef ROM_DEBUG
-        printf("Rom write attempt (no MBC) ADR %x VALUE %x\n", address, value);
+        log_debug("Rom write attempt (no MBC) ADR %x VALUE %x\n", address, value);
 #endif
     }
     else
@@ -217,7 +218,7 @@ uint8_t read_external_ram(uint16_t address)
         return 0xFF;
 
     return external_ram[address - 0xA000];
-    printf("External RAM read ADR %x\n", address);
+    log_debug("External RAM read ADR %x\n", address);
 }
 
 void write_external_ram(uint16_t address, uint8_t value)
@@ -227,9 +228,9 @@ void write_external_ram(uint16_t address, uint8_t value)
 
     if (mbc1.banking_mode == 1)
     {
-        printf("Bank mode 1 RAM write\n");
+        log_debug("Bank mode 1 RAM write\n");
     }
 
     external_ram[address - 0xA000] = value;
-    printf("External RAM write ADR %x VALUE %x\n", address, value);
+    log_debug("External RAM write ADR %x VALUE %x\n", address, value);
 }

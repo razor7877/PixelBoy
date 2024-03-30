@@ -107,7 +107,7 @@ static void drop_callback(GLFWwindow* window, int count, const char** paths)
 {
     int i;
     for (i = 0; i < count; i++)
-        printf("Dropped file: %s\n", paths[i]);
+        log_info("Dropped file: %s\n", paths[i]);
 
     unload_rom();
     if (load_rom(paths[0]) == 0)
@@ -151,7 +151,7 @@ static int setup_glfw()
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Load a ROM file to run", NULL, NULL);
     if (window == NULL)
     {
-        printf("Failed to create GLFW window\n");
+        log_error("Failed to create GLFW window\n");
         glfwTerminate();
         return -1;
     }
@@ -166,7 +166,7 @@ static int setup_glfw()
     // Check if GLAD loaded successfully
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        printf("Failed to initialize GLAD\n");
+        log_error("Failed to initialize GLAD\n");
         return -1;
     }
 
@@ -210,7 +210,7 @@ static void compile_shaders()
     if (!success)
     {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n %s\n", infoLog);
+        log_error("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n %s\n", infoLog);
     }
 
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -221,7 +221,7 @@ static void compile_shaders()
     if (!success)
     {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
-        printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
+        log_error("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
     }
 
     shader = glCreateProgram();
@@ -233,7 +233,7 @@ static void compile_shaders()
     if (!success)
     {
         glGetProgramInfoLog(shader, 512, NULL, infoLog);
-        printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
+        log_error("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
     }
 
     glDeleteShader(vertex);
@@ -304,7 +304,7 @@ static int start_interface()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     if (start_audio() != 0)
-        printf("Error while trying to start PortAudio!\n");
+        log_error("Error while trying to start PortAudio!\n");
 
     return 0;
 }
