@@ -19,6 +19,11 @@ int main(int argc, char* argv[])
     if (frontend.start() != 0)
         return -1;
 
+    log_info("info test\n");
+    log_debug("debug test\n");
+    log_warning("warning test\n");
+    log_error("error test\n");
+
     // Main loop
     for (;;)
     {
