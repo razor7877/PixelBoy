@@ -123,6 +123,7 @@ int load_rom(const char* path)
             fprintf(stderr, "External RAM memory allocation failed\n");
             return -1;
         }
+        load_ram_from_file();
     }
 
     // Finally, read full ROM contents into the array
@@ -192,12 +193,34 @@ void save_ram_to_file()
     if (save_file != NULL)
     {
         fwrite(external_ram, sizeof(char), external_ram_size, save_file);
-
         fclose(save_file);
         log_info("Saved game data to file successfully\n");
     }
     else
         log_error("Couldn't save game data to file!\n");
+}
+
+void load_ram_from_file()
+{
+    // We create a null-terminated char array from the ROM title
+    char title[17];
+    for (int i = 0; i < 16; i++)
+    {
+        title[i] = cartridge_header.title[i];
+    }
+    title[16] = '\0';
+
+    FILE* save_file;
+    save_file = fopen(title, "r");
+
+    if (save_file != NULL)
+    {
+        fread(external_ram, sizeof(char), external_ram_size, save_file);
+        fclose(save_file);
+        log_info("Successfully loaded game data from file!\n");
+    }
+    else
+        log_info("No save file found\n");
 }
 
 void dump_header()
