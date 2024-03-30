@@ -217,7 +217,7 @@ uint8_t read_external_ram(uint16_t address)
         return 0xFF;
 
     return external_ram[address - 0xA000];
-    //printf("External RAM read ADR %x\n", address);
+    printf("External RAM read ADR %x\n", address);
 }
 
 void write_external_ram(uint16_t address, uint8_t value)
@@ -226,7 +226,10 @@ void write_external_ram(uint16_t address, uint8_t value)
         return;
 
     if (mbc1.banking_mode == 1)
+    {
+        printf("Bank mode 1 RAM write\n");
+    }
 
     external_ram[address - 0xA000] = value;
-    //printf("External RAM write ADR %x VALUE %x\n", address, value);
+    printf("External RAM write ADR %x VALUE %x\n", address, value);
 }
