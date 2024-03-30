@@ -10,6 +10,7 @@
 #include "io.h"
 #include "cpu.h"
 #include "frontends/opengl/frontend.h"
+#include "logging.h"
 
 #define SAMPLE_RATE (44100)
 

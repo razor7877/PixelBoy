@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 
 #include <glad/glad.h>
@@ -11,6 +12,7 @@
 #include "interrupts.h"
 #include "rom.h"
 #include "ppu.h"
+#include "logging.h"
 
 struct Frontend OpenGL_Frontend = {
     start_interface,

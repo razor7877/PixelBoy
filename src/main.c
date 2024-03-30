@@ -2,6 +2,7 @@
 #include "main.h"
 #include "cpu.h"
 #include "rom.h"
+#include "logging.h"
 
 struct Frontend frontend;
 
