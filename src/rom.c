@@ -195,7 +195,7 @@ uint8_t read_rom(uint16_t address)
     else if (!is_MBC_cartridge) // If ROM only
         return rom[address];
 
-    return mbc1.read_rom(address);
+    return mbc.read_rom(address);
 }
 
 void write_rom(uint16_t address, uint8_t value)
@@ -208,33 +208,16 @@ void write_rom(uint16_t address, uint8_t value)
     }
     else
     {
-        mbc1.write_rom(address, value);
+        mbc.write_rom(address, value);
     }
 }
 
 uint8_t read_external_ram(uint16_t address)
 {
-    log_debug("External RAM read ADR %x - ram_enable is %x\n", address, mbc1.ram_enable);
-    // Read RAM banks 00-03
-    if (!mbc1.ram_enable)
-        return 0xFF;
-
-    uint16_t mapped_address = (mbc1.ram_bank << 12) | (address & 0x1FFF);
-
-    return external_ram[mapped_address];
+    return mbc.read_rom(address);
 }
 
 void write_external_ram(uint16_t address, uint8_t value)
 {
-    if (!mbc1.ram_enable)
-        return;
-
-    if (mbc1.banking_mode == 1)
-    {
-        log_debug("Bank mode 1 RAM write\n");
-    }
-
-    uint16_t mapped_address = (mbc1.ram_bank << 12) | (address & 0x1FFF);
-    external_ram[mapped_address] = value;
-    log_debug("External RAM write ADR %x VALUE %x\n", address, value);
+    mbc.write_rom(address, value);
 }
