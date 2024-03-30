@@ -53,7 +53,7 @@ void write_byte(uint16_t address, uint8_t value)
 		write_vram(address - 0x8000, value);
 
 	if (address >= 0xA000 && address <= 0xBFFF)
-		return write_external_ram(address, value);
+		write_external_ram(address, value);
 
 	else if (address >= 0xFE00 && address <= 0xFE9F)
 		write_oam(address - 0xFE00, value);
