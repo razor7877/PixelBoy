@@ -31,7 +31,7 @@ uint8_t read_byte(uint16_t address)
 	if (address >= 0xE000 && address <= 0xFDFF) // Echo RAM, mapped to same memory as 0xC000-0xCFFF
 		return memory[address - 0x2000];
 
-	return memory[address];
+	return memory[address % sizeof(memory)];
 }
 
 uint16_t read_word(uint16_t address)
@@ -64,7 +64,7 @@ void write_byte(uint16_t address, uint8_t value)
 	else if (address >= 0xE000 && address <= 0xFDFF) {} // Ignore echo RAM writes
 
 	else
-		memory[address] = value;
+		memory[address % sizeof(memory)] = value;
 
 	//if (address >= 0xFF80 && address <= 0xFFFE && value != 0)
 	//	printf("HRAM write adr %x val %x\n", address, value);
