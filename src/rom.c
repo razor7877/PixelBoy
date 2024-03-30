@@ -214,9 +214,9 @@ void write_rom(uint16_t address, uint8_t value)
 
 uint8_t read_external_ram(uint16_t address)
 {
-    log_debug("External RAM read ADR %x\n", address);
+    log_debug("External RAM read ADR %x - ram_enable is %x\n", address, mbc1.ram_enable);
     // Read RAM banks 00-03
-    if (!mbc.ram_enable)
+    if (!mbc1.ram_enable)
         return 0xFF;
 
     uint16_t mapped_address = (mbc1.ram_bank << 12) | (address & 0x1FFF);
@@ -226,7 +226,7 @@ uint8_t read_external_ram(uint16_t address)
 
 void write_external_ram(uint16_t address, uint8_t value)
 {
-    if (!mbc.ram_enable)
+    if (!mbc1.ram_enable)
         return;
 
     if (mbc1.banking_mode == 1)
