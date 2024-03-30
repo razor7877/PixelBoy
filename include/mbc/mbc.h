@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define ROM_BANK_SIZE 16384
+#define ROM_BANK_SIZE 0x4000
 
 typedef struct MBC
 {

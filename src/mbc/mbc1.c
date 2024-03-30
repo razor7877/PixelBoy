@@ -4,6 +4,28 @@
 
 uint8_t read_rom_mbc1(uint16_t address)
 {
+    // Read ROM bank 00
+    if (address >= 0x0000 && address <= 0x3FFF)
+        return rom[address];
+
+    // Read ROM banks 01-7F
+    if (address >= 0x4000 && address <= 0x7FFF)
+    {
+        // 14 lower bits are obtained from 14 lower bits of address
+        // 5 next bits obtained from the selected rom bank number
+        uint32_t mapped_address = (mbc1.rom_bank << 14) |(address & 0x3FFF);
+        return rom[mapped_address];
+    }
+
+    // Read RAM banks 00-03
+    if (address >= 0xA000 && address <= 0xBFFF)
+    {
+        if (!mbc1.ram_enable)
+            return 0xFF;
+
+
+    }
+
 	return 0xFF;
 }
 
