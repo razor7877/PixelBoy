@@ -41,6 +41,7 @@ extern uint32_t external_ram_size;
 int load_rom(const char* path);
 int load_boot_rom(const char* path);
 void unload_rom();
+void save_ram_to_file();
 void dump_header();
 
 uint8_t read_rom(uint16_t address);

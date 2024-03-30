@@ -158,6 +158,9 @@ int load_boot_rom(const char* path)
 
 void unload_rom()
 {
+    if (external_ram_size > 0)
+        save_ram_to_file();
+
     // Make sure header info is empty
     memset(&cartridge_header, 0, sizeof(cartridge_header));
     is_MBC_cartridge = false;
@@ -171,6 +174,30 @@ void unload_rom()
     external_ram_size = 0x00;
 
     rom_loaded = false;
+}
+
+void save_ram_to_file()
+{
+    // We create a null-terminated char array from the ROM title
+    char title[17];
+    for (int i = 0; i < 16; i++)
+    {
+        title[i] = cartridge_header.title[i];
+    }
+    title[16] = '\0';
+
+    FILE* save_file;
+    save_file = fopen(title, "w");
+
+    if (save_file != NULL)
+    {
+        fwrite(external_ram, sizeof(char), external_ram_size, save_file);
+
+        fclose(save_file);
+        log_info("Saved game data to file successfully\n");
+    }
+    else
+        log_error("Couldn't save game data to file!\n");
 }
 
 void dump_header()
