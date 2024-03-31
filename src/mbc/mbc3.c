@@ -1,6 +1,12 @@
 #include "mbc/mbc3.h"
 #include "rom.h"
 
+uint8_t rtc_s = 0; // Seconds
+uint8_t rtc_m = 0; // Minutes
+uint8_t rtc_h = 0; // Hours
+uint8_t rtc_dl = 0; // Lower 8 bits of day counter
+uint8_t rtc_dh = 0; // Upper 1 bit of day counter, carry bit, halt flag
+
 uint8_t read_rom_mbc3(uint16_t address)
 {
 	// Read ROM bank 00
@@ -19,8 +25,19 @@ uint8_t read_rom_mbc3(uint16_t address)
 	// Read RAM bank or RTC register
 	if (address >= 0xA000 && address <= 0xBFFF)
 	{
+		if (mbc3.ram_bank >= 0x00 && mbc3.ram_bank <= 0x03)
+		{
+			// Read RAM banks 00-03
+			if (!mbc3.ram_enable)
+				return 0xFF;
 
+			uint16_t mapped_address = (mbc3.ram_bank << 12) | (address & 0x1FFF);
+
+			return external_ram[mapped_address];
+		}
 	}
+
+	return 0xFF;
 }
 
 void write_rom_mbc3(uint16_t address, uint8_t value)
@@ -42,10 +59,30 @@ void write_rom_mbc3(uint16_t address, uint8_t value)
 			mbc3.rom_bank = 1;
 	}
 
+	// RAM bank number or RTC register select
+	if (address >= 0x4000 && address <= 0x5FFF)
+	{
+		mbc3.ram_bank = value & 0x0F; // Values are in range 0x00-0x0C
+	}
+
+	// Latch clock data
+	if (address >= 0x6000 && address <= 0x7FFF)
+	{
+
+	}
+
 	// Write to RAM bank or RTC register
 	if (address >= 0xA000 && address <= 0xBFFF)
 	{
+		// RAM bank write
+		if (mbc3.ram_bank >= 0x00 && mbc3.ram_bank <= 0x03)
+		{
+			if (!mbc3.ram_enable)
+				return;
 
+			uint16_t mapped_address = (mbc3.ram_bank << 12) | (address & 0x1FFF);
+			external_ram[mapped_address] = value;
+		}
 	}
 }
 

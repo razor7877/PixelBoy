@@ -16,6 +16,7 @@
 #include "mbc/mbc.h"
 #include "mbc/mbc1.h"
 #include "mbc/mbc2.h"
+#include "mbc/mbc3.h"
 
 struct CartridgeHeader cartridge_header = {0};
 struct MBC mbc;
@@ -68,6 +69,7 @@ int load_rom(const char* path)
 
     dump_header();
 
+    // TODO: Make this cleaner, maybe a lookup table?
     // We dynamically allocate rom array depending on the cartridge type and size
     switch (cartridge_header.cartridge_type)
     {
@@ -91,6 +93,26 @@ int load_rom(const char* path)
         break;
     case 0x06: // MBC2 + battery
         mbc = mbc2;
+        is_MBC_cartridge = true;
+        break;
+    case 0x0F: // MBC3 + timer + battery
+        mbc = mbc3;
+        is_MBC_cartridge = true;
+        break;
+    case 0x10: // MBC3 + timer + RAM + battery
+        mbc = mbc3;
+        is_MBC_cartridge = true;
+        break;
+    case 0x11: // MBC3
+        mbc = mbc3;
+        is_MBC_cartridge = true;
+        break;
+    case 0x12: // MBC3 + RAM
+        mbc = mbc3;
+        is_MBC_cartridge = true;
+        break;
+    case 0x13: // MBC3 + RAM + battery
+        mbc = mbc3;
         is_MBC_cartridge = true;
         break;
     default:
