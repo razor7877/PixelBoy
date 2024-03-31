@@ -12,9 +12,10 @@
 #include "rom.h"
 #include "memory.h"
 #include "cpu.h"
+#include "logging.h"
 #include "mbc/mbc.h"
 #include "mbc/mbc1.h"
-#include "logging.h"
+#include "mbc/mbc2.h"
 
 struct CartridgeHeader cartridge_header = {0};
 struct MBC mbc;

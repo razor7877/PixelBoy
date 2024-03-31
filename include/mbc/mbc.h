@@ -6,6 +6,7 @@
 
 #define ROM_BANK_SIZE 0x4000
 
+// A generic abstraction to easily implement the different types of mappers
 typedef struct MBC
 {
 	uint8_t (*read_rom)(uint16_t address);
