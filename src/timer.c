@@ -5,6 +5,7 @@
 #include "interrupts.h"
 #include "apu.h"
 #include "ppu.h"
+#include "mbc/mbc3.h"
 
 // 16-bit timer, but only upper 8 bits exposed by memory controller
 // Therefore, gets incremented every 256 cycles
@@ -82,6 +83,7 @@ void tick_timer(uint8_t cycles)
 {
 	tick_ppu(cycles / 2); // PPU runs at half the clock speed of the CPU
 	tick_apu(cycles);
+	tick_mbc3_rtc(cycles);
 
 	for (uint8_t i = 0; i < cycles; i += 4)
 	{

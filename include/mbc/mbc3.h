@@ -6,4 +6,6 @@
 // A MBC struct containing pointers for the read and write functions for the MBC3
 extern struct MBC mbc3;
 
+tick_mbc3_rtc(uint8_t cycles);
+
 #endif

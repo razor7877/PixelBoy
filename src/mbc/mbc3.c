@@ -1,5 +1,14 @@
 #include "mbc/mbc3.h"
 #include "rom.h"
+#include "cpu.h"
+
+#include "logging.h"
+
+#define MBC3_RTC_FREQ 32768
+
+uint32_t cpu_cycle_count = 0;
+uint32_t cpu_max_cycles = CPU_FREQ / MBC3_RTC_FREQ; // Every 128 CPU cycles, RTC should be ticked once
+uint32_t rtc_cycles = 0;
 
 uint8_t rtc_s = 0; // Seconds
 uint8_t rtc_m = 0; // Minutes
@@ -34,6 +43,28 @@ uint8_t read_rom_mbc3(uint16_t address)
 			uint16_t mapped_address = (mbc3.ram_bank << 12) | (address & 0x1FFF);
 
 			return external_ram[mapped_address];
+		}
+		// RTC register read
+		else
+		{
+			switch (mbc3.ram_bank)
+			{
+			case 0x08:
+				return rtc_s;
+				break;
+			case 0x09:
+				return rtc_m;
+				break;
+			case 0x0A:
+				return rtc_h;
+				break;
+			case 0x0B:
+				return rtc_dl;
+				break;
+			case 0x0C:
+				return rtc_dh;
+				break;
+			}
 		}
 	}
 
@@ -82,6 +113,45 @@ void write_rom_mbc3(uint16_t address, uint8_t value)
 
 			uint16_t mapped_address = (mbc3.ram_bank << 12) | (address & 0x1FFF);
 			external_ram[mapped_address] = value;
+		}
+		// RTC register write
+		else
+		{
+			switch (mbc3.ram_bank)
+			{
+			case 0x08:
+				rtc_s = value;
+				break;
+			case 0x09:
+				rtc_m = value;
+				break;
+			case 0x0A:
+				rtc_h = value;
+				break;
+			case 0x0B:
+				rtc_dl = value;
+				break;
+			case 0x0C:
+				rtc_dh = value;
+				break;
+			}
+		}
+	}
+}
+
+tick_mbc3_rtc(uint8_t cycles)
+{
+	cpu_cycle_count += cycles;
+
+	if (cpu_cycle_count >= cpu_max_cycles)
+	{
+		cpu_cycle_count %= cpu_max_cycles;
+
+		rtc_cycles++;
+		if (rtc_cycles >= MBC3_RTC_FREQ)
+		{
+			log_warning("Done full RTC clock cycle\n");
+			rtc_cycles %= MBC3_RTC_FREQ;
 		}
 	}
 }
