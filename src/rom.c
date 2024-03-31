@@ -81,8 +81,16 @@ int load_rom(const char* path)
         mbc = mbc1;
         is_MBC_cartridge = true;
         break;
-    case 0x03: // MBC3 + RAM + battery
+    case 0x03: // MBC1 + RAM + battery
         mbc = mbc1;
+        is_MBC_cartridge = true;
+        break;
+    case 0x05: // MBC2
+        mbc = mbc2;
+        is_MBC_cartridge = true;
+        break;
+    case 0x06: // MBC2 + battery
+        mbc = mbc2;
         is_MBC_cartridge = true;
         break;
     default:
