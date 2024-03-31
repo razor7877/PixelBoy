@@ -169,6 +169,7 @@ int load_boot_rom(const char* path)
     return 0;
 }
 
+// TODO: Reset the state of any used MBC struct in case it is reused when loading another ROM later
 void unload_rom()
 {
     if (external_ram_size > 0)

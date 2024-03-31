@@ -95,9 +95,7 @@ void handle_instruction()
 	if (!cpu_stopped && !cpu_halted)
 	{
 		opcode = read_byte(pc++);
-		//printf("pc: %x - % s % x\n", pc, instructions[opcode].disassembly, operand);
-		//if (pc == 0x225f)
-		//	printf("");
+
 		// Switch over the operand length to correctly call the function and pass arguments
 		switch (instructions[opcode].operand_length)
 		{
@@ -132,7 +130,6 @@ void tick(uint8_t cycles)
 	}
 
 	cycle_count += cycles;
-	tick_ppu(cycles / 2); // PPU runs at half the clock speed of the CPU
 	tick_timer(cycles);
 
 	if (dma_cycles_left > 0)

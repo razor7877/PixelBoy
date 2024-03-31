@@ -1,6 +1,5 @@
 #include "mbc/mbc2.h"
 #include "rom.h"
-#include "logging.h"
 
 uint8_t mbc2_ram[512] = { 0 };
 
