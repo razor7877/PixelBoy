@@ -139,8 +139,12 @@ void write_rom_mbc3(uint16_t address, uint8_t value)
 	}
 }
 
-tick_mbc3_rtc(uint8_t cycles)
+void tick_mbc3_rtc(uint8_t cycles)
 {
+	// If bit 6 is set, timer is stopped
+	if (rtc_dh & 0x40)
+		return;
+
 	cpu_cycle_count += cycles;
 
 	if (cpu_cycle_count >= cpu_max_cycles)
@@ -152,6 +156,33 @@ tick_mbc3_rtc(uint8_t cycles)
 		{
 			log_warning("Done full RTC clock cycle\n");
 			rtc_cycles %= MBC3_RTC_FREQ;
+
+			rtc_s++;
+			if (rtc_s > 59) // Seconds counter
+			{
+				rtc_s = 0;
+				rtc_m++;
+			}
+			if (rtc_m > 59) // Minutes counter
+			{
+				rtc_m = 0;
+				rtc_h++;
+			}
+			if (rtc_h > 23) // Hours counter
+			{
+				rtc_h = 0;
+				if (rtc_dl == 0xFF) // Handle overflow of lower 8 bits of day counter
+				{
+					rtc_dl = 0;
+
+					if (rtc_dh & 0x01) // Day counter bit 8 already set
+						rtc_dh = rtc_dh | 0x80; // Set day counter carry bit on overflow
+					else
+						rtc_dh = rtc_dh | 0x01; // Set day counter bit 8
+				}
+				else
+					rtc_dl++;
+			}
 		}
 	}
 }
