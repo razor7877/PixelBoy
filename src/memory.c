@@ -7,6 +7,9 @@
 #include "rom.h"
 
 uint8_t memory[0x10000] = {0};
+uint8_t wram_0[0x1000] = {0};
+
+uint8_t SVBK = 0;
 
 uint8_t read_byte(uint16_t address)
 {
@@ -22,7 +25,13 @@ uint8_t read_byte(uint16_t address)
 	if (address >= 0xA000 && address <= 0xBFFF)
 		return read_external_ram(address);
 
-	else if (address >= 0xFE00 && address <= 0xFE9F)
+	if (address >= 0xC000 && address <= 0xCFFF) // WRAM bank 00
+		return wram_0[address - 0xC000];
+
+	if (address >= 0xD000 && address <= 0xDFFF) // Switchable WRAM bank
+		return memory[address % sizeof(memory)];
+
+	if (address >= 0xFE00 && address <= 0xFE9F)
 		return read_oam(address - 0xFE00);
 
 	if ((address >= 0xFF00 && address <= 0xFF7F) || (address == 0xFFFF))
@@ -41,19 +50,20 @@ uint16_t read_word(uint16_t address)
 
 void write_byte(uint16_t address, uint8_t value)
 {
-	//if (address >= 0xFF80 && address <= 0xFFFE && value != 0)
-	//	printf("Write at adr 0xFFB6 val %x\n", value);
-
-	//if (address == 0xFF01) printf("Write at adr 0xFF01 val %02x\n", value);
-
 	if (address >= 0x0000 && address <= 0x7FFF)
 		write_rom(address, value);
 
 	else if (address >= 0x8000 && address <= 0x9FFF)
 		write_vram(address - 0x8000, value);
 
-	if (address >= 0xA000 && address <= 0xBFFF)
+	else if (address >= 0xA000 && address <= 0xBFFF)
 		write_external_ram(address, value);
+
+	else if (address >= 0xC000 && address <= 0xCFFF)
+		wram_0[address - 0xC000] = value;
+
+	else if (address >= 0xD000 && address <= 0xDFFF)
+		memory[address % sizeof(memory)] = value;
 
 	else if (address >= 0xFE00 && address <= 0xFE9F)
 		write_oam(address - 0xFE00, value);
@@ -65,9 +75,6 @@ void write_byte(uint16_t address, uint8_t value)
 
 	else
 		memory[address % sizeof(memory)] = value;
-
-	//if (address >= 0xFF80 && address <= 0xFFFE && value != 0)
-	//	printf("HRAM write adr %x val %x\n", address, value);
 }
 
 void write_word(uint16_t address, uint16_t value)

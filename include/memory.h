@@ -4,6 +4,10 @@
 #include <stdint.h>
 
 extern uint8_t memory[0x10000];
+extern uint8_t wram_0[0x1000];
+
+// CGB only
+extern uint8_t SVBK; // WRAM bank register
 
 // Attempts to read 1 byte at given address
 uint8_t read_byte(uint16_t address);

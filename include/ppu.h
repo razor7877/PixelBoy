@@ -50,6 +50,14 @@ extern uint8_t OBP1; // 0xFF49 : OBJ palette 1
 extern uint8_t WY; // 0xFF4A : Window Y position
 extern uint8_t WX; // 0xFF4B : Window X position
 
+// CGB only
+extern uint8_t VBK; // 0xFF4D : VRAM bank
+extern uint8_t HDMA1; // 0xFF51 : VRAM DMA source high
+extern uint8_t HDMA2; // 0xFF52 : VRAM DMA source low
+extern uint8_t HDMA3; // 0xFF53 : VRAM DMA destination high
+extern uint8_t HDMA4; // 0xFF54 : VRAM DMA destination low
+extern uint8_t HDMA5; // 0xFF55 : VRAM DMA length/mode/start
+
 // Frame buffer contains 8 bits per pixel
 extern uint8_t frame_buffer[160 * 144];
 

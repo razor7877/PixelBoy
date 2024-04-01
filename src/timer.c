@@ -30,6 +30,8 @@ uint8_t read_timer(uint16_t address)
 
 	if (address == 0xFF07)
 		return TAC;
+
+	return 0xFF;
 }
 
 void write_timer(uint16_t address, uint8_t value)
