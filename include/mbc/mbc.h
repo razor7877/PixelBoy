@@ -6,6 +6,7 @@
 
 #define ROM_BANK_SIZE 0x4000
 
+// TODO : Keep only read/write pointers in struct, all other MBC specific variables in implementations?
 // A generic abstraction to easily implement the different types of mappers
 typedef struct MBC
 {
