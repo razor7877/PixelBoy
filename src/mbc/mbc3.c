@@ -85,9 +85,10 @@ void write_rom_mbc3(uint16_t address, uint8_t value)
 	// 7 bit ROM bank number register
 	if (address >= 0x2000 && address <= 0x3FFF)
 	{
-		mbc3.rom_bank = value & 0x7F; // 7 lower bits mask
-		if (mbc3.rom_bank == 0) // 0 value behaves as a 1 on real hardware
+		if (value == 0)
 			mbc3.rom_bank = 1;
+		else
+			mbc3.rom_bank = value & 0x7F; // 7 lower bits mask
 	}
 
 	// RAM bank number or RTC register select
@@ -99,7 +100,7 @@ void write_rom_mbc3(uint16_t address, uint8_t value)
 	// Latch clock data
 	if (address >= 0x6000 && address <= 0x7FFF)
 	{
-
+		// TODO
 	}
 
 	// Write to RAM bank or RTC register

@@ -38,8 +38,10 @@ void write_rom_mbc2(uint16_t address, uint8_t value)
 		// If bit 8 is set: change ROM bank number
 		if (address & 0x0100)
 		{
-			// Lower 4 bits specify ROM bank number
-			mbc2.rom_bank = value & 0x0F;
+			if (value == 0)
+				mbc2.rom_bank = 1;
+			else
+				mbc2.rom_bank = value & 0x0F;// Lower 4 bits specify ROM bank number
 		}
 		// If bit 8 is unset: RAM enable/disable
 		else

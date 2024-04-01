@@ -71,49 +71,49 @@ int load_rom(const char* path)
 
     // TODO: Make this cleaner, maybe a lookup table?
     // We dynamically allocate rom array depending on the cartridge type and size
-    // We use memcpy so that the original struct is retained at runtime (default bank numbers etc.)
+    // TODO: Reset struct to default values when loading another game
     switch (cartridge_header.cartridge_type)
     {
     case 0x00: // ROM ONLY
         break;
     case 0x01: // MBC1
-        memcpy(&mbc, &mbc1, sizeof(MBC));
+        mbc = mbc1;
         is_MBC_cartridge = true;
         break;
     case 0x02: // MBC1 + RAM
-        memcpy(&mbc, &mbc1, sizeof(MBC));
+        mbc = mbc1;
         is_MBC_cartridge = true;
         break;
     case 0x03: // MBC1 + RAM + battery
-        memcpy(&mbc, &mbc1, sizeof(MBC));
+        mbc = mbc1;
         is_MBC_cartridge = true;
         break;
     case 0x05: // MBC2
-        memcpy(&mbc, &mbc2, sizeof(MBC));
+        mbc = mbc2;
         is_MBC_cartridge = true;
         break;
     case 0x06: // MBC2 + battery
-        memcpy(&mbc, &mbc2, sizeof(MBC));
+        mbc = mbc2;
         is_MBC_cartridge = true;
         break;
     case 0x0F: // MBC3 + timer + battery
-        memcpy(&mbc, &mbc3, sizeof(MBC));
+        mbc = mbc3;
         is_MBC_cartridge = true;
         break;
     case 0x10: // MBC3 + timer + RAM + battery
-        memcpy(&mbc, &mbc3, sizeof(MBC));
+        mbc = mbc3;
         is_MBC_cartridge = true;
         break;
     case 0x11: // MBC3
-        memcpy(&mbc, &mbc3, sizeof(MBC));
+        mbc = mbc3;
         is_MBC_cartridge = true;
         break;
     case 0x12: // MBC3 + RAM
-        memcpy(&mbc, &mbc3, sizeof(MBC));
+        mbc = mbc3;
         is_MBC_cartridge = true;
         break;
     case 0x13: // MBC3 + RAM + battery
-        memcpy(&mbc, &mbc3, sizeof(MBC));
+        mbc = mbc3;
         is_MBC_cartridge = true;
         break;
     default:
