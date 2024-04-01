@@ -17,6 +17,7 @@
 #include "mbc/mbc1.h"
 #include "mbc/mbc2.h"
 #include "mbc/mbc3.h"
+#include "mbc/mbc5.h"
 
 struct CartridgeHeader cartridge_header = {0};
 struct MBC mbc;
@@ -114,6 +115,30 @@ int load_rom(const char* path)
         break;
     case 0x13: // MBC3 + RAM + battery
         mbc = mbc3;
+        is_MBC_cartridge = true;
+        break;
+    case 0x19: // MBC5
+        mbc = mbc5;
+        is_MBC_cartridge = true;
+        break;
+    case 0x1A: // MBC5 + RAM
+        mbc = mbc5;
+        is_MBC_cartridge = true;
+        break;
+    case 0x1B: // MBC5 + RAM + battery
+        mbc = mbc5;
+        is_MBC_cartridge = true;
+        break;
+    case 0x1C: // MBC5 + rumble
+        mbc = mbc5;
+        is_MBC_cartridge = true;
+        break;
+    case 0x1D: // MBC5 + rumble + RAM
+        mbc = mbc5;
+        is_MBC_cartridge = true;
+        break;
+    case 0x1E: // MBC5 + rumble + RAM + battery
+        mbc = mbc5;
         is_MBC_cartridge = true;
         break;
     default:
