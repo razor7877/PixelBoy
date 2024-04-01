@@ -23,6 +23,19 @@ uint8_t OBP1 = 0;
 uint8_t WY = 0;
 uint8_t WX = 0;
 
+// CGB only
+uint8_t VBK = 0xFE;
+uint8_t HDMA1 = 0xFF;
+uint8_t HDMA2 = 0xFF;
+uint8_t HDMA3 = 0xFF;
+uint8_t HDMA4 = 0xFF;
+uint8_t HDMA5 = 0xFF;
+uint8_t BGPI = 0;
+uint8_t BGPD = 0;
+uint8_t OBPI = 0;
+uint8_t OBPD = 0;
+uint8_t OPRI = 0x01;
+
 uint32_t dot_counter = 0;
 uint32_t dot_start = 0;
 uint32_t dot_end = 0;

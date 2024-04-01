@@ -22,6 +22,9 @@ extern uint8_t io_register; // 0xFF00 : Joypad input
 extern uint8_t SB; // 0xFF01 : Serial transfer data
 extern uint8_t SC; // 0xFF02 : Serial transfer control
 
+extern uint8_t KEY1; // 0xFF4D : Prepare speed switch (CGB only)
+extern uint8_t RP; // 0xFF56 : Infrared communications port (CGB only)
+
 uint8_t read_io(uint16_t address);
 void write_io(uint16_t address, uint8_t value);
 

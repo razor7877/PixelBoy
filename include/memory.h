@@ -3,8 +3,14 @@
 
 #include <stdint.h>
 
+#include "cpu.h"
+
 extern uint8_t memory[0x10000];
-extern uint8_t wram_0[0x1000];
+#ifdef CGB_MODE
+extern uint8_t wram[0x8000];
+#else
+extern uint8_t wram[0x2000];
+#endif
 
 // CGB only
 extern uint8_t SVBK; // WRAM bank register

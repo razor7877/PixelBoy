@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define CGB_MODE
+
 #define CPU_FREQ 4194304
 #define FRAME_CYCLES 70224
 #define DMA_DURATION 640

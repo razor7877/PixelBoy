@@ -57,6 +57,11 @@ extern uint8_t HDMA2; // 0xFF52 : VRAM DMA source low
 extern uint8_t HDMA3; // 0xFF53 : VRAM DMA destination high
 extern uint8_t HDMA4; // 0xFF54 : VRAM DMA destination low
 extern uint8_t HDMA5; // 0xFF55 : VRAM DMA length/mode/start
+extern uint8_t BGPI; // 0xFF68 : Background palette index
+extern uint8_t BGPD; // 0xFF69 : Background palette data
+extern uint8_t OBPI; // OxFF6A : Object palette index
+extern uint8_t OBPD; // 0xFF6B : Object palette data
+extern uint8_t OPRI; // 0xFF6C : Object priority mode 
 
 // Frame buffer contains 8 bits per pixel
 extern uint8_t frame_buffer[160 * 144];

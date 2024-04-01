@@ -36,8 +36,8 @@ uint16_t operand = 0;
 
 bool cpu_stopped = false;
 bool cpu_halted = false;
-bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
 bool IME = false; // Interrupt Master Enable
+bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
 
 // A variable that stores the current frame's timestamp, to calculate time between frames
 float current_frame = 0;
