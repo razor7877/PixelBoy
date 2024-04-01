@@ -191,21 +191,21 @@ int load_rom(const char* path)
     fclose(romFile);
 
     rom_loaded = true;
-
+    
     return 0;
 }
 
 int load_boot_rom(const char* path)
 {
-    boot_done = false;
-    pc = 0x00;
-
     FILE* romFile = fopen(path, "rb");
-    if (!rom)
+    if (!romFile)
     {
         log_error("Error opening BOOT ROM file!\n");
         return -1;
     }
+
+    boot_done = false;
+    pc = 0x00;
 
     fseek(romFile, 0, SEEK_END); // Get file size
     size_t size = ftell(romFile);
