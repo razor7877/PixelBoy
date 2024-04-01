@@ -2,7 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include <sys/stat.h>
 #endif
 #include <stdio.h>
@@ -71,48 +71,49 @@ int load_rom(const char* path)
 
     // TODO: Make this cleaner, maybe a lookup table?
     // We dynamically allocate rom array depending on the cartridge type and size
+    // We use memcpy so that the original struct is retained at runtime (default bank numbers etc.)
     switch (cartridge_header.cartridge_type)
     {
     case 0x00: // ROM ONLY
         break;
     case 0x01: // MBC1
-        mbc = mbc1;
+        memcpy(&mbc, &mbc1, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x02: // MBC1 + RAM
-        mbc = mbc1;
+        memcpy(&mbc, &mbc1, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x03: // MBC1 + RAM + battery
-        mbc = mbc1;
+        memcpy(&mbc, &mbc1, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x05: // MBC2
-        mbc = mbc2;
+        memcpy(&mbc, &mbc2, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x06: // MBC2 + battery
-        mbc = mbc2;
+        memcpy(&mbc, &mbc2, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x0F: // MBC3 + timer + battery
-        mbc = mbc3;
+        memcpy(&mbc, &mbc3, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x10: // MBC3 + timer + RAM + battery
-        mbc = mbc3;
+        memcpy(&mbc, &mbc3, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x11: // MBC3
-        mbc = mbc3;
+        memcpy(&mbc, &mbc3, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x12: // MBC3 + RAM
-        mbc = mbc3;
+        memcpy(&mbc, &mbc3, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     case 0x13: // MBC3 + RAM + battery
-        mbc = mbc3;
+        memcpy(&mbc, &mbc3, sizeof(MBC));
         is_MBC_cartridge = true;
         break;
     default:
