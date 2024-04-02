@@ -482,6 +482,8 @@ void write_oam(uint16_t address, uint8_t value)
 
 uint8_t read_ppu(uint16_t address)
 {
+	log_warning("PPU reg read ADR %x\n", address);
+
 	if (address == 0xFF40)
 		return LCDC;
 
@@ -548,13 +550,14 @@ uint8_t read_ppu(uint16_t address)
 		return OBPI;
 
 	if (address == 0xFF6B)
-		return OBPD;
+		return bg_palette_RAM[OBPI & 0x3F];
 
 	return 0;
 }
 
 void write_ppu(uint16_t address, uint8_t value)
 {
+	log_error("PPU reg write ADR %x\n", address);
 	if (address == 0xFF40)
 		update_LCDC(value);
 
@@ -616,12 +619,20 @@ void write_ppu(uint16_t address, uint8_t value)
 	if (address == 0xFF68)
 		BGPI = value;
 
-	if (address == 0xFF69) // Palette data write
+	if (address == 0xFF69) // Background palette data write
 	{
 		bg_palette_RAM[BGPI & 0x3F] = value;
-		log_warning("Palette RAM write ADR %x VALUE %x\n", BGPI & 0x3F, value);
+		log_warning("Background palette RAM write ADR %x VALUE %x\n", BGPI & 0x3F, value);
 	}
 
+	if (address == 0xFF6A)
+		OBPI = value;
+
+	if (address == 0xFF6B) // OBJ palette data write
+	{
+		obj_palette_RAM[OBPI & 0x3F] = value;
+		log_warning("OBJ palette RAM write ADR %x VALUE %x\n", OBPI & 0x3F, value);
+	}
 }
 
 void update_LCDC(uint8_t value)

@@ -51,7 +51,16 @@ uint8_t read_io(uint16_t address)
 	if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
 		return read_ppu(address);
 
-	if (address >= 0xFF51 && address <= 0xFF6B) // CBG VRAM DMA and palettes
+	if (address == 0xFF4D)
+		return KEY1;
+
+	if (address >= 0xFF51 && address <= 0xFF55) // CBG VRAM DMA and palettes
+		return read_ppu(address);
+
+	if (address == 0xFF56)
+		return RP;
+
+	if (address >= 0xFF68 && address <= 0xFF6C)
 		return read_ppu(address);
 
 	if (address == 0xFF70)
@@ -72,7 +81,7 @@ void write_io(uint16_t address, uint8_t value)
 #ifdef IO_DEBUG
 		printf("IO register write value %x\n", (value & 0x30));
 #endif
-	}
+}
 
 	else if (address == 0xFF01) // Write to serial tranfer data
 		SB = value;
@@ -90,6 +99,18 @@ void write_io(uint16_t address, uint8_t value)
 	else if (address >= 0xFF30 && address <= 0xFF3F) { write_apu(address, value); } // Wave pattern
 
 	else if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
+		write_ppu(address, value);
+
+	else if (address == 0xFF4D)
+		KEY1 = (KEY1 & 0xFE) | (value & 0b1); // Only bit 1 writeable
+
+	else if (address >= 0xFF51 && address <= 0xFF55) // CBG VRAM DMA and palettes
+		write_ppu(address, value);
+
+	else if (address == 0xFF56)
+		RP = (RP & 0b00111110) | (value & 11000001);
+
+	else if (address >= 0xFF68 && address <= 0xFF6C)
 		write_ppu(address, value);
 
 	else if (address == 0xFF50) // Boot ROM writes to this register to unmap itself from 0x00-0xFF
