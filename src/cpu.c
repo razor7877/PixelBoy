@@ -127,8 +127,7 @@ void handle_instruction()
 		}
 	}
 
-	//printf("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
-	
+	log_debug("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
 
 	tick(instructions[opcode].duration);
 }
@@ -218,8 +217,14 @@ void reset_cpu()
 void toggle_double_speed()
 {
 	log_debug("Toggling double speed mode!\n");
+
 	is_double_speed = !is_double_speed;
 	KEY1 = (KEY1 & 0xFE); // Clear bit 0
+	if (is_double_speed)
+		KEY1 = (KEY1 | 0x80); // Set bit 7 in double speed mode
+	else
+		KEY1 = (KEY1 & 0x7F); // Unset bit 7 in single speed mode
+
 	tick(8200); // Speed switch takes 8200 T-cycles
 }
 
