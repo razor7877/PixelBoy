@@ -6,6 +6,8 @@
 #include "interrupts.h"
 #include "memory.h"
 
+#include "logging.h"
+
 uint32_t ppu_cycle_count = 0;
 
 uint8_t vram[8192] = {0};
@@ -24,6 +26,9 @@ uint8_t WY = 0;
 uint8_t WX = 0;
 
 // CGB only
+uint8_t bg_palette_RAM[64] = {0};
+uint8_t obj_palette_RAM[64] = {0};
+
 uint8_t VBK = 0xFE;
 uint8_t HDMA1 = 0xFF;
 uint8_t HDMA2 = 0xFF;
@@ -513,6 +518,38 @@ uint8_t read_ppu(uint16_t address)
 	if (address == 0xFF4B)
 		return WX;
 
+	if (address == 0xFF4F)
+		return VBK;
+
+	if (address == 0xFF51)
+		return HDMA1;
+
+	if (address == 0xFF52)
+		return HDMA2;
+
+	if (address == 0xFF53)
+		return HDMA3;
+
+	if (address == 0xFF54)
+		return HDMA4;
+
+	if (address == 0xFF55)
+		return HDMA5;
+
+	if (address == 0xFF68)
+		return BGPI;
+
+	if (address == 0xFF69)
+	{
+		return bg_palette_RAM[BGPI & 0x3F];
+	}
+
+	if (address == 0xFF6A)
+		return OBPI;
+
+	if (address == 0xFF6B)
+		return OBPD;
+
 	return 0;
 }
 
@@ -556,6 +593,35 @@ void write_ppu(uint16_t address, uint8_t value)
 
 	if (address == 0xFF4B)
 		WX = value;
+
+	if (address == 0xFF4F)
+		VBK = value & 0b1;
+
+	// TODO : Correct write behavior to these registers
+	if (address == 0xFF51)
+		HDMA1 = value;
+
+	if (address == 0xFF52)
+		HDMA2 = value;
+
+	if (address == 0xFF53)
+		HDMA3 = value;
+
+	if (address == 0xFF54)
+		HDMA4 = value;
+
+	if (address == 0xFF55)
+		HDMA5 = value;
+
+	if (address == 0xFF68)
+		BGPI = value;
+
+	if (address == 0xFF69) // Palette data write
+	{
+		bg_palette_RAM[BGPI & 0x3F] = value;
+		log_warning("Palette RAM write ADR %x VALUE %x\n", BGPI & 0x3F, value);
+	}
+
 }
 
 void update_LCDC(uint8_t value)

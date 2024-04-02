@@ -23,10 +23,10 @@
 uint32_t cycle_count = 0;
 uint16_t dma_cycles_left = 0;
 
-uint16_t AF = 0x01B0;
-uint16_t BC = 0x0013;
-uint16_t DE = 0x00D8;
-uint16_t HL = 0x014D;
+uint16_t AF = 0x11B0;
+uint16_t BC = 0x0000;
+uint16_t DE = 0xFF56;
+uint16_t HL = 0x000D;
 
 uint16_t sp = 0xFFFE; // Stack pointer
 uint16_t pc = 0x100; // Program counter
@@ -117,7 +117,7 @@ void handle_instruction()
 				break;
 		}
 	}
-
+	//printf("pc: %x\n", pc);
 	tick(instructions[opcode].duration);
 }
 

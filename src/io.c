@@ -51,8 +51,11 @@ uint8_t read_io(uint16_t address)
 	if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
 		return read_ppu(address);
 
+	if (address >= 0xFF51 && address <= 0xFF6B) // CBG VRAM DMA and palettes
+		return read_ppu(address);
+
 	if (address == 0xFF70)
-		return SVBK;
+		return SVBK & 0x7;
 
 	if (address == 0xFFFF)
 		return IE;
@@ -93,7 +96,7 @@ void write_io(uint16_t address, uint8_t value)
 		boot_done = true;
 
 	else if (address == 0xFF70)
-		SVBK = value;
+		SVBK = value & 0x7;
 
 	else if (address == 0xFFFF)
 		IE = value;

@@ -51,6 +51,9 @@ extern uint8_t WY; // 0xFF4A : Window Y position
 extern uint8_t WX; // 0xFF4B : Window X position
 
 // CGB only
+extern uint8_t bg_palette_RAM[64];
+extern uint8_t obj_palette_RAM[64];
+
 extern uint8_t VBK; // 0xFF4D : VRAM bank
 extern uint8_t HDMA1; // 0xFF51 : VRAM DMA source high
 extern uint8_t HDMA2; // 0xFF52 : VRAM DMA source low
