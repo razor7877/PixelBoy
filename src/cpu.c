@@ -23,10 +23,17 @@
 uint32_t cycle_count = 0;
 uint16_t dma_cycles_left = 0;
 
+#ifdef CGB_MODE
 uint16_t AF = 0x11B0;
 uint16_t BC = 0x0000;
 uint16_t DE = 0xFF56;
 uint16_t HL = 0x000D;
+#else
+uint16_t AF = 0x01B0;
+uint16_t BC = 0x0013;
+uint16_t DE = 0x00D8;
+uint16_t HL = 0x014D;
+#endif
 
 uint16_t sp = 0xFFFE; // Stack pointer
 uint16_t pc = 0x100; // Program counter
@@ -117,7 +124,7 @@ void handle_instruction()
 				break;
 		}
 	}
-	//printf("pc: %x\n", pc);
+
 	tick(instructions[opcode].duration);
 }
 
@@ -179,10 +186,17 @@ void reset_cpu()
 	cycle_count = 0;
 	dma_cycles_left = 0;
 
+#ifdef CGB_MODE
+	AF = 0x11B0;
+	BC = 0x0000;
+	DE = 0xFF56;
+	HL = 0x000D;
+#else
 	AF = 0x01B0;
 	BC = 0x0013;
 	DE = 0x00D8;
 	HL = 0x014D;
+#endif
 
 	sp = 0xFFFE; // Stack pointer
 	pc = 0x100; // Program counter
