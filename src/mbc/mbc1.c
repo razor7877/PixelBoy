@@ -13,14 +13,17 @@ uint8_t read_rom_mbc1(uint16_t address)
     {
         // 14 lower bits are obtained from 14 lower bits of address
         // 5 next bits obtained from the selected rom bank number
-        uint32_t mapped_address = (mbc1.rom_bank << 14) |(address & 0x3FFF);
+        uint8_t rom_bank = mbc1.rom_bank;
+        if (rom_bank == 0)
+            rom_bank = 1;
+        uint32_t mapped_address = (rom_bank << 14) |(address & 0x3FFF);
         return rom[mapped_address];
     }
 
     // Read RAM banks 00-03
     if (address >= 0xA000 && address <= 0xBFFF)
     {
-        log_debug("External RAM read ADR %x - ram_enable is %x\n", address, mbc1.ram_enable);
+        //log_debug("External RAM read ADR %x - ram_enable is %x\n", address, mbc1.ram_enable);
         // Read RAM banks 00-03
         if (!mbc1.ram_enable)
             return 0xFF;
@@ -46,10 +49,7 @@ void write_rom_mbc1(uint16_t address, uint8_t value)
     // 5 bit ROM bank number register
     if (address >= 0x2000 && address <= 0x3FFF)
     {
-        if (value == 0)
-            mbc1.rom_bank = 1;
-        else
-            mbc1.rom_bank = value & 0x1F; // 5 lower bits mask
+        mbc1.rom_bank = value & 0x1F; // 5 lower bits mask
     } 
 
     // 2 bit RAM bank number register 
@@ -67,7 +67,7 @@ void write_rom_mbc1(uint16_t address, uint8_t value)
 
         uint16_t mapped_address = (mbc1.ram_bank << 12) | (address & 0x1FFF);
         external_ram[mapped_address] = value;
-        log_debug("External RAM write ADR %x VALUE %x\n", address, value);
+        //log_debug("External RAM write ADR %x VALUE %x\n", address, value);
     }
 }
 

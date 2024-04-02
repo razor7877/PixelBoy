@@ -14,7 +14,10 @@ uint8_t read_rom_mbc2(uint16_t address)
 	{
 		// 14 lower bits are obtained from 14 lower bits of address
 		// 5 next bits obtained from the selected rom bank number
-		uint32_t mapped_address = (mbc2.rom_bank << 14) | (address & 0x3FFF);
+		uint8_t rom_bank = mbc2.rom_bank;
+		if (rom_bank == 0)
+			rom_bank = 1;
+		uint32_t mapped_address = (rom_bank << 14) | (address & 0x3FFF);
 		return rom[mapped_address];
 	}
 
@@ -38,10 +41,7 @@ void write_rom_mbc2(uint16_t address, uint8_t value)
 		// If bit 8 is set: change ROM bank number
 		if (address & 0x0100)
 		{
-			if (value == 0)
-				mbc2.rom_bank = 1;
-			else
-				mbc2.rom_bank = value & 0x0F;// Lower 4 bits specify ROM bank number
+			mbc2.rom_bank = value & 0x0F; // Lower 4 bits specify ROM bank number
 		}
 		// If bit 8 is unset: RAM enable/disable
 		else

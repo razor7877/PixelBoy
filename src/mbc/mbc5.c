@@ -1,6 +1,8 @@
 #include "mbc/mbc5.h"
 #include "rom.h"
 
+#include "logging.h"
+
 // Most significant bit of rom bank number
 uint8_t rom_bank_msb = 0;
 
@@ -15,7 +17,11 @@ uint8_t read_rom_mbc5(uint16_t address)
 	{
 		// 14 lower bits are obtained from 14 lower bits of address
 		// 9 bits from ROM bank number
-		uint32_t mapped_address = (rom_bank_msb << 22) | (mbc5.rom_bank << 14) | (address & 0x3FFF);
+		uint16_t rom_bank = (rom_bank_msb << 8) | mbc5.rom_bank;
+		if (rom_bank == 0)
+			rom_bank = 1;
+		uint32_t mapped_address = (rom_bank << 14) | (address & 0x3FFF);
+		//log_info("MBC5 ROM bank read ADR %x VALUE %x\n", address, rom[mapped_address]);
 		return rom[mapped_address];
 	}
 
