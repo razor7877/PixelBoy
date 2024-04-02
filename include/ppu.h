@@ -67,13 +67,16 @@ extern uint8_t OBPD; // 0xFF6B : Object palette data
 extern uint8_t OPRI; // 0xFF6C : Object priority mode 
 
 // Frame buffer contains 8 bits per pixel
-extern uint8_t frame_buffer[160 * 144];
+extern uint8_t frame_buffer[160 * 144 * 3];
 
 void tick_ppu(uint8_t cycles);
 void step_ppu(uint8_t cycles);
-void draw_scanline();
-void draw_tiles();
-void draw_sprites();
+void draw_gb_scanline();
+void draw_gb_tiles();
+void draw_gb_sprites();
+void draw_gbc_scanline();
+void draw_gbc_tiles();
+void draw_gbc_sprites();
 void reset_ppu();
 uint8_t ppu_mode();
 

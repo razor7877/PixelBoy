@@ -10,7 +10,10 @@
 
 uint32_t ppu_cycle_count = 0;
 
-uint8_t vram[8192] = {0};
+uint8_t vram_0[8192] = {0};
+#ifdef CGB_MODE
+uint8_t vram_1[8192] = {0};
+#endif
 uint8_t OAM[160] = {0};
 uint8_t LCDC = 0x91;
 uint8_t STAT = 0x81;
@@ -47,7 +50,8 @@ uint32_t dot_end = 0;
 bool start_frame = false;
 bool new_frame_ready = false;
 
-uint8_t frame_buffer[160 * 144] = {0};
+// GL_RGB5 : 2 bytes per pixel
+uint8_t frame_buffer[160 * 144 * 3] = {0};
 
 void tick_ppu(uint8_t cycles)
 {
@@ -103,7 +107,11 @@ void step_ppu(uint8_t cycles)
 				if (ppu_mode() != LCD_MODE_3)
 				{
 					STAT = (STAT & 0xFC) | LCD_MODE_3;
-					draw_scanline();
+#ifdef CGB_MODE
+					draw_gbc_scanline();
+#else
+					draw_gb_scanline();
+#endif
 				}
 						
 			}
@@ -148,13 +156,13 @@ void step_ppu(uint8_t cycles)
 	}
 }
 
-void draw_scanline()
+void draw_gb_scanline()
 {
-	draw_tiles();
-	draw_sprites();
+	draw_gb_tiles();
+	draw_gb_sprites();
 }
 
-void draw_tiles()
+void draw_gb_tiles()
 {
 	uint16_t tile_data = 0;
 	uint16_t background_memory = 0;
@@ -226,9 +234,9 @@ void draw_tiles()
 		// Get the tile identity number (can be signed/unsigned)
 		uint16_t tile_address = background_memory + tile_row + tile_col;
 		if (unsig)
-			tile_num = (uint8_t)vram[tile_address - 0x8000];
+			tile_num = (uint8_t)vram_0[tile_address - 0x8000];
 		else
-			tile_num = (int8_t)vram[tile_address - 0x8000];
+			tile_num = (int8_t)vram_0[tile_address - 0x8000];
 
 		// Deduce where this tile identifier is in memory
 		uint16_t tile_location = tile_data;
@@ -240,8 +248,8 @@ void draw_tiles()
 		// Find correct vertical line we're on of the tile to get tile data in memory
 		uint8_t line = y_pos % 8;
 		line *= 2; // Each line takes up 2 bytes of memory
-		uint8_t data_1 = vram[tile_location + line - 0x8000];
-		uint8_t data_2 = vram[tile_location + line + 1 - 0x8000];
+		uint8_t data_1 = vram_0[tile_location + line - 0x8000];
+		uint8_t data_2 = vram_0[tile_location + line + 1 - 0x8000];
 
 		// pixel 0 : bit 7 of data_1 and data_2
 		// pixel 1 : bit 6 etc.
@@ -299,11 +307,13 @@ void draw_tiles()
 				break;
 		}
 
-		frame_buffer[LY * 160 + pixel] = buffer_color;
+		frame_buffer[LY * 160 * 3 + pixel * 3] = buffer_color;
+		frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = buffer_color;
+		frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = buffer_color;
 	}
 }
 
-void draw_sprites()
+void draw_gb_sprites()
 {
 	bool obj_large = false;
 
@@ -338,8 +348,8 @@ void draw_sprites()
 
 			line *= 2;
 			uint16_t data_address = tile_index * 16 + line;
-			uint8_t data_1 = vram[data_address];
-			uint8_t data_2 = vram[data_address + 1];
+			uint8_t data_1 = vram_0[data_address];
+			uint8_t data_2 = vram_0[data_address + 1];
 
 			for (int tile_pixel = 7; tile_pixel >= 0; tile_pixel--)
 			{
@@ -409,17 +419,37 @@ void draw_sprites()
 				//printf("Draw pixel at x %d y %d\n", LY, pixel);
 				// White pixel for sprites is transparent
 				if (buffer_color != 0xFF)
-					frame_buffer[LY * 160 + pixel] = buffer_color;
+				{
+					frame_buffer[LY * 160 * 3 + pixel * 3] = buffer_color;
+					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = buffer_color;
+					frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = buffer_color;
+				}
 			}
 		}
 	}
+}
+
+void draw_gbc_scanline()
+{
+	draw_gbc_tiles();
+	draw_gbc_sprites();
+}
+
+void draw_gbc_tiles()
+{
+
+}
+
+void draw_gbc_sprites()
+{
+
 }
 
 void reset_ppu()
 {
 	ppu_cycle_count = 0;
 
-	memset(&vram, 0, sizeof(vram));
+	memset(&vram_0, 0, sizeof(vram_0));
 	memset(&OAM, 0, sizeof(OAM));
 	LCDC = 0x91;
 	STAT = 0x81;
@@ -433,6 +463,20 @@ void reset_ppu()
 	OBP1 = 0;
 	WY = 0;
 	WX = 0;
+
+	memset(&bg_palette_RAM, 0, sizeof(bg_palette_RAM));
+	memset(&obj_palette_RAM, 0, sizeof(obj_palette_RAM));
+	VBK = 0xFE;
+	HDMA1 = 0xFF;
+	HDMA2 = 0xFF;
+	HDMA3 = 0xFF;
+	HDMA4 = 0xFF;
+	HDMA5 = 0xFF;
+	BGPI = 0;
+	BGPD = 0;
+	OBPI = 0;
+	OBPD = 0;
+	OPRI = 0x01;
 
 	dot_counter = 0;
 	dot_start = 0;
@@ -450,8 +494,15 @@ uint8_t read_vram(uint16_t address)
 {
 	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3
 		return 0xFF;
+#ifdef CGB_MODE
+	if (VBK & 0b1)
+		return vram_1[address];
 	else
-		return vram[address];
+		return vram_0[address];
+#else
+	else
+		return vram_0[address];
+#endif
 }
 
 void write_vram(uint16_t address, uint8_t value)
@@ -459,7 +510,7 @@ void write_vram(uint16_t address, uint8_t value)
 	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3, ignore writes
 		return;
 	else
-		vram[address] = value;
+		vram_0[address] = value;
 }
 
 uint8_t read_oam(uint16_t address)
@@ -482,7 +533,7 @@ void write_oam(uint16_t address, uint8_t value)
 
 uint8_t read_ppu(uint16_t address)
 {
-	log_warning("PPU reg read ADR %x\n", address);
+	//log_warning("PPU reg read ADR %x\n", address);
 
 	if (address == 0xFF40)
 		return LCDC;
@@ -557,7 +608,7 @@ uint8_t read_ppu(uint16_t address)
 
 void write_ppu(uint16_t address, uint8_t value)
 {
-	log_error("PPU reg write ADR %x\n", address);
+	//log_error("PPU reg write ADR %x\n", address);
 	if (address == 0xFF40)
 		update_LCDC(value);
 
