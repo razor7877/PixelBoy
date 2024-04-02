@@ -48,11 +48,14 @@ uint8_t read_io(uint16_t address)
 	if (address >= 0xFF10 && address <= 0xFF26) { read_apu(address); } // Audio
 	if (address >= 0xFF30 && address <= 0xFF3F) { read_apu(address); } // Wave pattern
 
-	if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
+	if (address >= 0xFF40 && address <= 0xFF4B) // PPU registers
 		return read_ppu(address);
 
 	if (address == 0xFF4D)
 		return KEY1;
+
+	if (address == 0xFF4F)
+		return read_ppu(address);
 
 	if (address >= 0xFF51 && address <= 0xFF55) // CBG VRAM DMA and palettes
 		return read_ppu(address);
@@ -81,7 +84,7 @@ void write_io(uint16_t address, uint8_t value)
 #ifdef IO_DEBUG
 		printf("IO register write value %x\n", (value & 0x30));
 #endif
-}
+	}
 
 	else if (address == 0xFF01) // Write to serial tranfer data
 		SB = value;
@@ -98,11 +101,14 @@ void write_io(uint16_t address, uint8_t value)
 	else if (address >= 0xFF10 && address <= 0xFF26) { write_apu(address, value); } // Audio
 	else if (address >= 0xFF30 && address <= 0xFF3F) { write_apu(address, value); } // Wave pattern
 
-	else if (address >= 0xFF40 && address <= 0xFF4F) // PPU registers
+	else if (address >= 0xFF40 && address <= 0xFF4B) // PPU registers
 		write_ppu(address, value);
 
 	else if (address == 0xFF4D)
 		KEY1 = (KEY1 & 0xFE) | (value & 0b1); // Only bit 1 writeable
+
+	else if (address >= 0xFF4F)
+		write_ppu(address, value);
 
 	else if (address >= 0xFF51 && address <= 0xFF55) // CBG VRAM DMA and palettes
 		write_ppu(address, value);

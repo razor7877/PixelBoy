@@ -12,6 +12,7 @@
 #include "ppu.h"
 #include "rom.h"
 #include "timer.h"
+#include "logging.h"
 
 #define FRAME_COUNT 10000
 
@@ -45,6 +46,8 @@ bool cpu_stopped = false;
 bool cpu_halted = false;
 bool IME = false; // Interrupt Master Enable
 bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
+// CGB only
+bool is_double_speed = false;
 
 // A variable that stores the current frame's timestamp, to calculate time between frames
 float current_frame = 0;
@@ -79,7 +82,6 @@ void execute_frame()
 	}
 
 	new_frame_ready = false;
-
 	while (!new_frame_ready)
 	{
 		handle_instruction();
@@ -124,6 +126,9 @@ void handle_instruction()
 				break;
 		}
 	}
+
+	//printf("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
+	
 
 	tick(instructions[opcode].duration);
 }
@@ -208,6 +213,14 @@ void reset_cpu()
 	cpu_halted = false;
 	IME_toggle = false; // Toggle to enable IME after one instruction with EI
 	IME = false; // Interrupt Master Enable
+}
+
+void toggle_double_speed()
+{
+	log_debug("Toggling double speed mode!\n");
+	is_double_speed = !is_double_speed;
+	KEY1 = (KEY1 & 0xFE); // Clear bit 0
+	tick(8200); // Speed switch takes 8200 T-cycles
 }
 
 uint8_t lower_byte(uint16_t value)
@@ -434,7 +447,10 @@ void sbc_r(uint8_t value)
 	set_flags(FLAG_NEGATIVE);
 }
 
-void undefined() { printf("ERROR: UNDEFINED INSTRUCTION EXECUTED"); }
+void undefined()
+{
+	log_error("UNDEFINED INSTRUCTION EXECUTED - opcode %x pc %x\n", opcode, pc);
+}
 void nop(){} // 0x00
 void ld_bc_nn(uint16_t operand) { BC = operand; } // 0x01
 void ld_bcp_a() { write_byte(BC, upper_byte(AF)); } // 0x02
@@ -481,7 +497,17 @@ void rrca() // 0x0F
 	clear_flags(FLAG_ZERO | FLAG_NEGATIVE | FLAG_HALFCARRY);
 }
 
-void stop(uint8_t operand) { cpu_stopped = true; DIV = 0x00; } // 0x10
+void stop(uint8_t operand)
+{
+	log_debug("STOP called - pc %x KEY1 VAL %x\n", pc, KEY1);
+	if (KEY1 & 0b1) // If KEY1 bit 0 is set, we should switch speed
+		toggle_double_speed();
+	else
+	{
+		cpu_stopped = true;
+		DIV = 0x00;
+	}
+} // 0x10
 void ld_de_nn(uint16_t operand) { DE = operand; } // 0x11
 void ld_dep_a() { write_byte(DE, upper_byte(AF)); } // 0x12
 void inc_de() { DE++; } // 0x13

@@ -67,6 +67,8 @@ void dma_transfer();
 void reset_emulator();
 // Resets the CPU to it's default state
 void reset_cpu();
+// Toggle double speed mode (CGB only)
+void toggle_double_speed();
 
 // Returns the lower or upper byte of a given register
 uint8_t lower_byte(uint16_t value);
