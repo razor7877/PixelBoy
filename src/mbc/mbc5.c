@@ -18,10 +18,8 @@ uint8_t read_rom_mbc5(uint16_t address)
 		// 14 lower bits are obtained from 14 lower bits of address
 		// 9 bits from ROM bank number
 		uint16_t rom_bank = (rom_bank_msb << 8) | mbc5.rom_bank;
-		if (rom_bank == 0)
-			rom_bank = 1;
 		uint32_t mapped_address = (rom_bank << 14) | (address & 0x3FFF);
-		//log_info("MBC5 ROM bank read ADR %x VALUE %x\n", address, rom[mapped_address]);
+		//log_info("MBC5 ROM bank read ADR %x VALUE %x %x\n", mapped_address, rom[mapped_address], rom[(1 << 14) | address]);
 		return rom[mapped_address];
 	}
 
@@ -57,6 +55,8 @@ void write_rom_mbc5(uint16_t address, uint8_t value)
 	if (address >= 0x3000 && address <= 0x3FFF)
 		rom_bank_msb = value & 0b1;
 
+	//log_debug("ROM bank number %x\n", (rom_bank_msb << 8) | mbc5.rom_bank);
+
 	// RAM bank number
 	if (address >= 0x4000 && address <= 0x5FFF)
 	{
@@ -86,7 +86,7 @@ struct MBC mbc5 = {
 	read_rom_mbc5,
 	write_rom_mbc5,
 	false,
-	0,
+	1,
 	0,
 	0,
 };
