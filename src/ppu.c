@@ -107,7 +107,7 @@ void step_ppu(uint8_t cycles)
 				if (ppu_mode() != LCD_MODE_3)
 				{
 					STAT = (STAT & 0xFC) | LCD_MODE_3;
-#ifdef CGB_MODE
+#ifndef CGB_MODE
 					draw_gbc_scanline();
 #else
 					draw_gb_scanline();
@@ -509,8 +509,15 @@ void write_vram(uint16_t address, uint8_t value)
 {
 	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3, ignore writes
 		return;
+#ifdef CGB_MODE
+	if (VBK & 0b1)
+		vram_1[address] = value;
 	else
 		vram_0[address] = value;
+#else
+	else
+		vram_0[address] = value;
+#endif
 }
 
 uint8_t read_oam(uint16_t address)
