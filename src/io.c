@@ -107,7 +107,7 @@ void write_io(uint16_t address, uint8_t value)
 	else if (address == 0xFF4D)
 		KEY1 = (KEY1 & 0xFE) | (value & 0b1); // Only bit 1 writeable
 
-	else if (address >= 0xFF4F)
+	else if (address == 0xFF4F)
 		write_ppu(address, value);
 
 	else if (address >= 0xFF51 && address <= 0xFF55) // CBG VRAM DMA and palettes
