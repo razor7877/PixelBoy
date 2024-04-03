@@ -158,7 +158,7 @@ static int setup_glfw()
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
+    //glfwSwapInterval(1);
 
     // Set callback functions for window resizing and handling input
     glfwSetKeyCallback(window, key_callback);
