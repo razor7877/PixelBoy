@@ -155,7 +155,7 @@ void tick_mbc3_rtc(uint8_t cycles)
 		rtc_cycles++;
 		if (rtc_cycles >= MBC3_RTC_FREQ)
 		{
-			log_warning("Done full RTC clock cycle s:m:h:d %d:%d:%d:%d\n", rtc_s, rtc_m, rtc_h, (rtc_dh & 0x01) | rtc_dl);
+			//log_warning("Done full RTC clock cycle s:m:h:d %d:%d:%d:%d\n", rtc_s, rtc_m, rtc_h, (rtc_dh & 0x01) | rtc_dl);
 			rtc_cycles %= MBC3_RTC_FREQ;
 
 			rtc_s++;

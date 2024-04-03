@@ -13,7 +13,6 @@ void service_interrupts()
 	{
 		if (IF_get(INTERRUPT_VBLANK) && IE_get(INTERRUPT_VBLANK))
 		{
-			//printf("Servicing VBLANK interrupt\n");
 			IME = 0; cpu_halted = false;
 			IF_clear(INTERRUPT_VBLANK);
 			call_nn(0x40); tick(20);

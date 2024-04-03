@@ -56,8 +56,8 @@ uint8_t read_byte(uint16_t address)
 
 	if (address >= 0xFF80 && address <= 0xFFFE)
 	{
-		if (hram[address - 0xFF80] != memory[address])
-			log_error("HRAM read adr %d map_adr %d value %d %d\n", address, address - 0xFF80, hram[address - 0xFF80], memory[address]);
+		//if (hram[address - 0xFF80] != memory[address])
+		//	log_error("HRAM read adr %d map_adr %d value %d %d\n", address, address - 0xFF80, hram[address - 0xFF80], memory[address]);
 		return memory[address];
 	}
 

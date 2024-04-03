@@ -105,7 +105,10 @@ void write_io(uint16_t address, uint8_t value)
 		write_ppu(address, value);
 
 	else if (address == 0xFF4D)
+	{
 		KEY1 = (KEY1 & 0xFE) | (value & 0b1); // Only bit 1 writeable
+		log_info("KEY1 write val %x\n", KEY1);
+	}
 
 	else if (address == 0xFF4F)
 		write_ppu(address, value);
