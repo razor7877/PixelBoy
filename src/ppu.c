@@ -679,8 +679,11 @@ void write_ppu(uint16_t address, uint8_t value)
 
 	if (address == 0xFF69) // Background palette data write
 	{
+		// TODO : Disable writes during mode 3
 		bg_palette_RAM[BGPI & 0x3F] = value;
-		log_warning("Background palette RAM write ADR %x VALUE %x\n", BGPI & 0x3F, value);
+		if (BGPI & 0x80) // If auto-increment on
+			BGPI++;
+		//log_warning("Background palette RAM write ADR %x VALUE %x pc %x\n", BGPI & 0x3F, value, pc);
 	}
 
 	if (address == 0xFF6A)
@@ -689,7 +692,9 @@ void write_ppu(uint16_t address, uint8_t value)
 	if (address == 0xFF6B) // OBJ palette data write
 	{
 		obj_palette_RAM[OBPI & 0x3F] = value;
-		log_warning("OBJ palette RAM write ADR %x VALUE %x\n", OBPI & 0x3F, value);
+		if (OBPI & 0x80) // If auto-increment on
+			OBPI++;
+		//log_warning("OBJ palette RAM write ADR %x VALUE %x\n", OBPI & 0x3F, value);
 	}
 }
 
