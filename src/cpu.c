@@ -127,7 +127,7 @@ void handle_instruction()
 		}
 	}
 
-	log_debug("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
+	//log_debug("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
 
 	tick(instructions[opcode].duration);
 }
@@ -739,7 +739,12 @@ void ld_hlp_d() { write_byte(HL, upper_byte(DE)); }
 void ld_hlp_e() { write_byte(HL, lower_byte(DE)); }
 void ld_hlp_h() { write_byte(HL, upper_byte(HL)); }
 void ld_hlp_l() { write_byte(HL, lower_byte(HL)); }
-void halt() { cpu_halted = true; }
+void halt()
+{
+	// TODO : Instruction skipping if interrupts disabled
+	if (IME != 0)
+		cpu_halted = true;
+}
 void ld_hlp_a() { write_byte(HL, upper_byte(AF)); }
 void ld_a_b() { set_reg_hi(&AF, upper_byte(BC)); }
 void ld_a_c() { set_reg_hi(&AF, lower_byte(BC)); }
