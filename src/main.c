@@ -1,3 +1,8 @@
+#if !defined(_WIN32) && !defined(__linux__) && !defined(__APPLE__)
+#error This is not a supported platform for the build! (Windows/Linux/macOS supported)
+#endif
+// TODO : There seems to be some non-working games on Linux build but not Win10
+
 #include <time.h>
 #ifdef _WIN32
 #include <Windows.h>
@@ -51,8 +56,6 @@ void sleep(uint64_t nanoseconds)
 int main(int argc, char* argv[])
 {
     frontend = OpenGL_Frontend;
-
-    load_rom("C:/Users/kylia/Desktop/GitHub/Gameboy-Emulator/roms/Legend of Zelda, The - Link's Awakening (U) (V1.2) [!].gb");
 
     // Drag and drop ROM loading
     if (argc > 1)
