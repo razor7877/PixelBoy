@@ -91,9 +91,10 @@ void write_byte(uint16_t address, uint8_t value)
 #else
 		wram[address & 0x0FFF] = value;
 #endif
-	}
+}
 
-	else if (address >= 0xE000 && address <= 0xFDFF) {} // Ignore echo RAM writes
+	else if (address >= 0xE000 && address <= 0xFDFF) // Echo RAM writes to WRAM
+		write_byte(address - 0x2000, value);
 
 	else if (address >= 0xFE00 && address <= 0xFE9F)
 		write_oam(address - 0xFE00, value);
