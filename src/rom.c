@@ -331,10 +331,14 @@ void write_rom(uint16_t address, uint8_t value)
 
 uint8_t read_external_ram(uint16_t address)
 {
-    return mbc.read_rom(address);
+    if (is_MBC_cartridge)
+        return mbc.read_rom(address);
+
+    return 0xFF;
 }
 
 void write_external_ram(uint16_t address, uint8_t value)
 {
-    mbc.write_rom(address, value);
+    if (is_MBC_cartridge)
+        mbc.write_rom(address, value);
 }
