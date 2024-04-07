@@ -504,16 +504,19 @@ void draw_gbc_tiles()
 		// Which of the 32 horizontal lines does this x pos fall within?
 		uint16_t tile_col = x_pos / 8;
 		int16_t tile_num;
+		int16_t tile_attributes;
 
 		// Get the tile identity number (can be signed/unsigned)
 		uint16_t tile_address = background_memory + tile_row + tile_col;
 		if (unsig)
 		{
-			tile_num = (uint8_t)vram[VBK & 0b1][tile_address - 0x8000];
+			tile_num = (uint8_t)vram[0][tile_address - 0x8000]; // Get tile index in bank 0
+			tile_attributes = (uint8_t)vram[1][tile_address - 0x8000]; // Get tile attributes in bank 1
 		}
 		else
 		{
-			tile_num = (int8_t)vram[VBK & 0b1][tile_address - 0x8000];
+			tile_num = (int8_t)vram[0][tile_address - 0x8000];
+			tile_attributes = (int8_t)vram[1][tile_address - 0x8000];
 		}
 
 		// Deduce where this tile identifier is in memory
@@ -526,8 +529,8 @@ void draw_gbc_tiles()
 		// Find correct vertical line we're on of the tile to get tile data in memory
 		uint8_t line = y_pos % 8;
 		line *= 2; // Each line takes up 2 bytes of memory
-		uint8_t data_1 = vram[VBK & 0b1][tile_location + line - 0x8000];
-		uint8_t data_2 = vram[VBK & 0b1][tile_location + line + 1 - 0x8000];
+		uint8_t data_1 = vram[tile_attributes & 0b1000][tile_location + line - 0x8000];
+		uint8_t data_2 = vram[tile_attributes & 0b1000][tile_location + line + 1 - 0x8000];
 
 		// pixel 0 : bit 7 of data_1 and data_2
 		// pixel 1 : bit 6 etc.
@@ -541,53 +544,43 @@ void draw_gbc_tiles()
 		uint8_t second_bit = (data_2 & color_mask) >> color_bit;
 		uint8_t color_num = first_bit | (second_bit << 1);
 
-		uint8_t color = 0;
+		uint16_t color = 0;
+		uint8_t color_red = 0;
+		uint8_t color_green = 0;
+		uint8_t color_blue = 0;
 
-		// Get actual color from palette as 2 bit value
+		uint8_t palette = tile_attributes & 0b111;
+		uint8_t palette_start = palette * 8; // Each palette is 8 bytes
+
+		// Get actual color from palette RAM as 2 byte value
 		switch (color_num)
 		{
 		case 0x0:
-			color = BGP & 0x03;
+			color = bg_palette_RAM[palette_start] | (bg_palette_RAM[palette_start + 1] << 8);
 			break;
 
 		case 0x1:
-			color = (BGP & 0x0C) >> 2;
+			color = bg_palette_RAM[palette_start + 2] | (bg_palette_RAM[palette_start + 3] << 8);
 			break;
 
 		case 0x2:
-			color = (BGP & 0x30) >> 4;
+			color = bg_palette_RAM[palette_start + 4] | (bg_palette_RAM[palette_start + 5] << 8);
 			break;
 
 		case 0x3:
-			color = (BGP & 0xC0) >> 6;
+			color = bg_palette_RAM[palette_start + 6] | (bg_palette_RAM[palette_start + 7] << 8);
 			break;
 		}
 
-		uint8_t buffer_color = 0;
+		color_red = color & 0b11111 << 3;
+		color_green = color & 0b1111100000 >> 2;
+		color_blue = color & 0b111110000000000 >> 7;
 
-		// Get corresponding RGBA color from the 2 bit value
-		switch (color)
-		{
-		case 0x0: // White
-			buffer_color = 0xFF;
-			break;
+		//log_debug("color %x\n", color);
 
-		case 0x1: // Light gray
-			buffer_color = 0xAA;
-			break;
-
-		case 0x2: // Dark gray
-			buffer_color = 0x55;
-			break;
-
-		case 0x3: // Black
-			buffer_color = 0x00;
-			break;
-		}
-
-		frame_buffer[LY * 160 * 3 + pixel * 3] = buffer_color;
-		frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = buffer_color;
-		frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = buffer_color;
+		frame_buffer[LY * 160 * 3 + pixel * 3] = color_red;
+		frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green;
+		frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = color_blue;
 	}
 }
 
@@ -626,8 +619,8 @@ void draw_gbc_sprites()
 
 			line *= 2;
 			uint16_t data_address = tile_index * 16 + line;
-			uint8_t data_1 = vram[VBK & 0b1][data_address];
-			uint8_t data_2 = vram[VBK & 0b1][data_address + 1];
+			uint8_t data_1 = vram[attributes & 0b1000][data_address];
+			uint8_t data_2 = vram[attributes & 0b1000][data_address + 1];
 
 			for (int tile_pixel = 7; tile_pixel >= 0; tile_pixel--)
 			{
