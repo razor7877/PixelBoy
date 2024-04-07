@@ -142,25 +142,15 @@ void tick(uint8_t cycles)
 		{
 			dma_cycles_left = 0;
 			uint16_t dma_source = read_byte(0xFF46) << 8;
-#ifdef DMA_DEBUG
-			printf("DMA Source: %x\n", dma_source);
-#endif
+
 			// DMA sources outside of DFFF are mapped back to SRAM
 			if (dma_source >= 0xDFFF)
 				dma_source -= 0x2000;
 			// Fill OAM memory once DMA cycles done
 			for (int i = 0; i < 160; i++)
-			{
-#ifdef DMA_DEBUG
-				printf("Writing from adr %x value %x\n", (dma_source + i), read_byte(dma_source + i));
-#endif
 				write_byte(0xFE00 + i, read_byte(dma_source + i));
-			}
 		}
 		else { dma_cycles_left -= cycles; }
-#ifdef DMA_DEBUG
-		printf("In DMA routine, cycles left: %d\n", dma_cycles_left);
-#endif
 	}
 }
 

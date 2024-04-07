@@ -524,8 +524,8 @@ void draw_gbc_tiles()
 		// Find correct vertical line we're on of the tile to get tile data in memory
 		uint8_t line = y_pos % 8;
 		line *= 2; // Each line takes up 2 bytes of memory
-		uint8_t data_1 = vram[tile_attributes & 0b1000][tile_location + line - 0x8000];
-		uint8_t data_2 = vram[tile_attributes & 0b1000][tile_location + line + 1 - 0x8000];
+		uint8_t data_1 = vram[tile_attributes & 0b1000 >> 3][tile_location + line - 0x8000];
+		uint8_t data_2 = vram[tile_attributes & 0b1000 >> 3][tile_location + line + 1 - 0x8000];
 
 		// pixel 0 : bit 7 of data_1 and data_2
 		// pixel 1 : bit 6 etc.
@@ -567,15 +567,13 @@ void draw_gbc_tiles()
 			break;
 		}
 
-		color_red = color & 0b11111 << 3;
-		color_green = color & 0b1111100000 >> 2;
-		color_blue = color & 0b111110000000000 >> 7;
+		color_red = (color & 0b11111);
+		color_green = (color & 0b1111100000) >> 5;
+		color_blue = (color & 0b111110000000000) >> 10;
 
-		//log_debug("color %x\n", color);
-
-		frame_buffer[LY * 160 * 3 + pixel * 3] = color_red;
-		frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green;
-		frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = color_blue;
+		frame_buffer[LY * 160 * 3 + pixel * 3] = color_red << 3;
+		frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green << 3;
+		frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = color_blue << 3; 
 	}
 }
 
@@ -614,8 +612,8 @@ void draw_gbc_sprites()
 
 			line *= 2;
 			uint16_t data_address = tile_index * 16 + line;
-			uint8_t data_1 = vram[attributes & 0b1000][data_address];
-			uint8_t data_2 = vram[attributes & 0b1000][data_address + 1];
+			uint8_t data_1 = vram[attributes & 0b1000 >> 3][data_address];
+			uint8_t data_2 = vram[attributes & 0b1000 >> 3][data_address + 1];
 
 			for (int tile_pixel = 7; tile_pixel >= 0; tile_pixel--)
 			{
@@ -657,9 +655,9 @@ void draw_gbc_sprites()
 					break;
 				}
 
-				color_red = color & 0b11111 << 3;
-				color_green = color & 0b1111100000 >> 2;
-				color_blue = color & 0b111110000000000 >> 7;
+				color_red = (color & 0b11111);
+				color_green = (color & 0b1111100000) >> 5;
+				color_blue = (color & 0b111110000000000) >> 10;
 
 				int x_pix = 0 - tile_pixel;
 				x_pix += 7;
@@ -671,9 +669,9 @@ void draw_gbc_sprites()
 				// TODO: Add transparency
 				if (color_num != 0)
 				{
-					frame_buffer[LY * 160 * 3 + pixel * 3] = color_red;
-					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green;
-					frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = color_blue;
+					frame_buffer[LY * 160 * 3 + pixel * 3] = color_red << 3;
+					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green << 3;
+					frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = color_blue << 3;
 				}
 			}
 		}
