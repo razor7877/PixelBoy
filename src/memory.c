@@ -9,11 +9,7 @@
 #include "logging.h"
 
 uint8_t memory[0x10000] = { 0 };
-#ifdef CGB_MODE
 uint8_t wram[0x8000] = {0}; // 8*4 KiB banks on CGB
-#else
-uint8_t wram[0x2000] = {0}; // 2*4 KiB banks on DMG
-#endif
 uint8_t hram[0x80] = {0};
 
 uint8_t SVBK = 0xF8;
@@ -34,14 +30,15 @@ uint8_t read_byte(uint16_t address)
 
 	if (address >= 0xD000 && address <= 0xDFFF) // Switchable WRAM bank
 	{
-#ifdef CGB_MODE
-		uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
-		//if (address == sp)
-		//	log_info("Reading stack pointer adr %x mapped %x val %x\n", address, mapped_address, wram[mapped_address]);
-		return wram[mapped_address];
-#else
-		return wram[address & 0x0FFF];
-#endif
+		if (run_as_cgb)
+		{
+			uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
+			//if (address == sp)
+			//	log_info("Reading stack pointer adr %x mapped %x val %x\n", address, mapped_address, wram[mapped_address]);
+			return wram[mapped_address];
+		}
+		else
+			return wram[address & 0x0FFF];
 	}
 
 	if (address >= 0xE000 && address <= 0xFDFF) // Echo RAM, mapped to same memory as 0xC000-0xCFFF
@@ -93,12 +90,13 @@ void write_byte(uint16_t address, uint8_t value)
 
 	else if (address >= 0xD000 && address <= 0xDFFF) // Switchable WRAM bank
 	{
-#ifdef CGB_MODE
-		uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
-		wram[mapped_address] = value;
-#else
-		wram[address & 0x0FFF] = value;
-#endif
+		if (run_as_cgb)
+		{
+			uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
+			wram[mapped_address] = value;
+		}
+		else
+			wram[address & 0x0FFF] = value;
 }
 
 	else if (address >= 0xE000 && address <= 0xFDFF) // Echo RAM writes to WRAM

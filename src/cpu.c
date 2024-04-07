@@ -1,4 +1,3 @@
-
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -14,7 +13,7 @@
 #include "timer.h"
 #include "logging.h"
 
-#define FRAME_COUNT 10000
+#define FRAME_COUNT 250
 
 // Log average FPS to the console
 #define FPS_DEBUG
@@ -24,17 +23,10 @@
 uint32_t cycle_count = 0;
 uint16_t dma_cycles_left = 0;
 
-#ifdef CGB_MODE
 uint16_t AF = 0x11B0;
 uint16_t BC = 0x0000;
 uint16_t DE = 0xFF56;
 uint16_t HL = 0x000D;
-#else
-uint16_t AF = 0x01B0;
-uint16_t BC = 0x0013;
-uint16_t DE = 0x00D8;
-uint16_t HL = 0x014D;
-#endif
 
 uint16_t sp = 0xFFFE; // Stack pointer
 uint16_t pc = 0x100; // Program counter
@@ -47,6 +39,7 @@ bool cpu_halted = false;
 bool IME = false; // Interrupt Master Enable
 bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
 // CGB only
+bool run_as_cgb = false; // Whether the console is running as a CGB or DMG console
 bool is_double_speed = false;
 
 // A variable that stores the current frame's timestamp, to calculate time between frames
@@ -190,17 +183,20 @@ void reset_cpu()
 	cycle_count = 0;
 	dma_cycles_left = 0;
 
-#ifdef CGB_MODE
-	AF = 0x11B0;
-	BC = 0x0000;
-	DE = 0xFF56;
-	HL = 0x000D;
-#else
-	AF = 0x01B0;
-	BC = 0x0013;
-	DE = 0x00D8;
-	HL = 0x014D;
-#endif
+	if (run_as_cgb)
+	{
+		AF = 0x11B0;
+		BC = 0x0000;
+		DE = 0xFF56;
+		HL = 0x000D;
+	}
+	else
+	{
+		AF = 0x01B0;
+		BC = 0x0013;
+		DE = 0x00D8;
+		HL = 0x014D;
+	}
 
 	sp = 0xFFFE; // Stack pointer
 	pc = 0x100; // Program counter
@@ -208,6 +204,7 @@ void reset_cpu()
 
 	operand = 0;
 
+	is_double_speed = false;
 	cpu_stopped = false;
 	cpu_halted = false;
 	IME_toggle = false; // Toggle to enable IME after one instruction with EI

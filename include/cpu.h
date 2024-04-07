@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CGB_MODE
-
 #define CPU_FREQ 4194304
 #define FRAME_CYCLES 70224
 #define DMA_DURATION 640
@@ -48,6 +46,7 @@ extern uint8_t opcode;
 
 extern uint16_t operand;
 
+extern bool run_as_cgb;
 extern bool cpu_stopped;
 extern bool cpu_halted;
 extern bool IME;

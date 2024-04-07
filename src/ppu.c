@@ -10,11 +10,7 @@
 
 uint32_t ppu_cycle_count = 0;
 
-#ifdef CGB_MODE
 uint8_t vram[2][8192] = {0};
-#else
-uint8_t vram[1][8192] = {0};
-#endif
 uint8_t OAM[160] = {0};
 uint8_t LCDC = 0x91;
 uint8_t STAT = 0x81;
@@ -108,11 +104,10 @@ void step_ppu(uint8_t cycles)
 				if (ppu_mode() != LCD_MODE_3)
 				{
 					STAT = (STAT & 0xFC) | LCD_MODE_3;
-#ifdef CGB_MODE
-					draw_gbc_scanline();
-#else
-					draw_gb_scanline();
-#endif
+					if (run_as_cgb)
+						draw_gbc_scanline();
+					else
+						draw_gb_scanline();
 				}
 						
 			}
@@ -734,15 +729,11 @@ uint8_t read_vram(uint16_t address)
 {
 	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3
 		return 0xFF;
-#ifdef CGB_MODE
-	if (VBK & 0b1)
+
+	if (run_as_cgb && (VBK & 0b1)) // In CGB mode, we need to handle bank 1 reads
 		return vram[1][address];
 	else
 		return vram[0][address];
-#else
-	else
-		return vram[0][address];
-#endif
 }
 
 void write_vram(uint16_t address, uint8_t value)
@@ -752,15 +743,10 @@ void write_vram(uint16_t address, uint8_t value)
 		log_warning("Ignored VRAM write during mode 3!\n");
 		return;
 	}
-#ifdef CGB_MODE
-	if (VBK & 0b1)
+	if (run_as_cgb && (VBK & 0b1)) // In CGB mode, we need to handle bank 1 writes
 		vram[1][address] = value;
 	else
 		vram[0][address] = value;
-#else
-	else
-		vram[0][address] = value;
-#endif
 }
 
 uint8_t read_oam(uint16_t address)

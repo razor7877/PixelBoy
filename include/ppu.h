@@ -37,11 +37,7 @@ enum lcd_status
 
 extern uint32_t ppu_cycle_count;
 
-#ifdef CGB_MODE
 extern uint8_t vram[2][8192];
-#else
-extern uint8_t vram[1][8192];
-#endif
 extern uint8_t OAM[160]; // Object access memory
 extern uint8_t LCDC; // 0xFF40 : LCD Control
 extern uint8_t STAT; // 0xFF41 : LCD Status

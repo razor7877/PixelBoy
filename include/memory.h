@@ -5,11 +5,7 @@
 
 #include "cpu.h"
 
-#ifdef CGB_MODE
 extern uint8_t wram[0x8000];
-#else
-extern uint8_t wram[0x2000];
-#endif
 extern uint8_t hram[0x80];
 
 // CGB only

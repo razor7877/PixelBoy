@@ -70,6 +70,12 @@ int load_rom(const char* path)
 
     dump_header();
 
+    // Check if this is a ROM for CGB or DMG hardware
+    if (cartridge_header.title[15] & 0x80)
+        run_as_cgb = true;
+    else
+        run_as_cgb = false;
+
     // TODO: Make this cleaner, maybe a lookup table?
     // We dynamically allocate rom array depending on the cartridge type and size
     // TODO: Reset struct to default values when loading another game
@@ -293,12 +299,19 @@ void load_ram_from_file()
 void dump_header()
 {
     log_info("Loaded ROM into memory, cartridge header info:\n\nTitle: %s\n", cartridge_header.title);
+    if (cartridge_header.title[15] & 0x80)
+        log_info("CGB Flag: CGB game\n");
+    else
+        log_info("CGB Flag: DMG game\n");
     log_info("New licensee code: %x%x\n", cartridge_header.new_licensee_code[0], cartridge_header.new_licensee_code[1]);
-    log_info("SGB flag: %x\n", cartridge_header.sgb_flag);
+    log_info("SGB flag: %s\n", cartridge_header.sgb_flag == 0x03 ? "Supported" : "Unsupported");
     log_info("Cartridge type: %x\n", cartridge_header.cartridge_type);
-    log_info("Cartridge size: %x\n", cartridge_header.cartridge_size);
+    log_info("Cartridge size: %d KiB\n", 32 * (1 << cartridge_header.cartridge_size));
     log_info("Ram size: %x\n", cartridge_header.ram_size);
-    log_info("Destination code: %x\n", cartridge_header.destination_code);
+    if (cartridge_header.destination_code == 0x00)
+        log_info("Destination code: Japan (possibly overseas)\n");
+    else
+        log_info("Destination code: Overseas only\n");
     log_info("Old licensee code: %x\n", cartridge_header.old_licensee_code);
     log_info("Mask ROM version: %x\n", cartridge_header.mask_rom_version);
     log_info("Header checksum: %x\n", cartridge_header.header_checksum);
