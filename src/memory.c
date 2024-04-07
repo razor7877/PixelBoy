@@ -35,7 +35,9 @@ uint8_t read_byte(uint16_t address)
 	if (address >= 0xD000 && address <= 0xDFFF) // Switchable WRAM bank
 	{
 #ifdef CGB_MODE
-		uint16_t mapped_address = (SVBK << 12) | (address & 0x0FFF);
+		uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
+		if (address == sp)
+			log_info("Reading stack pointer adr %x mapped %x val %x\n", address, mapped_address, wram[mapped_address]);
 		return wram[mapped_address];
 #else
 		return wram[address & 0x0FFF];
@@ -71,6 +73,12 @@ uint16_t read_word(uint16_t address)
 
 void write_byte(uint16_t address, uint8_t value)
 {
+	//if (address >= sp)
+	//	log_warning("Memory write in stack opcode %s pc %x HL %x sp %x\n", instructions[opcode].disassembly, pc, HL, sp);
+
+	//if (address >= 0xC000 && address <= 0xC10F)
+	//	log_warning("Writing at ADR %x VALUE %x pc %x\n", address, value, pc);
+
 	if (address >= 0x0000 && address <= 0x7FFF)
 		write_rom(address, value);
 
@@ -86,7 +94,7 @@ void write_byte(uint16_t address, uint8_t value)
 	else if (address >= 0xD000 && address <= 0xDFFF) // Switchable WRAM bank
 	{
 #ifdef CGB_MODE
-		uint16_t mapped_address = (SVBK << 12) | (address & 0x0FFF);
+		uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
 		wram[mapped_address] = value;
 #else
 		wram[address & 0x0FFF] = value;
