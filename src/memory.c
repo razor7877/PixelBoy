@@ -36,8 +36,8 @@ uint8_t read_byte(uint16_t address)
 	{
 #ifdef CGB_MODE
 		uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
-		if (address == sp)
-			log_info("Reading stack pointer adr %x mapped %x val %x\n", address, mapped_address, wram[mapped_address]);
+		//if (address == sp)
+		//	log_info("Reading stack pointer adr %x mapped %x val %x\n", address, mapped_address, wram[mapped_address]);
 		return wram[mapped_address];
 #else
 		return wram[address & 0x0FFF];

@@ -18,9 +18,9 @@ uint8_t read_rom_mbc5(uint16_t address)
 		// 14 lower bits are obtained from 14 lower bits of address
 		// 9 bits from ROM bank number
 		uint16_t rom_bank = (rom_bank_msb << 8) | mbc5.rom_bank;
-		if (rom_bank >= (1 << cartridge_header.cartridge_size))
+		if (rom_bank >= (0b10 << cartridge_header.cartridge_size))
 		{
-			log_error("Trying to read from out of bounds ROM bank! - unmasked %x mask %x masked %x\n", rom_bank, cartridge_header.cartridge_size);
+			log_error("Trying to read from out of bounds ROM bank! - unmasked %x mask %x masked %x\n", rom_bank, cartridge_header.cartridge_size, rom_bank & (1 - (0b10 << cartridge_header.cartridge_size)));
 		}
 			
 		uint32_t mapped_address = (rom_bank << 14) | (address & 0x3FFF);

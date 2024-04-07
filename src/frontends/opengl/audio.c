@@ -20,8 +20,6 @@ typedef struct
 	float amplitude;
 	float phase;
 	float dutyCycle;  // For square waves
-	int isNoise;      // Indicates if it's a noise channel
-	float noiseValue; // Current value for the noise channel
 } PAChannel;
 
 // Square channel 1
@@ -60,8 +58,8 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 	delta = current - last;
 	last = current;
 
-	float* in = (uint8_t*)inputBuffer;
-	float* out = (uint8_t*)outputBuffer;
+	float* in = inputBuffer;
+	float* out = outputBuffer;
 
 	for (unsigned int i = 0; i < framesPerBuffer; i++)
 	{
