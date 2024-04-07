@@ -638,49 +638,33 @@ void draw_gbc_sprites()
 				uint8_t second_bit = (data_2 & color_mask) >> color_bit;
 				uint8_t color_num = first_bit | (second_bit << 1);
 
-				uint8_t color = 0;
+				uint16_t color = 0;
+				uint8_t color_red = 0;
+				uint8_t color_green = 0;
+				uint8_t color_blue = 0;
 
-				// Get actual color from palette as 2 bit value
+				uint8_t palette = attributes & 0b111;
+				uint8_t palette_start = palette * 8; // Each palette is 8 bytes
+
+				// Get actual color from palette RAM as 2 byte value
 				switch (color_num)
 				{
-				case 0x0:
-					color = BGP & 0x03;
-					break;
-
 				case 0x1:
-					color = (BGP & 0x0C) >> 2;
+					color = obj_palette_RAM[palette_start + 2] | (obj_palette_RAM[palette_start + 3] << 8);
 					break;
 
 				case 0x2:
-					color = (BGP & 0x30) >> 4;
+					color = obj_palette_RAM[palette_start + 4] | (obj_palette_RAM[palette_start + 5] << 8);
 					break;
 
 				case 0x3:
-					color = (BGP & 0xC0) >> 6;
+					color = obj_palette_RAM[palette_start + 6] | (obj_palette_RAM[palette_start + 7] << 8);
 					break;
 				}
 
-				uint8_t buffer_color = 0;
-
-				// Get corresponding RGBA color from the 2 bit value
-				switch (color)
-				{
-				case 0x0: // White
-					buffer_color = 0xFF;
-					break;
-
-				case 0x1: // Light gray
-					buffer_color = 0xAA;
-					break;
-
-				case 0x2: // Dark gray
-					buffer_color = 0x55;
-					break;
-
-				case 0x3: // Black
-					buffer_color = 0x00;
-					break;
-				}
+				color_red = color & 0b11111 << 3;
+				color_green = color & 0b1111100000 >> 2;
+				color_blue = color & 0b111110000000000 >> 7;
 
 				int x_pix = 0 - tile_pixel;
 				x_pix += 7;
@@ -689,11 +673,12 @@ void draw_gbc_sprites()
 
 				//printf("Draw pixel at x %d y %d\n", LY, pixel);
 				// White pixel for sprites is transparent
-				if (buffer_color != 0xFF)
+				// TODO: Add transparency
+				if (color_num != 0)
 				{
-					frame_buffer[LY * 160 * 3 + pixel * 3] = buffer_color;
-					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = buffer_color;
-					frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = buffer_color;
+					frame_buffer[LY * 160 * 3 + pixel * 3] = color_red;
+					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green;
+					frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = color_blue;
 				}
 			}
 		}
