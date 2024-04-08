@@ -524,8 +524,8 @@ void draw_gbc_tiles()
 		// Find correct vertical line we're on of the tile to get tile data in memory
 		uint8_t line = y_pos % 8;
 		line *= 2; // Each line takes up 2 bytes of memory
-		uint8_t data_1 = vram[tile_attributes & 0b1000 >> 3][tile_location + line - 0x8000];
-		uint8_t data_2 = vram[tile_attributes & 0b1000 >> 3][tile_location + line + 1 - 0x8000];
+		uint8_t data_1 = vram[(tile_attributes & 0b1000) >> 3][tile_location + line - 0x8000];
+		uint8_t data_2 = vram[(tile_attributes & 0b1000) >> 3][tile_location + line + 1 - 0x8000];
 
 		// pixel 0 : bit 7 of data_1 and data_2
 		// pixel 1 : bit 6 etc.
@@ -612,8 +612,8 @@ void draw_gbc_sprites()
 
 			line *= 2;
 			uint16_t data_address = tile_index * 16 + line;
-			uint8_t data_1 = vram[attributes & 0b1000 >> 3][data_address];
-			uint8_t data_2 = vram[attributes & 0b1000 >> 3][data_address + 1];
+			uint8_t data_1 = vram[(attributes & 0b1000) >> 3][data_address];
+			uint8_t data_2 = vram[(attributes & 0b1000) >> 3][data_address + 1];
 
 			for (int tile_pixel = 7; tile_pixel >= 0; tile_pixel--)
 			{
