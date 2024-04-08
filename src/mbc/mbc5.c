@@ -3,10 +3,12 @@
 
 #include "logging.h"
 
-// Most significant bit of rom bank number
-uint8_t rom_bank_msb = 0;
+static bool ram_enable = false;
+static uint8_t rom_bank = 1;
+static uint8_t rom_bank_msb = 0; // Most significant bit of rom bank number
+static uint8_t ram_bank = 0;
 
-uint8_t read_rom_mbc5(uint16_t address)
+static uint8_t read_rom_mbc5(uint16_t address)
 {
 	// Read ROM bank 00
 	if (address >= 0x0000 && address <= 0x3FFF)
@@ -17,13 +19,13 @@ uint8_t read_rom_mbc5(uint16_t address)
 	{
 		// 14 lower bits are obtained from 14 lower bits of address
 		// 9 bits from ROM bank number
-		uint16_t rom_bank = (rom_bank_msb << 8) | mbc5.rom_bank;
-		if (rom_bank >= (0b10 << cartridge_header.cartridge_size))
+		uint16_t full_rom_bank = (rom_bank_msb << 8) | rom_bank;
+		if (full_rom_bank >= (0b10 << cartridge_header.cartridge_size))
 		{
-			log_error("Trying to read from out of bounds ROM bank! - unmasked %x mask %x masked %x\n", rom_bank, cartridge_header.cartridge_size, rom_bank & (1 - (0b10 << cartridge_header.cartridge_size)));
+			log_error("Trying to read from out of bounds ROM bank! - unmasked %x mask %x masked %x\n", full_rom_bank, cartridge_header.cartridge_size, full_rom_bank & (1 - (0b10 << cartridge_header.cartridge_size)));
 		}
 			
-		uint32_t mapped_address = (rom_bank << 14) | (address & 0x3FFF);
+		uint32_t mapped_address = (full_rom_bank << 14) | (address & 0x3FFF);
 		//log_info("MBC5 ROM bank read ADR %x VALUE %x %x\n", mapped_address, rom[mapped_address], rom[(1 << 14) | address]);
 		return rom[mapped_address];
 	}
@@ -31,10 +33,10 @@ uint8_t read_rom_mbc5(uint16_t address)
 	// Read RAM banks
 	if (address >= 0xA000 && address <= 0xBFFF)
 	{
-		if (!mbc5.ram_enable)
+		if (!ram_enable)
 			return 0xFF;
 
-		uint16_t mapped_address = (mbc5.ram_bank << 12) | (address & 0x1FFF);
+		uint16_t mapped_address = (ram_bank << 12) | (address & 0x1FFF);
 
 		return external_ram[mapped_address];
 	}
@@ -42,30 +44,30 @@ uint8_t read_rom_mbc5(uint16_t address)
 	return 0xFF;
 }
 
-void write_rom_mbc5(uint16_t address, uint8_t value)
+static void write_rom_mbc5(uint16_t address, uint8_t value)
 {
 	if (address >= 0x0000 && address <= 0x1FFF)
 	{
 		if ((value & 0x0F) == 0x0A)
-			mbc5.ram_enable = true;
+			ram_enable = true;
 		else
-			mbc5.ram_enable = false;
+			ram_enable = false;
 	}
 
 	// 8 LSB of ROM bank number
 	if (address >= 0x2000 && address <= 0x2FFF)
-		mbc5.rom_bank = value;
+		rom_bank = value;
 
 	// MSB of ROM bank number
 	if (address >= 0x3000 && address <= 0x3FFF)
 		rom_bank_msb = value & 0b1;
 
-	//log_debug("ROM bank number %x\n", (rom_bank_msb << 8) | mbc5.rom_bank);
+	//log_debug("ROM bank number %x\n", (rom_bank_msb << 8) | rom_bank);
 
 	// RAM bank number
 	if (address >= 0x4000 && address <= 0x5FFF)
 	{
-		mbc5.ram_bank = value & 0x0F; // Range is 0x00-0x0F
+		ram_bank = value & 0x0F; // Range is 0x00-0x0F
 		if (value & 0x08) // If bit 3 is set (rumble)
 		{
 			// Any rumble logic would go there - Toggle ON
@@ -79,19 +81,24 @@ void write_rom_mbc5(uint16_t address, uint8_t value)
 	// RAM writes
 	if (address >= 0xA000 && address <= 0xBFFF)
 	{
-		if (!mbc5.ram_enable)
+		if (!ram_enable)
 			return;
 
-		uint16_t mapped_address = (mbc5.ram_bank << 12) | (address & 0x1FFF);
+		uint16_t mapped_address = (ram_bank << 12) | (address & 0x1FFF);
 		external_ram[mapped_address] = value;
 	}
+}
+
+static void reset_mbc5()
+{
+	ram_enable = false;
+	rom_bank = 1;
+	rom_bank_msb = 0;
+	ram_bank = 0;
 }
 
 struct MBC mbc5 = {
 	read_rom_mbc5,
 	write_rom_mbc5,
-	false,
-	1,
-	0,
-	0,
+	reset_mbc5,
 };

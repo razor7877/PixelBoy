@@ -6,17 +6,21 @@
 
 #define MBC3_RTC_FREQ 32768
 
-uint32_t cpu_cycle_count = 0;
-uint32_t cpu_max_cycles = CPU_FREQ / MBC3_RTC_FREQ; // Every 128 CPU cycles, RTC should be ticked once
-uint32_t rtc_cycles = 0;
+static bool ram_enable = false;
+static uint8_t rom_bank = 0;
+static uint8_t ram_bank = 0;
 
-uint8_t rtc_s = 0; // Seconds
-uint8_t rtc_m = 0; // Minutes
-uint8_t rtc_h = 0; // Hours
-uint8_t rtc_dl = 0; // Lower 8 bits of day counter
-uint8_t rtc_dh = 0; // Upper 1 bit of day counter, carry bit, halt flag
+static uint32_t cpu_cycle_count = 0;
+static uint32_t cpu_max_cycles = CPU_FREQ / MBC3_RTC_FREQ; // Every 128 CPU cycles, RTC should be ticked once
+static uint32_t rtc_cycles = 0;
 
-uint8_t read_rom_mbc3(uint16_t address)
+static uint8_t rtc_s = 0; // Seconds
+static uint8_t rtc_m = 0; // Minutes
+static uint8_t rtc_h = 0; // Hours
+static uint8_t rtc_dl = 0; // Lower 8 bits of day counter
+static uint8_t rtc_dh = 0; // Upper 1 bit of day counter, carry bit, halt flag
+
+static uint8_t read_rom_mbc3(uint16_t address)
 {
 	// Read ROM bank 00
 	if (address >= 0x0000 && address <= 0x3FFF)
@@ -27,7 +31,6 @@ uint8_t read_rom_mbc3(uint16_t address)
 	{
 		// 14 lower bits are obtained from 14 lower bits of address
 		// 5 next bits obtained from the selected rom bank number
-		uint8_t rom_bank = mbc3.rom_bank;
 		if (rom_bank == 0)
 			rom_bank = 1;
 		uint32_t mapped_address = (rom_bank << 14) | (address & 0x3FFF);
@@ -37,20 +40,20 @@ uint8_t read_rom_mbc3(uint16_t address)
 	// Read RAM bank or RTC register
 	if (address >= 0xA000 && address <= 0xBFFF)
 	{
-		if (mbc3.ram_bank >= 0x00 && mbc3.ram_bank <= 0x03)
+		if (ram_bank >= 0x00 && ram_bank <= 0x03)
 		{
 			// Read RAM banks 00-03
-			if (!mbc3.ram_enable)
+			if (!ram_enable)
 				return 0xFF;
 
-			uint16_t mapped_address = (mbc3.ram_bank << 12) | (address & 0x1FFF);
+			uint16_t mapped_address = (ram_bank << 12) | (address & 0x1FFF);
 
 			return external_ram[mapped_address];
 		}
 		// RTC register read
 		else
 		{
-			switch (mbc3.ram_bank)
+			switch (ram_bank)
 			{
 			case 0x08:
 				return rtc_s;
@@ -74,27 +77,27 @@ uint8_t read_rom_mbc3(uint16_t address)
 	return 0xFF;
 }
 
-void write_rom_mbc3(uint16_t address, uint8_t value)
+static void write_rom_mbc3(uint16_t address, uint8_t value)
 {
 	// Enable/disable RAM banks and RTC registers
 	if (address >= 0x0000 && address <= 0x1FFF)
 	{
 		if ((value & 0x0F) == 0x0A)
-			mbc3.ram_enable = true;
+			ram_enable = true;
 		else
-			mbc3.ram_enable = false;
+			ram_enable = false;
 	}
 
 	// 7 bit ROM bank number register
 	if (address >= 0x2000 && address <= 0x3FFF)
 	{
-		mbc3.rom_bank = value & 0x7F; // 7 lower bits mask
+		rom_bank = value & 0x7F; // 7 lower bits mask
 	}
 
 	// RAM bank number or RTC register select
 	if (address >= 0x4000 && address <= 0x5FFF)
 	{
-		mbc3.ram_bank = value & 0x0F; // Values are in range 0x00-0x0C
+		ram_bank = value & 0x0F; // Values are in range 0x00-0x0C
 	}
 
 	// Latch clock data
@@ -107,18 +110,18 @@ void write_rom_mbc3(uint16_t address, uint8_t value)
 	if (address >= 0xA000 && address <= 0xBFFF)
 	{
 		// RAM bank write
-		if (mbc3.ram_bank >= 0x00 && mbc3.ram_bank <= 0x03)
+		if (ram_bank >= 0x00 && ram_bank <= 0x03)
 		{
-			if (!mbc3.ram_enable)
+			if (!ram_enable)
 				return;
 
-			uint16_t mapped_address = (mbc3.ram_bank << 12) | (address & 0x1FFF);
+			uint16_t mapped_address = (ram_bank << 12) | (address & 0x1FFF);
 			external_ram[mapped_address] = value;
 		}
 		// RTC register write
 		else
 		{
-			switch (mbc3.ram_bank)
+			switch (ram_bank)
 			{
 			case 0x08:
 				rtc_s = value;
@@ -188,11 +191,24 @@ void tick_mbc3_rtc(uint8_t cycles)
 	}
 }
 
+static void reset_mbc3()
+{
+	ram_enable = false;
+	rom_bank = 0;
+	ram_bank = 0;
+
+	cpu_cycle_count = 0;
+	rtc_cycles = 0;
+
+	rtc_s = 0;
+	rtc_m = 0;
+	rtc_h = 0;
+	rtc_dl = 0;
+	rtc_dh = 0;
+}
+
 struct MBC mbc3 = {
 	read_rom_mbc3,
 	write_rom_mbc3,
-	false,
-	0,
-	0,
-	0,
+	reset_mbc3
 };

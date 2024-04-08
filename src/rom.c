@@ -153,6 +153,9 @@ int load_rom(const char* path)
         break;
     }
 
+    if (is_MBC_cartridge)
+        mbc.reset_mbc();
+
     // Calculate how much size we need to allocate to fit in the full ROM
     rom_size = 2 * ROM_BANK_SIZE * (1 << cartridge_header.cartridge_size);
 
