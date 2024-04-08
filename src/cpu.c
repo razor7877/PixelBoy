@@ -492,7 +492,7 @@ void rrca() // 0x0F
 void stop(uint8_t operand)
 {
 	log_debug("STOP called - pc %x KEY1 VAL %x\n", pc, KEY1);
-	if (KEY1 & 0b1) // If KEY1 bit 0 is set, we should switch speed
+	if (run_as_cgb && (KEY1 & 0b1)) // If KEY1 bit 0 is set, we should switch speed
 		toggle_double_speed();
 	else
 	{
@@ -855,7 +855,7 @@ void ret_z()
 	}
 	else { tick(8); }
 }
-void ret() { pc = read_word(sp); sp += 2; }
+void ret() { log_info("ret call to pc %x sp %x\n", read_word(sp), pc); pc = read_word(sp); sp += 2; }
 void jp_z_nn(uint16_t operand)
 {
 	if (get_flags(FLAG_ZERO))

@@ -38,7 +38,7 @@ uint8_t read_byte(uint16_t address)
 			return wram[mapped_address];
 		}
 		else
-			return wram[address & 0x0FFF];
+			return wram[address - 0xC000];
 	}
 
 	if (address >= 0xE000 && address <= 0xFDFF) // Echo RAM, mapped to same memory as 0xC000-0xCFFF
@@ -96,7 +96,7 @@ void write_byte(uint16_t address, uint8_t value)
 			wram[mapped_address] = value;
 		}
 		else
-			wram[address & 0x0FFF] = value;
+			wram[address - 0xC000] = value;
 }
 
 	else if (address >= 0xE000 && address <= 0xFDFF) // Echo RAM writes to WRAM
