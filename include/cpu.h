@@ -46,10 +46,11 @@ extern uint8_t opcode;
 
 extern uint16_t operand;
 
-extern bool run_as_cgb;
 extern bool cpu_stopped;
 extern bool cpu_halted;
 extern bool IME;
+extern bool run_as_cgb;
+extern bool is_double_speed;
 
 extern float delta_time;
 extern float current_frame;

@@ -40,7 +40,7 @@ bool IME = false; // Interrupt Master Enable
 bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
 // CGB only
 bool run_as_cgb = false; // Whether the console is running as a CGB or DMG console
-bool is_double_speed = false;
+bool is_double_speed = false; // Whether the console is in double speed mode
 
 // A variable that stores the current frame's timestamp, to calculate time between frames
 float current_frame = 0;
@@ -49,6 +49,8 @@ float last_frame = 0.0f;
 float average_delta_time = 0.0f;
 int frame_count = FRAME_COUNT;
 float frame_sum = 0.0f;
+
+bool print_instr = false;
 
 void execute_frame()
 {
@@ -120,9 +122,13 @@ void handle_instruction()
 		}
 	}
 
-	//log_debug("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
+	if (print_instr)
+		log_debug("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
 
-	tick(instructions[opcode].duration);
+	if (run_as_cgb)
+		tick(instructions[opcode].duration / 2);
+	else
+		tick(instructions[opcode].duration);
 }
 
 void tick(uint8_t cycles)
@@ -855,7 +861,7 @@ void ret_z()
 	}
 	else { tick(8); }
 }
-void ret() { log_info("ret call to pc %x sp %x\n", read_word(sp), pc); pc = read_word(sp); sp += 2; }
+void ret() { if (print_instr) { log_info("ret call to pc %x sp %x\n", read_word(sp), pc); } pc = read_word(sp); sp += 2; }
 void jp_z_nn(uint16_t operand)
 {
 	if (get_flags(FLAG_ZERO))

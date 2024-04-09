@@ -83,9 +83,18 @@ void update_timer_freq(uint8_t value)
 
 void tick_timer(uint8_t cycles)
 {
-	tick_ppu(cycles / 2); // PPU runs at half the clock speed of the CPU
-	tick_apu(cycles);
-	tick_mbc3_rtc(cycles);
+	if (run_as_cgb && is_double_speed)
+	{
+		tick_ppu(cycles);
+		tick_apu(cycles * 2);
+		tick_mbc3_rtc(cycles * 2);
+	}
+	else
+	{
+		tick_ppu(cycles / 2); // PPU runs at half the clock speed of the CPU
+		tick_apu(cycles);
+		tick_mbc3_rtc(cycles);
+	}
 
 	for (uint8_t i = 0; i < cycles; i += 4)
 	{
