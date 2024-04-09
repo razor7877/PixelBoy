@@ -514,6 +514,10 @@ void draw_gbc_tiles()
 			tile_attributes = (int8_t)vram[1][tile_address - 0x8000];
 		}
 
+		bool x_flip = (tile_attributes & 0x20) >> 5; // x_flip is on bit 5
+		// TODO : Add y-flipping logic
+		bool y_flip = (tile_attributes & 0x40) >> 6; // y_flip is on bit 6
+
 		// Deduce where this tile identifier is in memory
 		uint16_t tile_location = tile_data;
 		if (unsig)
@@ -524,14 +528,23 @@ void draw_gbc_tiles()
 		// Find correct vertical line we're on of the tile to get tile data in memory
 		uint8_t line = y_pos % 8;
 		line *= 2; // Each line takes up 2 bytes of memory
-		uint8_t data_1 = vram[(tile_attributes & 0b1000) >> 3][tile_location + line - 0x8000];
-		uint8_t data_2 = vram[(tile_attributes & 0b1000) >> 3][tile_location + line + 1 - 0x8000];
+
+		// Get data from VRAM
+		uint8_t vram_bank = (tile_attributes & 0b1000) >> 3;
+		uint8_t data_1 = vram[vram_bank][tile_location + line - 0x8000];
+		uint8_t data_2 = vram[vram_bank][tile_location + line + 1 - 0x8000];
 
 		// pixel 0 : bit 7 of data_1 and data_2
 		// pixel 1 : bit 6 etc.
+
 		int color_bit = x_pos % 8;
-		color_bit -= 7;
-		color_bit *= -1;
+
+		// If no x flipping, we need to reverse how we read (pixel 0 maps to bit 7)
+		if (!x_flip)
+		{
+			color_bit -= 7;
+			color_bit *= -1;
+		}
 
 		// Combine the two to get colour id for this pixel in the tile
 		uint8_t color_mask = 1 << color_bit;
@@ -683,6 +696,7 @@ void reset_ppu()
 	ppu_cycle_count = 0;
 
 	memset(&vram[0], 0, sizeof(vram[0]));
+	memset(&vram[1], 0, sizeof(vram[1]));
 	memset(&OAM, 0, sizeof(OAM));
 	LCDC = 0x91;
 	STAT = 0x81;
