@@ -22,7 +22,18 @@ static uint8_t read_rom_mbc2(uint16_t address)
 		// 5 next bits obtained from the selected rom bank number
 		if (rom_bank == 0)
 			rom_bank = 1;
-		uint32_t mapped_address = (rom_bank << 14) | (address & 0x3FFF);
+
+		uint8_t bank_number = rom_bank;
+		uint8_t bank_count = (0b10 << cartridge_header.cartridge_size);
+
+		// Keeps the ROM bank number in the range of ROM size
+		if (rom_bank >= bank_count)
+		{
+			uint8_t mask = bank_count - 1;
+			bank_number = rom_bank & mask;
+		}
+
+		uint32_t mapped_address = (bank_number << 14) | (address & 0x3FFF);
 		return rom[mapped_address];
 	}
 

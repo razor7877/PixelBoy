@@ -20,9 +20,13 @@ static uint8_t read_rom_mbc5(uint16_t address)
 		// 14 lower bits are obtained from 14 lower bits of address
 		// 9 bits from ROM bank number
 		uint16_t full_rom_bank = (rom_bank_msb << 8) | rom_bank;
-		if (full_rom_bank >= (0b10 << cartridge_header.cartridge_size))
+
+		// Keeps the ROM bank number in the range of ROM size
+		uint8_t bank_count = (0b10 << cartridge_header.cartridge_size);
+		if (full_rom_bank >= bank_count)
 		{
-			log_error("Trying to read from out of bounds ROM bank! - unmasked %x mask %x masked %x\n", full_rom_bank, cartridge_header.cartridge_size, full_rom_bank & (1 - (0b10 << cartridge_header.cartridge_size)));
+			uint8_t mask = bank_count - 1;
+			full_rom_bank &= mask;
 		}
 			
 		uint32_t mapped_address = (full_rom_bank << 14) | (address & 0x3FFF);
@@ -87,6 +91,8 @@ static void write_rom_mbc5(uint16_t address, uint8_t value)
 		uint16_t mapped_address = (ram_bank << 12) | (address & 0x1FFF);
 		external_ram[mapped_address] = value;
 	}
+
+	log_debug("MBC5 Rom bank number is: %x\n", (rom_bank_msb << 8) | rom_bank);
 }
 
 static void reset_mbc5()
