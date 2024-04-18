@@ -32,9 +32,11 @@ uint8_t read_byte(uint16_t address)
 	{
 		if (run_as_cgb)
 		{
-			uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
-			//if (address == sp)
-			//	log_info("Reading stack pointer adr %x mapped %x val %x\n", address, mapped_address, wram[mapped_address]);
+			uint8_t wram_bank = SVBK;
+			if (wram_bank == 0) // When SVBK is 0, we map to WRAM bank 1
+				wram_bank = 1;
+			uint16_t mapped_address = (wram_bank << 12) | (address - 0xC000);
+
 			return wram[mapped_address];
 		}
 		else
