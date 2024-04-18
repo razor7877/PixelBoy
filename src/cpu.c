@@ -42,6 +42,8 @@ bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
 bool run_as_cgb = false; // Whether the console is running as a CGB or DMG console
 bool is_double_speed = false; // Whether the console is in double speed mode
 
+bool print_instr = false;
+
 // A variable that stores the current frame's timestamp, to calculate time between frames
 float current_frame = 0;
 float delta_time = 0.0f;
@@ -49,8 +51,6 @@ float last_frame = 0.0f;
 float average_delta_time = 0.0f;
 int frame_count = FRAME_COUNT;
 float frame_sum = 0.0f;
-
-bool print_instr = false;
 
 void execute_frame()
 {

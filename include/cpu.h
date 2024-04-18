@@ -52,6 +52,8 @@ extern bool IME;
 extern bool run_as_cgb;
 extern bool is_double_speed;
 
+extern bool print_instr;
+
 extern float delta_time;
 extern float current_frame;
 

@@ -97,6 +97,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
                     execute_frame();
                 break;
 
+            case GLFW_KEY_P:
+                print_instr = !print_instr;
+                break;
+
             case GLFW_KEY_ESCAPE:
                 glfwSetWindowShouldClose(window, true);
                 break;
