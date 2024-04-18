@@ -515,7 +515,6 @@ void draw_gbc_tiles()
 		}
 
 		bool x_flip = (tile_attributes & 0x20) >> 5; // x_flip is on bit 5
-		// TODO : Add y-flipping logic
 		bool y_flip = (tile_attributes & 0x40) >> 6; // y_flip is on bit 6
 
 		// Deduce where this tile identifier is in memory
@@ -526,7 +525,13 @@ void draw_gbc_tiles()
 			tile_location += ((tile_num + 128) * 16);
 
 		// Find correct vertical line we're on of the tile to get tile data in memory
-		uint8_t line = y_pos % 8;
+		int line = y_pos % 8;
+		if (y_flip)
+		{
+			line -= 7;
+			line *= -1;
+		}
+
 		line *= 2; // Each line takes up 2 bytes of memory
 
 		// Get data from VRAM
