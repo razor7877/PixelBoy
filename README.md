@@ -1,9 +1,9 @@
 # PixelBoy
 A GameBoy and GameBoy Color emulator written from scratch in C. It is not yet complete, but plenty of games are fully playable, and many features have been emulated. GameBoy emulation is quite complete, GBC emulation is in progress.
 
-![Zelda Link's Awakening DX running in the emulator](img/zelda.png "Zelda Link's Awakening DX running in the emulator")
-![Pokémon Crystal running in the emulator](img/pm_crystal.png "Pokémon Crystal running in the emulator")
-![Tetris running in the emulator](img/tetris.png "Tetris running in the emulator")
+<img src="img/zelda.png" width="250">
+<img src="img/pm_crystal.png" width="250">
+<img src="img/tetris.png" width="250">
 
 ## Features
 
