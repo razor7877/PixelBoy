@@ -39,6 +39,7 @@ target_link_libraries(GameBoy_Emulator PUBLIC
 # No console on MSVC release builds
 if(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS_MINSIZEREL "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
 file(COPY roms DESTINATION ${GameBoy_Emulator_BINARY_DIR})
