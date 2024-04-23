@@ -117,6 +117,29 @@ void step_ppu(uint8_t cycles)
 				{
 					STAT = (STAT & 0xFC) | LCD_MODE_0;
 					if (STAT & HBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+
+					if (HDMA5 & 0x80) // If active HBlank DMA
+					{
+						uint8_t remaining_length = HDMA5 & 0b01111111;
+
+						if (remaining_length > 0 && HDMA5 != 0xFF)
+						{
+							uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
+							uint16_t destination_address = (HDMA3 & 0x1F) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
+							remaining_length--;
+							log_debug("HBLANK DMA: Source ADR %x Dest ADR %x Transfer remaining %x\n", source_address, destination_address, remaining_length);
+
+							for (int i = 0; i < 16; i++)
+							{
+								write_byte(destination_address + i, read_byte(source_address + i));
+							}
+
+							if (remaining_length == 0) // Transfer finished
+								HDMA5 = 0xFF;
+							else
+								HDMA5 = 0x80 | remaining_length;
+						}
+					}
 				}
 			}
 			else
@@ -917,8 +940,35 @@ void write_ppu(uint16_t address, uint8_t value)
 	if (address == 0xFF54)
 		HDMA4 = value;
 
-	if (address == 0xFF55)
+	if (address == 0xFF55) // HDMA5 writes trigger VRAM DMA
+	{
 		HDMA5 = value;
+		log_debug("VRAM DMA Triggered with mode: %x\n", (HDMA5 & 0x80) >> 7);
+
+		bool hblank_dma = (HDMA5 & 0x80) >> 7;
+
+		if (!hblank_dma) // General purpose DMA
+		{
+			uint8_t transfer_length = (HDMA5 & 0b01111111); // Get length from 7 lower bits
+			transfer_length++; // Increment by 1
+			transfer_length *= 0x10; // Multiply by 16
+
+			uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
+			uint16_t destination_address = (HDMA3 & 0x1F) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
+
+			log_debug("Source ADR %x Dest ADR %x Transfer length %x\n", source_address, destination_address, transfer_length);
+
+			for (int i = 0; i < transfer_length; i++)
+			{
+				write_byte(destination_address + i, read_byte(source_address + i));
+			}
+
+			HDMA5 = 0xFF; // Transfer is done
+		}
+		else // HBlank DMA
+		{
+		}
+	}
 
 	if (address == 0xFF68)
 		BGPI = value;
