@@ -131,7 +131,7 @@ void handle_instruction()
 		tick(instructions[opcode].duration);
 }
 
-void tick(uint8_t cycles)
+void tick(uint16_t cycles)
 {
 	if (cycle_count > CPU_FREQ)
 	{

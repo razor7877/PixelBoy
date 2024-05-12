@@ -62,7 +62,7 @@ void execute_frame();
 // The CPU handles the next instruction and progresses the internal clock
 void handle_instruction();
 // Increments the internal clock
-void tick(uint8_t cycles);
+void tick(uint16_t cycles);
 // Starts a DMA transfer from ROM to OAM
 void dma_transfer();
 // Resets the emulator to it's default state
