@@ -74,31 +74,31 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         {
             switch (key)
             {
-            case GLFW_KEY_1:
+            case GLFW_KEY_1: // Run the next instruction
                 handle_instruction();
                 break;
 
-            case GLFW_KEY_2:
+            case GLFW_KEY_2: // Run the next 10 instructions
                 for (int i = 0; i < 10; i++)
                     handle_instruction();
                 break;
 
-            case GLFW_KEY_3:
+            case GLFW_KEY_3: // Run the next 1000 instructions
                 for (int i = 0; i < 1000; i++)
                     handle_instruction();
                 break;
 
-            case GLFW_KEY_4:
+            case GLFW_KEY_4: // Execute a single frame
                 execute_frame();
                 break;
 
-            case GLFW_KEY_5:
+            case GLFW_KEY_5: // Execute roughly a second worth of frames
                 for (int i = 0; i < 60; i++)
                     execute_frame();
                 break;
 
-            case GLFW_KEY_P:
-                print_instr = !print_instr;
+            case GLFW_KEY_SPACE:
+                debug_pause = !debug_pause;
                 break;
 
             case GLFW_KEY_ESCAPE:

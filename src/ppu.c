@@ -121,46 +121,7 @@ void step_ppu(uint8_t cycles)
 					if (STAT & HBLANK_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
 
 					if (running_hdma) // If active HBlank DMA
-					{
-						uint8_t remaining_length = HDMA5 & 0b01111111;
-
-						if (remaining_length > 0)
-						{
-							uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
-							uint16_t destination_address = ((HDMA3 & 0x1F) << 8) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
-							destination_address += 0x8000; // Offset to map into VRAM
-							remaining_length--;
-							//log_debug("HBLANK DMA: Source ADR %x Dest ADR %x Transfer remaining %x LY %x\n",
-							//	source_address, destination_address, remaining_length, LY);
-
-							// Write 16 bytes to VRAM
-							for (int i = 0; i < 16; i++)
-							{
-								write_byte(destination_address + i, read_byte(source_address + i));
-							}
-
-							// Update source and destination with new offset
-							uint16_t new_source = source_address + 0x10;
-							uint16_t new_destination = destination_address + 0x10;
-
-							//log_debug("New source %x new dest %x\n", new_source, new_destination);
-
-							HDMA1 = new_source >> 8;
-							HDMA2 = new_source & 0xFF;
-							HDMA3 = new_destination >> 8;
-							HDMA4 = new_destination & 0xFF;
-
-							if (remaining_length == 0) // Transfer finished
-							{
-								HDMA5 = 0xFF;
-								running_hdma = false;
-							}
-							else
-								HDMA5 = 0x80 | remaining_length;
-
-							//log_debug("New HDMA5 %x\n", HDMA5);
-						}
-					}
+						step_hdma_transfer();
 				}
 			}
 			else
@@ -1043,4 +1004,46 @@ static void start_gbc_dma(uint8_t value)
 	}
 
 	HDMA5 = value & 0x7F;
+}
+
+static void step_hdma_transfer()
+{
+	uint8_t remaining_length = HDMA5 & 0b01111111;
+
+	if (remaining_length > 0)
+	{
+		uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
+		uint16_t destination_address = ((HDMA3 & 0x1F) << 8) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
+		destination_address += 0x8000; // Offset to map into VRAM
+		remaining_length--;
+		//log_debug("HBLANK DMA: Source ADR %x Dest ADR %x Transfer remaining %x LY %x\n",
+		//	source_address, destination_address, remaining_length, LY);
+
+		// Write 16 bytes to VRAM
+		for (int i = 0; i < 16; i++)
+		{
+			write_byte(destination_address + i, read_byte(source_address + i));
+		}
+
+		// Update source and destination with new offset
+		uint16_t new_source = source_address + 0x10;
+		uint16_t new_destination = destination_address + 0x10;
+
+		//log_debug("New source %x new dest %x\n", new_source, new_destination);
+
+		HDMA1 = new_source >> 8;
+		HDMA2 = new_source & 0xFF;
+		HDMA3 = new_destination >> 8;
+		HDMA4 = new_destination & 0xFF;
+
+		if (remaining_length == 0) // Transfer finished
+		{
+			HDMA5 = 0xFF;
+			running_hdma = false;
+		}
+		else
+			HDMA5 = 0x80 | remaining_length;
+
+		//log_debug("New HDMA5 %x\n", HDMA5);
+	}
 }
