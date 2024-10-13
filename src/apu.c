@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include <stdbool.h>
+#include <math.h>
 
 #include "portaudio.h"
 
 #include "apu.h"
+#include "logging.h"
 
 // Logging info regarding APU registers and wave ram R/W
 //#define APU_DEBUG
@@ -57,7 +60,7 @@ uint8_t wave_ram[16] = {0};
 uint8_t frame_sequencer = 0;
 
 uint8_t read_apu(uint16_t address)
-{
+ {
 	if (address == 0xFF10)
 		return NR1.r0;
 
@@ -146,13 +149,16 @@ void write_apu(uint16_t address, uint8_t value)
 	if ((NR52 & 0x80) == 0)
 		return;
 
-	if (address == 0xFF10)
+	if (address == 0xFF10) // NR10 : Channel 1 sweep
+	{
 		NR1.r0 = value;
+		
+	}
 
 	else if (address == 0xFF11)
 		NR1.r1 = value;
 
-	else if (address == 0xFF12)
+	else if (address == 0xFF12) // NR12
 	{
 		NR1.r2 = value;
 		NR1.volume = (value & 0xF0) >> 4;
@@ -161,18 +167,18 @@ void write_apu(uint16_t address, uint8_t value)
 	else if (address == 0xFF13)
 		NR1.r3 = value;
 
-	else if (address == 0xFF14)
+	else if (address == 0xFF14) // NR14
 	{
 		NR1.r4 = (NR1.r4 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
 		if (value & 0x80)
 		{
-			set_apu_reg(&NR52, CH2_ON);
+			set_apu_reg(&NR52, CH1_ON);
 			NR1.volume = (NR1.r2 & 0xF0) >> 4;
 			//log_debug("Toggle on CH1\n");
 		}
 		else
 		{
-			unset_apu_reg(&NR52, CH2_ON);
+			unset_apu_reg(&NR52, CH1_ON);
 			//log_debug("Toggle off CH1\n");
 		}
 	}
@@ -186,7 +192,7 @@ void write_apu(uint16_t address, uint8_t value)
 		NR2.r1 = value;
 	}	
 
-	else if (address == 0xFF17)
+	else if (address == 0xFF17) // NR22
 	{
 		NR2.r2 = value;
 		NR2.volume = (value & 0xF0) >> 4;
@@ -195,7 +201,7 @@ void write_apu(uint16_t address, uint8_t value)
 	else if (address == 0xFF18)
 		NR2.r3 = value;
 
-	else if (address == 0xFF19)
+	else if (address == 0xFF19) // NR24
 	{
 		NR2.r4 = (NR2.r4 & 0x38) | (value & 0xC7); // Bits 3-5 are unused
 		if (value & 0x80)
@@ -211,14 +217,24 @@ void write_apu(uint16_t address, uint8_t value)
 		}
 	}
 
-	else if (address == 0xFF1A)
+	else if (address == 0xFF1A) // Channel 3 DAC enable
+	{
 		NR3.r0 = (NR3.r0 & 0x7F) | (value & 0x80); // Only bit 7 is used
+
+		bool dac_enable = (value & 0x80) >> 8;
+
+		if (!dac_enable) // If bit 7 set to 0, we turn off channel 3
+			unset_apu_reg(&NR52, CH3_ON);
+	}
 
 	else if (address == 0xFF1B)
 		NR3.r1 = value;
 
 	else if (address == 0xFF1C)
+	{
 		NR3.r2 = (NR3.r2 & 0x9F) | (value & 0x60); // Only bits 5-6 are used
+		NR3.volume = (NR3.r2 & 0x60) >> 5;
+	}
 
 	else if (address == 0xFF1D)
 		NR3.r3 = value;
@@ -229,6 +245,7 @@ void write_apu(uint16_t address, uint8_t value)
 		if (value & 0x80)
 		{
 			set_apu_reg(&NR52, CH3_ON);
+			NR3.volume = (NR3.r2 & 0x60) >> 5;
 			//log_debug("Toggle on CH3\n");
 		}
 		else
@@ -327,6 +344,7 @@ void tick_length_clocks()
 		}
 		NR1.r1 = (NR1.r1 & WAVE_DUTY) | (counter & LENGTH_TIMER);
 	}
+
 	// If channel 2 on and length timer enabled
 	if ((NR2.r4 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
 	{
@@ -335,11 +353,12 @@ void tick_length_clocks()
 		// When length timer reaches 64, disable the channel
 		if (++counter >= 64)
 		{
-			unset_apu_reg(&NR1.r4, CH_TRIGGER);
+			unset_apu_reg(&NR2.r4, CH_TRIGGER);
 			unset_apu_reg(&NR52, CH2_ON);
 		}
 		NR2.r1 = (NR2.r1 & WAVE_DUTY) | (counter & LENGTH_TIMER);
 	}
+
 	// If channel 3 on and length timer enabled
 	if ((NR3.r4 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
 	{
@@ -352,6 +371,7 @@ void tick_length_clocks()
 		}
 		NR3.r1 = counter;
 	}
+
 	// If channel 4 on and length timer enabled
 	if ((NR4.r4 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
 	{
@@ -367,6 +387,29 @@ void tick_length_clocks()
 
 void tick_sweep_clocks()
 {
+	log_debug("Ticking sweep...\n");
+
+	// TODO : Pace should only be reread after a sweep iteration is complete, or channel is retriggered
+	if ((NR1.r1 & 0x70) != 0) // Check if sweep pace != 0
+	{
+		int period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
+		int step = NR1.r1 & 0x7; // Get 3 lower bits for period step1
+
+		int period_variation = period_value / pow(2, step);
+		if ((NR1.r1 & 0x08) == 0x08) // Check bit 3 for sweep direction
+			period_variation = -period_variation;
+
+		// Disable channel if new period value overflows
+		// TODO : Disable even if sweep iterations are disabled
+		if ((period_value + period_variation) > 0x7FF)
+			unset_apu_reg(&NR52, CH1_ON);
+		else
+		{
+			period_value += period_variation;
+			NR1.r3 = period_value & 0xFF; // Write 8 lower bits to NR13
+			NR1.r4 = (NR1.r4 & 0xF8) | ((period_value & 0x700) >> 8); // Write 3 upper bits to lower 3 bits of NR14
+		}
+	}
 }
 
 void tick_envelope_clocks()
