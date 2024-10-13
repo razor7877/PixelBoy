@@ -93,4 +93,6 @@ void write_ppu(uint16_t address, uint8_t value);
 
 void update_LCDC(uint8_t value);
 
+static void start_gbc_dma(uint8_t value);
+
 #endif

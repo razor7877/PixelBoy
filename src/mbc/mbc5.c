@@ -92,7 +92,7 @@ static void write_rom_mbc5(uint16_t address, uint8_t value)
 		external_ram[mapped_address] = value;
 	}
 
-	log_debug("MBC5 Rom bank number is: %x\n", (rom_bank_msb << 8) | rom_bank);
+	//log_debug("MBC5 Rom bank number is: %x\n", (rom_bank_msb << 8) | rom_bank);
 }
 
 static void reset_mbc5()

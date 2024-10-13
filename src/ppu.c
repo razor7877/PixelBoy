@@ -127,11 +127,11 @@ void step_ppu(uint8_t cycles)
 						if (remaining_length > 0)
 						{
 							uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
-							uint16_t destination_address = ((HDMA3 << 8) & 0x1F) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
+							uint16_t destination_address = ((HDMA3 & 0x1F) << 8) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
 							destination_address += 0x8000; // Offset to map into VRAM
 							remaining_length--;
-							log_debug("HBLANK DMA: Source ADR %x Dest ADR %x Transfer remaining %x LY %x\n",
-								source_address, destination_address, remaining_length, LY);
+							//log_debug("HBLANK DMA: Source ADR %x Dest ADR %x Transfer remaining %x LY %x\n",
+							//	source_address, destination_address, remaining_length, LY);
 
 							// Write 16 bytes to VRAM
 							for (int i = 0; i < 16; i++)
@@ -143,7 +143,7 @@ void step_ppu(uint8_t cycles)
 							uint16_t new_source = source_address + 0x10;
 							uint16_t new_destination = destination_address + 0x10;
 
-							log_debug("New source %x new dest %x\n", new_source, new_destination);
+							//log_debug("New source %x new dest %x\n", new_source, new_destination);
 
 							HDMA1 = new_source >> 8;
 							HDMA2 = new_source & 0xFF;
@@ -158,7 +158,7 @@ void step_ppu(uint8_t cycles)
 							else
 								HDMA5 = 0x80 | remaining_length;
 
-							log_debug("New HDMA5 %x\n", HDMA5);
+							//log_debug("New HDMA5 %x\n", HDMA5);
 						}
 					}
 				}
@@ -962,46 +962,7 @@ void write_ppu(uint16_t address, uint8_t value)
 		HDMA4 = value;
 
 	if (address == 0xFF55) // HDMA5 writes trigger VRAM DMA
-	{
-		log_debug("HDMA5 Write value %x\n", value);
-
-		bool active_dma = (HDMA5 & 0x80) >> 7;
-		bool is_set = (value & 0x80) >> 7;
-
-		if (!is_set && !running_hdma) // General purpose DMA
-		{
-			log_debug("VRAM DMA Triggered with mode 0\n");
-
-			uint8_t transfer_length = (value & 0b01111111); // Get length from 7 lower bits
-			transfer_length++; // Increment by 1
-			transfer_length *= 0x10; // Multiply by 16
-
-			uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
-			uint16_t destination_address = ((HDMA3 << 8) & 0x1F) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
-			destination_address += 0x8000; // Offset to map into VRAM
-
-			log_debug("Source ADR %x Dest ADR %x Transfer length %x\n", source_address, destination_address, transfer_length);
-
-			for (int i = 0; i < transfer_length; i++)
-			{
-				write_byte(destination_address + i, read_byte(source_address + i));
-			}
-
-			HDMA5 = 0xFF; // Transfer is done
-		}
-		else if (!is_set && running_hdma) // Setting bit 7 to 0 during HBlank DMA stops it
-		{
-			log_debug("Turn OFF running HDMA\n");
-			running_hdma = false;
-		}
-		else if (is_set) // Start HBlank DMA
-		{
-			running_hdma = true;
-			log_info("Starting HDMA!\n");
-		}
-
-		HDMA5 = value & 0x7F;
-	}
+		start_gbc_dma(value);
 
 	if (address == 0xFF68)
 		BGPI = value;
@@ -1040,4 +1001,46 @@ void update_LCDC(uint8_t value)
 		
 	}
 	else { LCDC = value; }
+}
+
+static void start_gbc_dma(uint8_t value)
+{
+	log_debug("HDMA5 Write value %x\n", value);
+
+	bool active_dma = (HDMA5 & 0x80) >> 7;
+	bool is_set = (value & 0x80) >> 7;
+
+	if (!is_set && !running_hdma) // General purpose DMA
+	{
+		//log_debug("VRAM DMA Triggered with mode 0\n");
+
+		uint8_t transfer_length = (value & 0b01111111); // Get length from 7 lower bits
+		transfer_length++; // Increment by 1
+		transfer_length *= 0x10; // Multiply by 16
+
+		uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
+		uint16_t destination_address = ((HDMA3 & 0x1F) << 8) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
+		destination_address += 0x8000; // Offset to map into VRAM
+
+		//log_debug("Source ADR %x Dest ADR %x Transfer length %x\n", source_address, destination_address, transfer_length);
+
+		for (int i = 0; i < transfer_length; i++)
+		{
+			write_byte(destination_address + i, read_byte(source_address + i));
+		}
+
+		HDMA5 = 0xFF; // Transfer is done
+	}
+	else if (!is_set && running_hdma) // Setting bit 7 to 0 during HBlank DMA stops it
+	{
+		log_debug("Turn OFF running HDMA\n");
+		running_hdma = false;
+	}
+	else if (is_set) // Start HBlank DMA
+	{
+		running_hdma = true;
+		log_info("Starting HDMA!\n");
+	}
+
+	HDMA5 = value & 0x7F;
 }
