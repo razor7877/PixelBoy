@@ -38,6 +38,13 @@ PAChannel PA_NR2 = {
 	0.50
 };
 
+PAChannel PA_NR4 = {
+	0.0,
+	0.0,
+	0.0,
+	0.0
+};
+
 PaStream* stream;
 
 double current = 0;
@@ -84,7 +91,7 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 
 				// Square wave
 				float sample = (PA_NR1.phase < PA_NR1.dutyCycle) ? 1.0 : -1.0;
-				out[i] += PA_NR1.amplitude * sample;
+				//out[i] += PA_NR1.amplitude * sample;
 
 				PA_NR1.phase += PA_NR1.frequency / SAMPLE_RATE;
 				if (PA_NR1.phase > 1.0)
@@ -107,7 +114,7 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 
 				// Square wave
 				float sample = (PA_NR2.phase < PA_NR2.dutyCycle) ? 1.0 : -1.0;
-				out[i] += PA_NR2.amplitude * sample;
+				//out[i] += PA_NR2.amplitude * sample;
 
 				PA_NR2.phase += PA_NR2.frequency / SAMPLE_RATE;
 				if (PA_NR2.phase > 1.0)
@@ -116,12 +123,13 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 			// Wave channel
 			if (NR52 & CH3_ON)
 			{
-
+				
 			}
 			// Noise channel
 			if (NR52 & CH4_ON)
 			{
-
+				PA_NR2.amplitude = NR2.volume / 15.0;
+				out[i] += PA_NR2.amplitude;
 			}
 		}
 	}

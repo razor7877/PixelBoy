@@ -126,7 +126,7 @@ uint8_t read_apu(uint16_t address)
 		return NR51;
 
 	else if (address == 0xFF26)
-		return NR52;
+		return 4;
 
 	else if (address >= 0xFF30 && address <= 0xFF3F)
 	{
@@ -246,12 +246,12 @@ void write_apu(uint16_t address, uint8_t value)
 		{
 			set_apu_reg(&NR52, CH3_ON);
 			NR3.volume = (NR3.r2 & 0x60) >> 5;
-			//log_debug("Toggle on CH3\n");
+			log_debug("Toggle on CH3\n");
 		}
 		else
 		{
 			unset_apu_reg(&NR52, CH3_ON);
-			//log_debug("Toggle off CH3\n");
+			log_debug("Toggle off CH3\n");
 		}
 	}
 
@@ -303,9 +303,51 @@ void write_apu(uint16_t address, uint8_t value)
 #endif
 }
 
+#define APU_LFSR_FREQ 262144
+int lfsr_cycle_count = 0;
+uint16_t lfsr = 0;
+
 void tick_apu(uint8_t cycles)
 {
+	lfsr_cycle_count += cycles;
 
+	float divider = NR4.r3 & 0x07;
+	if (divider = 0)
+		divider = 0.5f;
+
+	int clock_shift = (NR4.r3 & 0xF0) >> 4;
+	int lfsr_frequency = APU_LFSR_FREQ / (divider * pow(2, clock_shift));
+
+	bool lfsr_7_bits = (NR4.r3 & 0x07) >> 3;
+
+	if (lfsr_7_bits) // 7 bits LFSR
+	{
+		uint16_t bit_0 = lfsr & 0b1; // Get bit 0
+		uint16_t bit_1 = lfsr & 0b10; // Get bit 1
+
+		// XOR them to get result
+		uint16_t result = bit_0 ^ bit_1;
+		// Write to bit 7 and 15
+		lfsr = (lfsr & 0x7F7F) | (result << 15) | (result << 7);
+	}
+	else // 15 bits LFSR
+	{
+		uint16_t bit_0 = lfsr & 0b1; // Get bit 0
+		uint16_t bit_1 = lfsr & 0b10; // Get bit 1
+
+		// XOR them to get result
+		uint16_t result = bit_0 ^ bit_1;
+		// Write to bit 15
+		lfsr = (lfsr & 0x7FFF) | (result << 15);
+	}
+
+	// Shift the register
+	lfsr >>= 1;
+
+	if (lfsr & 0b1)
+		NR4.volume = (NR4.r2 & 0xF0) >> 4;
+	else
+		NR4.volume = 0;
 }
 
 void tick_frame_sequencer()
@@ -348,7 +390,7 @@ void tick_length_clocks()
 	// If channel 2 on and length timer enabled
 	if ((NR2.r4 & (CH_TRIGGER | CH_LENGTH_ENABLE)) == (CH_TRIGGER | CH_LENGTH_ENABLE))
 	{
-		log_debug("Length clock\n");
+		//log_debug("Length clock\n");
 		uint8_t counter = NR2.r1 & LENGTH_TIMER;
 		// When length timer reaches 64, disable the channel
 		if (++counter >= 64)
@@ -387,15 +429,16 @@ void tick_length_clocks()
 
 void tick_sweep_clocks()
 {
-	log_debug("Ticking sweep...\n");
+	//log_debug("Ticking sweep...\n");
 
 	// TODO : Pace should only be reread after a sweep iteration is complete, or channel is retriggered
 	if ((NR1.r1 & 0x70) != 0) // Check if sweep pace != 0
 	{
 		int period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
+		log_debug("Period value was %d\n", period_value);
 		int step = NR1.r1 & 0x7; // Get 3 lower bits for period step1
 
-		int period_variation = period_value / pow(2, step);
+		int period_variation = period_value >> step;
 		if ((NR1.r1 & 0x08) == 0x08) // Check bit 3 for sweep direction
 			period_variation = -period_variation;
 
@@ -406,6 +449,7 @@ void tick_sweep_clocks()
 		else
 		{
 			period_value += period_variation;
+			log_debug("New period value is %d\n", period_value);
 			NR1.r3 = period_value & 0xFF; // Write 8 lower bits to NR13
 			NR1.r4 = (NR1.r4 & 0xF8) | ((period_value & 0x700) >> 8); // Write 3 upper bits to lower 3 bits of NR14
 		}
