@@ -30,7 +30,7 @@ uint8_t read_byte(uint16_t address)
 
 	if (address >= 0xD000 && address <= 0xDFFF) // Switchable WRAM bank
 	{
-		if (run_as_cgb)
+		if (cpuState.run_as_cgb)
 		{
 			uint8_t wram_bank = SVBK;
 			if (wram_bank == 0) // When SVBK is 0, we map to WRAM bank 1
@@ -92,7 +92,7 @@ void write_byte(uint16_t address, uint8_t value)
 
 	else if (address >= 0xD000 && address <= 0xDFFF) // Switchable WRAM bank
 	{
-		if (run_as_cgb)
+		if (cpuState.run_as_cgb)
 		{
 			uint16_t mapped_address = (SVBK << 12) | (address - 0xC000);
 			wram[mapped_address] = value;

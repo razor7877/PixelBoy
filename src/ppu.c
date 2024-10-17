@@ -83,8 +83,8 @@ void step_ppu(uint8_t cycles)
 		if (start_frame)
 		{
 			//printf("New frame at cpu cycle %d\n", cycle_count);
-			dot_start = cycle_count;
-			dot_end = cycle_count;
+			dot_start = cycleState.cycle_count;
+			dot_end = cycleState.cycle_count;
 			start_frame = false;
 		}
 
@@ -106,7 +106,7 @@ void step_ppu(uint8_t cycles)
 				if (ppu_mode() != LCD_MODE_3)
 				{
 					STAT = (STAT & 0xFC) | LCD_MODE_3;
-					if (run_as_cgb)
+					if (cpuState.run_as_cgb)
 						draw_gbc_scanline();
 					else
 						draw_gb_scanline();
@@ -752,7 +752,7 @@ uint8_t read_vram(uint16_t address)
 	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3
 		return 0xFF;
 
-	if (run_as_cgb && (VBK & 0b1)) // In CGB mode, we need to handle bank 1 reads
+	if (cpuState.run_as_cgb && (VBK & 0b1)) // In CGB mode, we need to handle bank 1 reads
 		return vram[1][address];
 	else
 		return vram[0][address];
@@ -765,7 +765,7 @@ void write_vram(uint16_t address, uint8_t value)
 		log_warning("Ignored VRAM write during mode 3!\n");
 		return;
 	}
-	if (run_as_cgb && (VBK & 0b1)) // In CGB mode, we need to handle bank 1 writes
+	if (cpuState.run_as_cgb && (VBK & 0b1)) // In CGB mode, we need to handle bank 1 writes
 		vram[1][address] = value;
 	else
 		vram[0][address] = value;

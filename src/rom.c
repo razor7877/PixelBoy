@@ -72,9 +72,9 @@ int load_rom(const char* path)
 
     // Check if this is a ROM for CGB or DMG hardware
     if (cartridge_header.title[15] & 0x80)
-        run_as_cgb = true;
+        cpuState.run_as_cgb = true;
     else
-        run_as_cgb = false;
+        cpuState.run_as_cgb = false;
 
     // TODO: Make this cleaner, maybe a lookup table?
     // We dynamically allocate rom array depending on the cartridge type and size

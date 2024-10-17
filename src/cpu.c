@@ -14,14 +14,10 @@
 #include "logging.h"
 
 #define FRAME_COUNT 250
-
 // Log average FPS to the console
 #define FPS_DEBUG
 // Get info regarding the DMA (Direct Memory Access) transfers
 //#define DMA_DEBUG
-
-uint32_t cycle_count = 0;
-uint16_t dma_cycles_left = 0;
 
 uint16_t AF = 0x11B0;
 uint16_t BC = 0x0000;
@@ -34,46 +30,49 @@ uint8_t opcode = 0;
 
 uint16_t operand = 0;
 
-bool cpu_stopped = false;
-bool cpu_halted = false;
-bool IME = false; // Interrupt Master Enable
-bool IME_toggle = false; // Toggle to enable IME after one instruction with EI
-// CGB only
-bool run_as_cgb = false; // Whether the console is running as a CGB or DMG console
-bool is_double_speed = false; // Whether the console is in double speed mode
+struct CpuState cpuState = {
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false
+};
 
-bool debug_pause = false;
-
-// A variable that stores the current frame's timestamp, to calculate time between frames
-float current_frame = 0;
-float delta_time = 0.0f;
-float last_frame = 0.0f;
-float average_delta_time = 0.0f;
-int frame_count = FRAME_COUNT;
-float frame_sum = 0.0f;
+struct CycleState cycleState = {
+	0,
+	0,
+	0,
+	0.0f,
+	0.0f,
+	0.0f,
+	FRAME_COUNT,
+	0.0f
+};
 
 void execute_frame()
 {
-	if (!rom_loaded || debug_pause)
+	if (!rom_loaded || cpuState.debug_pause)
 		return;
 
-	if (frame_count++ == FRAME_COUNT)
+	if (cycleState.frame_count++ == FRAME_COUNT)
 	{
-		average_delta_time = frame_sum / frame_count;
-		frame_count = 0;
-		frame_sum = 0;
+		cycleState.average_delta_time = cycleState.frame_sum / cycleState.frame_count;
+		cycleState.frame_count = 0;
+		cycleState.frame_sum = 0;
 #ifdef FPS_DEBUG
-		printf("FPS: %f\n", 1.0f / average_delta_time);
+		printf("FPS: %f\n", 1.0f / cycleState.average_delta_time);
 #endif
 	}
 	else
 	{
 		// Calculates elapsed time since last frame for time-based calculations
-		current_frame = (float)glfwGetTime();
-		delta_time = current_frame - last_frame;
-		last_frame = current_frame;
+		cycleState.current_frame = (float)glfwGetTime();
+		cycleState.delta_time = cycleState.current_frame - cycleState.last_frame;
+		cycleState.last_frame = cycleState.current_frame;
 
-		frame_sum += delta_time;
+		cycleState.frame_sum += cycleState.delta_time;
 	}
 
 	new_frame_ready = false;
@@ -88,15 +87,15 @@ void handle_instruction()
 	if (!rom_loaded)
 		return;
 
-	if (IME_toggle)
+	if (cpuState.IME_toggle)
 	{
-		IME_toggle = 0;
-		IME = 1;
+		cpuState.IME_toggle = 0;
+		cpuState.IME = 1;
 	}
 	
 	service_interrupts();
 
-	if (!cpu_stopped && !cpu_halted)
+	if (!cpuState.cpu_stopped && !cpuState.cpu_halted)
 	{
 		opcode = read_byte(pc++);
 
@@ -122,10 +121,10 @@ void handle_instruction()
 		}
 	}
 
-	if (debug_pause)
+	if (cpuState.debug_pause)
 		log_debug("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
 
-	if (run_as_cgb)
+	if (cpuState.run_as_cgb)
 		tick(instructions[opcode].duration / 2);
 	else
 		tick(instructions[opcode].duration);
@@ -133,20 +132,20 @@ void handle_instruction()
 
 void tick(uint16_t cycles)
 {
-	if (cycle_count > CPU_FREQ)
+	if (cycleState.cycle_count > CPU_FREQ)
 	{
-		cycle_count %= CPU_FREQ;
+		cycleState.cycle_count %= CPU_FREQ;
 		//printf("Ran full CPU cycle\n");
 	}
 
-	cycle_count += cycles;
+	cycleState.cycle_count += cycles;
 	tick_timer(cycles);
 
-	if (dma_cycles_left > 0)
+	if (cycleState.dma_cycles_left > 0)
 	{
-		if (cycles > dma_cycles_left)
+		if (cycles > cycleState.dma_cycles_left)
 		{
-			dma_cycles_left = 0;
+			cycleState.dma_cycles_left = 0;
 			uint16_t dma_source = read_byte(0xFF46) << 8;
 
 			// DMA sources outside of DFFF are mapped back to SRAM
@@ -156,13 +155,13 @@ void tick(uint16_t cycles)
 			for (int i = 0; i < 160; i++)
 				write_byte(0xFE00 + i, read_byte(dma_source + i));
 		}
-		else { dma_cycles_left -= cycles; }
+		else { cycleState.dma_cycles_left -= cycles; }
 	}
 }
 
 void dma_transfer()
 {
-	dma_cycles_left = DMA_DURATION;
+	cycleState.dma_cycles_left = DMA_DURATION;
 }
 
 void reset_emulator()
@@ -176,10 +175,10 @@ void reset_emulator()
 
 void reset_cpu()
 {
-	cycle_count = 0;
-	dma_cycles_left = 0;
+	cycleState.cycle_count = 0;
+	cycleState.dma_cycles_left = 0;
 
-	if (run_as_cgb)
+	if (cpuState.run_as_cgb)
 	{
 		AF = 0x11B0;
 		BC = 0x0000;
@@ -200,20 +199,20 @@ void reset_cpu()
 
 	operand = 0;
 
-	is_double_speed = false;
-	cpu_stopped = false;
-	cpu_halted = false;
-	IME_toggle = false; // Toggle to enable IME after one instruction with EI
-	IME = false; // Interrupt Master Enable
+	cpuState.is_double_speed = false;
+	cpuState.cpu_stopped = false;
+	cpuState.cpu_halted = false;
+	cpuState.IME_toggle = false; // Toggle to enable IME after one instruction with EI
+	cpuState.IME = false; // Interrupt Master Enable
 }
 
 void toggle_double_speed()
 {
 	log_debug("Toggling double speed mode!\n");
 
-	is_double_speed = !is_double_speed;
+	cpuState.is_double_speed = !cpuState.is_double_speed;
 	KEY1 = (KEY1 & 0xFE); // Clear bit 0
-	if (is_double_speed)
+	if (cpuState.is_double_speed)
 		KEY1 = (KEY1 | 0x80); // Set bit 7 in double speed mode
 	else
 		KEY1 = (KEY1 & 0x7F); // Unset bit 7 in single speed mode
@@ -498,11 +497,11 @@ void rrca() // 0x0F
 void stop(uint8_t operand)
 {
 	log_debug("STOP called - pc %x KEY1 VAL %x\n", pc, KEY1);
-	if (run_as_cgb && (KEY1 & 0b1)) // If KEY1 bit 0 is set, we should switch speed
+	if (cpuState.run_as_cgb && (KEY1 & 0b1)) // If KEY1 bit 0 is set, we should switch speed
 		toggle_double_speed();
 	else
 	{
-		cpu_stopped = true;
+		cpuState.cpu_stopped = true;
 		DIV = 0x00;
 	}
 } // 0x10
@@ -735,8 +734,8 @@ void ld_hlp_l() { write_byte(HL, lower_byte(HL)); }
 void halt()
 {
 	// TODO : Instruction skipping if interrupts disabled
-	if (IME != 0)
-		cpu_halted = true;
+	if (cpuState.IME != 0)
+		cpuState.cpu_halted = true;
 }
 void ld_hlp_a() { write_byte(HL, upper_byte(AF)); }
 void ld_a_b() { set_reg_hi(&AF, upper_byte(BC)); }
@@ -861,7 +860,7 @@ void ret_z()
 	}
 	else { tick(8); }
 }
-void ret() { if (debug_pause) { log_info("ret call to pc %x sp %x\n", read_word(sp), pc); } pc = read_word(sp); sp += 2; }
+void ret() { if (cpuState.debug_pause) { log_info("ret call to pc %x sp %x\n", read_word(sp), pc); } pc = read_word(sp); sp += 2; }
 void jp_z_nn(uint16_t operand)
 {
 	if (get_flags(FLAG_ZERO))
@@ -942,7 +941,7 @@ void reti()
 	//std::cout << "reti called\n";
 	pc = read_word(sp);
 	sp += 2;
-	IME = 1;
+	cpuState.IME = 1;
 }
 void jp_c_nn(uint16_t operand)
 {
@@ -1004,7 +1003,7 @@ void rst_28() { sp -= 2; write_word(sp, pc); pc = 0x28; }
 void ldh_a_n(uint8_t operand) { set_reg_hi(&AF, read_byte(0xFF00 + operand)); }
 void pop_af() { AF = read_word(sp) & 0xFFF0; sp += 2; } // Lower 4 bits cannot be written to
 void ld_ff_a_c() { set_reg_hi(&AF, read_byte(0xFF00 + lower_byte(BC))); }
-void di() { IME = 0; }
+void di() { cpuState.IME = 0; }
 // Placeholder - No opcode
 void push_af() { sp -= 2; write_word(sp, AF); }
 void or_n(uint8_t operand) { or_r(operand); }
@@ -1027,7 +1026,7 @@ void ld_hl_sp_n(uint8_t operand)
 }
 void ld_sp_hl() { sp = HL; }
 void ld_a_nnp(uint16_t operand) { set_reg_hi(&AF, read_byte(operand)); }
-void ei() { IME_toggle = 1; }
+void ei() { cpuState.IME_toggle = 1; }
 // Placeholder - No opcode
 // Placeholder - No opcode
 void cp_n(uint8_t operand) { cp_r(operand); }

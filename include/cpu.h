@@ -20,6 +20,94 @@ struct Instruction
 
 extern const struct Instruction instructions[];
 
+/// <summary>
+/// Contains all the flags to keep track of the CPU state
+/// </summary>
+struct CpuState
+{
+    /// <summary>
+    /// Whether the CPU is currently stopped
+    /// </summary>
+    bool cpu_stopped;
+
+    /// <summary>
+    /// Whether the CPU is currently halted
+    /// </summary>
+    bool cpu_halted;
+
+    /// <summary>
+    /// The state of the Interrupt Master Enable
+    /// </summary>
+    bool IME;
+
+    /// <summary>
+    /// Toggle to enable IME after one instruction with EI
+    /// </summary>
+    bool IME_toggle;
+
+    /// <summary>
+    /// Whether the console is running in CGB mode
+    /// </summary>
+    bool run_as_cgb;
+
+    /// <summary>
+    /// Whether the CPU is running in double speed mode (GBC only)
+    /// </summary>
+    bool is_double_speed;
+
+    /// <summary>
+    /// Whether we are currently pausing the emulation for debugging
+    /// </summary>
+    bool debug_pause;
+};
+
+extern struct CpuState cpuState;
+
+struct CycleState
+{
+    /// <summary>
+    /// To count how many cycles have been emulated
+    /// </summary>
+    uint32_t cycle_count;
+    
+    /// <summary>
+    /// If this is greater than 0, we are in DMA with the value being the number of DMA cycles remaining
+    /// </summary>
+    uint16_t dma_cycles_left;
+
+    /// <summary>
+    /// A variable that stores the current frame's timestamp; to calculate time between frames
+    /// </summary>
+    float current_frame;
+
+    /// <summary>
+    /// Frame delta time
+    /// </summary>
+    float delta_time;
+
+    /// <summary>
+    /// Last frame's timestamp
+    /// </summary>
+    float last_frame;
+
+    /// <summary>
+    /// Average delta time, for FPS calculations
+    /// </summary>
+    float average_delta_time;
+
+    /// <summary>
+    /// Frame counter for FPS calculations
+    /// </summary>
+    int frame_count;
+
+    /// <summary>
+    /// Frame sum for FPS calculations
+    /// </summary>
+    float frame_sum;
+};
+
+extern struct CycleState cycleState;
+
 // The flags of the F register
 enum flags
 {
@@ -28,9 +116,6 @@ enum flags
     FLAG_HALFCARRY = 0b00100000,
     FLAG_CARRY = 0b00010000,
 };
-
-extern uint32_t cycle_count;
-extern uint16_t dma_cycles_left;
 
 // Registers
 // They are grouped two by two. AF corresponds to registers A (upper 8 bits) and F (lower 8 bits)
@@ -45,17 +130,6 @@ extern uint16_t pc; // Program counter
 extern uint8_t opcode;
 
 extern uint16_t operand;
-
-extern bool cpu_stopped;
-extern bool cpu_halted;
-extern bool IME;
-extern bool run_as_cgb;
-extern bool is_double_speed;
-
-extern bool debug_pause;
-
-extern float delta_time;
-extern float current_frame;
 
 // The CPU handles enough instructions for 1 frame
 void execute_frame();

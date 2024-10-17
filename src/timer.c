@@ -83,7 +83,7 @@ void update_timer_freq(uint8_t value)
 
 void tick_timer(uint8_t cycles)
 {
-	if (run_as_cgb && is_double_speed)
+	if (cpuState.run_as_cgb && cpuState.is_double_speed)
 	{
 		tick_ppu(cycles);
 		tick_apu(cycles * 2);

@@ -98,7 +98,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
                 break;
 
             case GLFW_KEY_SPACE:
-                debug_pause = !debug_pause;
+                cpuState.debug_pause = !cpuState.debug_pause;
                 break;
 
             case GLFW_KEY_ESCAPE:
