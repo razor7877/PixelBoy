@@ -108,6 +108,14 @@ struct CycleState
 
 extern struct CycleState cycleState;
 
+struct DebugState
+{
+    uint8_t current_opcode;
+    uint16_t current_operand;
+    uint16_t pc;
+    bool instruction_has_operand;
+};
+
 // The flags of the F register
 enum flags
 {

@@ -82,6 +82,13 @@ void execute_frame()
 	}
 }
 
+struct DebugState debugState = {
+	0,
+	0,
+	0,
+	false
+};
+
 void handle_instruction()
 {
 	if (!rom_loaded)
@@ -97,7 +104,9 @@ void handle_instruction()
 
 	if (!cpuState.cpu_stopped && !cpuState.cpu_halted)
 	{
+		debugState.pc = pc;
 		opcode = read_byte(pc++);
+		debugState.current_opcode = opcode;
 
 		// Switch over the operand length to correctly call the function and pass arguments
 		switch (instructions[opcode].operand_length)
@@ -119,10 +128,22 @@ void handle_instruction()
 				((void (*)(uint16_t))instructions[opcode].function)(operand);
 				break;
 		}
+
+		if (instructions[opcode].operand_length == 0)
+			debugState.instruction_has_operand = false;
+		else
+			debugState.instruction_has_operand = true;
+
+		debugState.current_operand = operand;
 	}
 
 	if (cpuState.debug_pause)
-		log_debug("pc %x opcode %s operand %x\n", pc, instructions[opcode].disassembly, operand);
+	{
+		if (debugState.instruction_has_operand)
+			log_debug("\n\tPC: %x\n\tOPCODE: %s\n\tOPERAND: %x\n", debugState.pc, instructions[debugState.current_opcode].disassembly, debugState.current_operand);
+		else
+			log_debug("\n\tPC: %x\n\tOPCODE: %s\n", debugState.pc, instructions[debugState.current_opcode].disassembly);
+	}
 
 	if (cpuState.run_as_cgb)
 		tick(instructions[opcode].duration / 2);
