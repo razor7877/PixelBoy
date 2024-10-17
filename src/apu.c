@@ -126,7 +126,7 @@ uint8_t read_apu(uint16_t address)
 		return NR51;
 
 	else if (address == 0xFF26)
-		return 4;
+		return NR52;
 
 	else if (address >= 0xFF30 && address <= 0xFF3F)
 	{

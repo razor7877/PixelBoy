@@ -45,8 +45,8 @@ uint8_t read_io(uint16_t address)
 	if (address == 0xFF0F)
 		return IF;
 
-	if (address >= 0xFF10 && address <= 0xFF26) { read_apu(address); } // Audio
-	if (address >= 0xFF30 && address <= 0xFF3F) { read_apu(address); } // Wave pattern
+	if (address >= 0xFF10 && address <= 0xFF26) { return read_apu(address); } // Audio
+	if (address >= 0xFF30 && address <= 0xFF3F) { return read_apu(address); } // Wave pattern
 
 	if (address >= 0xFF40 && address <= 0xFF4B) // PPU registers
 		return read_ppu(address);

@@ -143,6 +143,8 @@ void handle_instruction()
 			log_debug("\n\tPC: %x\n\tOPCODE: %s\n\tOPERAND: %x\n", debugState.pc, instructions[debugState.current_opcode].disassembly, debugState.current_operand);
 		else
 			log_debug("\n\tPC: %x\n\tOPCODE: %s\n", debugState.pc, instructions[debugState.current_opcode].disassembly);
+
+		//log_debug("FF1A: %x\n", read_byte(0xFF1A));
 	}
 
 	if (cpuState.run_as_cgb)
