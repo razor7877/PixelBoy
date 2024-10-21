@@ -64,7 +64,6 @@ void tick_ppu(uint8_t cycles)
 			//printf("Ran full PPU cycle\n");
 		}
 			
-
 		if (LY == LYC)
 		{
 			STAT |= LYC_COMPARE_FLAG;
@@ -765,6 +764,7 @@ void write_vram(uint16_t address, uint8_t value)
 		log_warning("Ignored VRAM write during mode 3!\n");
 		return;
 	}
+
 	if (cpuState.run_as_cgb && (VBK & 0b1)) // In CGB mode, we need to handle bank 1 writes
 		vram[1][address] = value;
 	else
@@ -966,41 +966,45 @@ void update_LCDC(uint8_t value)
 
 static void start_gbc_dma(uint8_t value)
 {
-	log_debug("HDMA5 Write value %x\n", value);
+	//log_debug("HDMA5 Write value %x\n", value);
 
 	bool active_dma = (HDMA5 & 0x80) >> 7;
 	bool is_set = (value & 0x80) >> 7;
 
-	if (!is_set && !running_hdma) // General purpose DMA
+	if (running_hdma)
 	{
-		//log_debug("VRAM DMA Triggered with mode 0\n");
-
-		uint8_t transfer_length = (value & 0b01111111); // Get length from 7 lower bits
-		transfer_length++; // Increment by 1
-		transfer_length *= 0x10; // Multiply by 16
-
-		uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
-		uint16_t destination_address = ((HDMA3 & 0x1F) << 8) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
-		destination_address += 0x8000; // Offset to map into VRAM
-
-		//log_debug("Source ADR %x Dest ADR %x Transfer length %x\n", source_address, destination_address, transfer_length);
-
-		for (int i = 0; i < transfer_length; i++)
+		if (!is_set) // Setting bit 7 to 0 during HBlank DMA stops it
 		{
-			write_byte(destination_address + i, read_byte(source_address + i));
+			log_debug("Turn OFF running HDMA\n");
+			running_hdma = false;
 		}
+	}
+	else
+	{
+		if (is_set) // Start HBlank DMA
+		{
+			running_hdma = true;
+			//log_info("Starting HDMA!\n");
+		}
+		else // General purpose DMA
+		{
+			//log_debug("VRAM DMA Triggered with mode 0\n");
 
-		HDMA5 = 0xFF; // Transfer is done
-	}
-	else if (!is_set && running_hdma) // Setting bit 7 to 0 during HBlank DMA stops it
-	{
-		log_debug("Turn OFF running HDMA\n");
-		running_hdma = false;
-	}
-	else if (is_set) // Start HBlank DMA
-	{
-		running_hdma = true;
-		log_info("Starting HDMA!\n");
+			uint16_t transfer_length = (value & 0b01111111); // Get length from 7 lower bits
+			transfer_length++; // Increment by 1
+			transfer_length *= 0x10; // Multiply by 16
+
+			uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
+			uint16_t destination_address = ((HDMA3 & 0x1F) << 8) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
+			destination_address += 0x8000; // Offset to map into VRAM
+
+			//log_debug("Source ADR %x Dest ADR %x Transfer length %x\n", source_address, destination_address, transfer_length);
+
+			for (int i = 0; i < transfer_length; i++)
+				write_byte(destination_address + i, read_byte(source_address + i));
+
+			HDMA5 = 0xFF; // Transfer is done
+		}
 	}
 
 	HDMA5 = value & 0x7F;
@@ -1020,10 +1024,9 @@ static void step_hdma_transfer()
 		//	source_address, destination_address, remaining_length, LY);
 
 		// Write 16 bytes to VRAM
+		
 		for (int i = 0; i < 16; i++)
-		{
 			write_byte(destination_address + i, read_byte(source_address + i));
-		}
 
 		// Update source and destination with new offset
 		uint16_t new_source = source_address + 0x10;
