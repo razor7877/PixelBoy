@@ -144,7 +144,7 @@ void handle_instruction()
 		else
 			log_debug("\n\tPC: %x\n\tOPCODE: %s\n", debugState.pc, instructions[debugState.current_opcode].disassembly);
 
-		//log_debug("FF1A: %x\n", read_byte(0xFF1A));
+		log_debug("FF55: %x\n", read_byte(0xFF55));
 	}
 
 	if (cpuState.run_as_cgb)
@@ -166,7 +166,7 @@ void tick(uint16_t cycles)
 
 	if (cycleState.dma_cycles_left > 0)
 	{
-		if (cycles > cycleState.dma_cycles_left)
+		if (cycles >= cycleState.dma_cycles_left)
 		{
 			cycleState.dma_cycles_left = 0;
 			uint16_t dma_source = read_byte(0xFF46) << 8;

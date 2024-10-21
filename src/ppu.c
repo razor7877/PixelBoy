@@ -333,7 +333,10 @@ void draw_gb_sprites()
 
 		uint8_t y_size = 8;
 		if (obj_large)
+		{
 			y_size = 16;
+			tile_index &= 0xFE;
+		}
 
 		if ((LY >= y_pos) && (LY < (y_pos + y_size)))
 		{
@@ -369,6 +372,7 @@ void draw_gb_sprites()
 
 				uint8_t color = 0;
 
+				// TODO : Shouldn't OBP0/OBP1 be used at some point?
 				// Get actual color from palette as 2 bit value
 				switch (color_num)
 				{
@@ -609,8 +613,8 @@ void draw_gbc_sprites()
 	for (uint8_t sprite = 0; sprite < 40; sprite++)
 	{
 		uint8_t index = sprite * 4; // Sprite occupies 4 bytes in OAM
-		uint8_t y_pos = OAM[index] - 16;
-		uint8_t x_pos = OAM[index + 1] - 8;
+		int16_t y_pos = OAM[index] - 16;
+		int16_t x_pos = OAM[index + 1] - 8;
 		uint8_t tile_index = OAM[index + 2];
 		uint8_t attributes = OAM[index + 3];
 
@@ -619,7 +623,10 @@ void draw_gbc_sprites()
 
 		uint8_t y_size = 8;
 		if (obj_large)
+		{
 			y_size = 16;
+			tile_index &= 0xFE;
+		}
 
 		if ((LY >= y_pos) && (LY < (y_pos + y_size)))
 		{
@@ -633,9 +640,12 @@ void draw_gbc_sprites()
 			}
 
 			line *= 2;
+
 			uint16_t data_address = tile_index * 16 + line;
-			uint8_t data_1 = vram[(attributes & 0b1000) >> 3][data_address];
-			uint8_t data_2 = vram[(attributes & 0b1000) >> 3][data_address + 1];
+			uint8_t bank = (attributes & 0b1000) >> 3;
+			
+			uint8_t data_1 = vram[bank][data_address];
+			uint8_t data_2 = vram[bank][data_address + 1];
 
 			for (int tile_pixel = 7; tile_pixel >= 0; tile_pixel--)
 			{
@@ -1012,14 +1022,17 @@ static void start_gbc_dma(uint8_t value)
 
 static void step_hdma_transfer()
 {
-	uint8_t remaining_length = HDMA5 & 0b01111111;
+	uint16_t remaining_length = HDMA5 & 0b01111111;
+	remaining_length++;
+	remaining_length *= 0x10;
 
 	if (remaining_length > 0)
 	{
 		uint16_t source_address = (HDMA1 << 8) | (HDMA2 & 0xF0); // 4 lower bits are ignored
 		uint16_t destination_address = ((HDMA3 & 0x1F) << 8) | (HDMA4 & 0xF0); // 3 upper and 4 lower bits are ignored
 		destination_address += 0x8000; // Offset to map into VRAM
-		remaining_length--;
+
+		remaining_length -= 0x10;
 		//log_debug("HBLANK DMA: Source ADR %x Dest ADR %x Transfer remaining %x LY %x\n",
 		//	source_address, destination_address, remaining_length, LY);
 
@@ -1045,7 +1058,11 @@ static void step_hdma_transfer()
 			running_hdma = false;
 		}
 		else
+		{
+			remaining_length /= 0x10;
+			remaining_length--;
 			HDMA5 = 0x80 | remaining_length;
+		}
 
 		//log_debug("New HDMA5 %x\n", HDMA5);
 	}

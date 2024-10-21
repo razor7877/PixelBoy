@@ -246,12 +246,12 @@ void write_apu(uint16_t address, uint8_t value)
 		{
 			set_apu_reg(&NR52, CH3_ON);
 			NR3.volume = (NR3.r2 & 0x60) >> 5;
-			log_debug("Toggle on CH3\n");
+			//log_debug("Toggle on CH3\n");
 		}
 		else
 		{
 			unset_apu_reg(&NR52, CH3_ON);
-			log_debug("Toggle off CH3\n");
+			//log_debug("Toggle off CH3\n");
 		}
 	}
 
@@ -435,7 +435,7 @@ void tick_sweep_clocks()
 	if ((NR1.r1 & 0x70) != 0) // Check if sweep pace != 0
 	{
 		int period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
-		log_debug("Period value was %d\n", period_value);
+		//log_debug("Period value was %d\n", period_value);
 		int step = NR1.r1 & 0x7; // Get 3 lower bits for period step1
 
 		int period_variation = period_value >> step;
@@ -449,7 +449,7 @@ void tick_sweep_clocks()
 		else
 		{
 			period_value += period_variation;
-			log_debug("New period value is %d\n", period_value);
+			//log_debug("New period value is %d\n", period_value);
 			NR1.r3 = period_value & 0xFF; // Write 8 lower bits to NR13
 			NR1.r4 = (NR1.r4 & 0xF8) | ((period_value & 0x700) >> 8); // Write 3 upper bits to lower 3 bits of NR14
 		}
