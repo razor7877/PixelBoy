@@ -49,8 +49,9 @@ bool new_frame_ready = false;
 
 bool running_hdma = false;
 
-// GL_RGB5 : 2 bytes per pixel
 uint8_t frame_buffer[160 * 144 * 3] = {0};
+bool bg_pixel_priority[160 * 144] = {0};
+int bg_pixel_last_color[160 * 144] = {0};
 
 void tick_ppu(uint8_t cycles)
 {
@@ -600,6 +601,13 @@ void draw_gbc_tiles()
 		frame_buffer[LY * 160 * 3 + pixel * 3] = color_red << 3;
 		frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green << 3;
 		frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = color_blue << 3; 
+
+		if ((tile_attributes & 0x80) == 1)
+			bg_pixel_priority[LY * 160 + pixel] = true;
+		else
+			bg_pixel_priority[LY * 160 + pixel] = false;
+
+		bg_pixel_last_color[LY * 160 + pixel] = color_num;
 	}
 }
 
@@ -696,10 +704,8 @@ void draw_gbc_sprites()
 
 				int pixel = x_pos + x_pix;
 
-				//printf("Draw pixel at x %d y %d\n", LY, pixel);
 				// White pixel for sprites is transparent
-				// TODO: Add transparency
-				if (color_num != 0)
+				if (color_num != 0 && !bg_pixel_priority[LY * 160 + pixel] && ((attributes & 0x80) == 0 || bg_pixel_last_color[LY * 160 + pixel] == 0x00))
 				{
 					frame_buffer[LY * 160 * 3 + pixel * 3] = color_red << 3;
 					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green << 3;
@@ -771,7 +777,7 @@ void write_vram(uint16_t address, uint8_t value)
 {
 	if ((STAT & 0x03) == 0x03) // VRAM inaccessible during mode 3, ignore writes
 	{
-		log_warning("Ignored VRAM write during mode 3!\n");
+ 		log_warning("Ignored VRAM write during mode 3!\n");
 		return;
 	}
 
@@ -861,9 +867,7 @@ uint8_t read_ppu(uint16_t address)
 		return BGPI;
 
 	if (address == 0xFF69)
-	{
 		return bg_palette_RAM[BGPI & 0x3F];
-	}
 
 	if (address == 0xFF6A)
 		return OBPI;
@@ -944,7 +948,9 @@ void write_ppu(uint16_t address, uint8_t value)
 		bg_palette_RAM[BGPI & 0x3F] = value;
 		if (BGPI & 0x80) // If auto-increment on
 			BGPI++;
-		//log_warning("Background palette RAM write ADR %x VALUE %x pc %x\n", BGPI & 0x3F, value, pc);
+
+		if (value == 0xd)
+			log_warning("Background palette RAM write ADR %x VALUE %x pc %x\n", BGPI & 0x3F, value, pc);
 	}
 
 	if (address == 0xFF6A)
