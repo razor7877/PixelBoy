@@ -51,6 +51,13 @@ struct CycleState cycleState = {
 	0.0f
 };
 
+struct DebugState debugState = {
+	0,
+	0,
+	0,
+	false
+};
+
 void execute_frame()
 {
 	if (!rom_loaded || cpuState.debug_pause)
@@ -81,13 +88,6 @@ void execute_frame()
 		handle_instruction();
 	}
 }
-
-struct DebugState debugState = {
-	0,
-	0,
-	0,
-	false
-};
 
 void handle_instruction()
 {
@@ -137,14 +137,17 @@ void handle_instruction()
 		debugState.current_operand = operand;
 	}
 
+	if (pc == 0xb2c)
+	{
+		//log_debug("\n");
+	}
+
 	if (cpuState.debug_pause)
 	{
 		if (debugState.instruction_has_operand)
 			log_debug("\n\tPC: %x\n\tOPCODE: %s\n\tOPERAND: %x\n", debugState.pc, instructions[debugState.current_opcode].disassembly, debugState.current_operand);
 		else
 			log_debug("\n\tPC: %x\n\tOPCODE: %s\n", debugState.pc, instructions[debugState.current_opcode].disassembly);
-
-		log_debug("FF55: %x\n", read_byte(0xFF55));
 	}
 
 	if (cpuState.run_as_cgb)

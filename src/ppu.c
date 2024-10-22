@@ -437,7 +437,7 @@ void draw_gb_sprites()
 void draw_gbc_scanline()
 {
 	draw_gbc_tiles();
-	draw_gbc_sprites();
+	//draw_gbc_sprites();
 }
 
 void draw_gbc_tiles()
@@ -704,8 +704,12 @@ void draw_gbc_sprites()
 
 				int pixel = x_pos + x_pix;
 
+				bool bg_enabled = LCDC & BG_ENABLE;
+				bool bg_no_priority = !bg_pixel_priority[LY * 160 + pixel] && (attributes & 0x80) == 0;
+				bool sprite_priority = !bg_enabled || bg_pixel_last_color[LY * 160 + pixel] == 0x00 || bg_no_priority;
+
 				// White pixel for sprites is transparent
-				if (color_num != 0 && !bg_pixel_priority[LY * 160 + pixel] && ((attributes & 0x80) == 0 || bg_pixel_last_color[LY * 160 + pixel] == 0x00))
+				if (color_num != 0x00 && sprite_priority)
 				{
 					frame_buffer[LY * 160 * 3 + pixel * 3] = color_red << 3;
 					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green << 3;
@@ -949,8 +953,8 @@ void write_ppu(uint16_t address, uint8_t value)
 		if (BGPI & 0x80) // If auto-increment on
 			BGPI++;
 
-		if (value == 0xd)
-			log_warning("Background palette RAM write ADR %x VALUE %x pc %x\n", BGPI & 0x3F, value, pc);
+		//if (value == 0xd)
+		//	log_warning("Background palette RAM write ADR %x VALUE %x pc %x\n", BGPI & 0x3F, value, pc);
 	}
 
 	if (address == 0xFF6A)
