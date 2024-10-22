@@ -46,6 +46,8 @@ uint32_t dot_start = 0;
 uint32_t dot_end = 0;
 bool start_frame = false;
 bool new_frame_ready = false;
+// To prevent retriggering LYC interrupts on same line
+int last_lyc_interrupt = -1;
 
 bool running_hdma = false;
 
@@ -65,10 +67,14 @@ void tick_ppu(uint8_t cycles)
 			//printf("Ran full PPU cycle\n");
 		}
 			
-		if (LY == LYC)
+		if (LY == LYC && last_lyc_interrupt != LYC)
 		{
 			STAT |= LYC_COMPARE_FLAG;
-			if (STAT & LYC_INTERRUPT_ENABLED) { interrupt_request(INTERRUPT_LCD_STAT); }
+			if (STAT & LYC_INTERRUPT_ENABLED)
+			{
+				interrupt_request(INTERRUPT_LCD_STAT);
+				last_lyc_interrupt = LYC;
+			}
 		}
 		else { STAT &= ~LYC_COMPARE_FLAG; }
 
@@ -86,6 +92,7 @@ void step_ppu(uint8_t cycles)
 			dot_start = cycleState.cycle_count;
 			dot_end = cycleState.cycle_count;
 			start_frame = false;
+			last_lyc_interrupt = -1;
 		}
 
 		dot_counter += 4;
@@ -176,7 +183,10 @@ void draw_gb_tiles()
 	if (LCDC & WINDOW_ENABLE) // Draw window
 	{
 		if (WY <= LY) // If current scanline is within window Y pos
+		{
 			using_window = true;
+			WY++;
+		}
 	}
 
 	if (LCDC & TILE_DATA_AREA)
@@ -219,6 +229,8 @@ void draw_gb_tiles()
 	// Draw the 160 horizontal pixels for this scanline
 	for (uint8_t pixel = 0; pixel < 160; pixel++)
 	{
+		win_x = WX - 7;
+		WX++;
 		uint8_t x_pos = pixel + SCX;
 
 		// Translate current x position to window space if necessary
@@ -311,6 +323,8 @@ void draw_gb_tiles()
 		frame_buffer[LY * 160 * 3 + pixel * 3] = buffer_color;
 		frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = buffer_color;
 		frame_buffer[LY * 160 * 3 + pixel * 3 + 2] = buffer_color;
+
+		bg_pixel_last_color[LY * 160 + pixel] = color_num;
 	}
 }
 
@@ -373,24 +387,28 @@ void draw_gb_sprites()
 
 				uint8_t color = 0;
 
+				uint8_t palette = OBP0;
+				if (attributes & 0x10)
+					palette = OBP1;
+
 				// TODO : Shouldn't OBP0/OBP1 be used at some point?
 				// Get actual color from palette as 2 bit value
 				switch (color_num)
 				{
 					case 0x0:
-						color = BGP & 0x03;
+						color = palette & 0x03;
 						break;
 
 					case 0x1:
-						color = (BGP & 0x0C) >> 2;
+						color = (palette & 0x0C) >> 2;
 						break;
 
 					case 0x2:
-						color = (BGP & 0x30) >> 4;
+						color = (palette & 0x30) >> 4;
 						break;
 
 					case 0x3:
-						color = (BGP & 0xC0) >> 6;
+						color = (palette & 0xC0) >> 6;
 						break;
 				}
 
@@ -421,9 +439,12 @@ void draw_gb_sprites()
 
 				int pixel = x_pos + x_pix;
 
-				//printf("Draw pixel at x %d y %d\n", LY, pixel);
+				bool bg_enabled = LCDC & BG_ENABLE;
+				bool bg_no_priority = (attributes & 0x80) == 0;
+				bool sprite_priority = !bg_enabled || bg_pixel_last_color[LY * 160 + pixel] == 0x00 || bg_no_priority;
+
 				// White pixel for sprites is transparent
-				if (buffer_color != 0xFF)
+				if (color_num != 0x00 && sprite_priority)
 				{
 					frame_buffer[LY * 160 * 3 + pixel * 3] = buffer_color;
 					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = buffer_color;
@@ -437,7 +458,7 @@ void draw_gb_sprites()
 void draw_gbc_scanline()
 {
 	draw_gbc_tiles();
-	//draw_gbc_sprites();
+	draw_gbc_sprites();
 }
 
 void draw_gbc_tiles()
@@ -452,8 +473,14 @@ void draw_gbc_tiles()
 
 	if (LCDC & WINDOW_ENABLE) // Draw window
 	{
-		if (WY <= LY) // If current scanline is within window Y pos
-			using_window = true;
+		if (LCDC & WINDOW_ENABLE) // Draw window
+		{
+			if (WY <= LY) // If current scanline is within window Y pos
+			{
+				using_window = true;
+				WY++;
+			}
+		}
 	}
 
 	if (LCDC & TILE_DATA_AREA)
