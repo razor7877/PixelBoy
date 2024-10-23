@@ -440,11 +440,12 @@ void draw_gb_sprites()
 				int pixel = x_pos + x_pix;
 
 				bool bg_enabled = LCDC & BG_ENABLE;
+				bool obj_enabled = LCDC & OBJ_ENABLE;
 				bool bg_no_priority = (attributes & 0x80) == 0;
 				bool sprite_priority = !bg_enabled || bg_pixel_last_color[LY * 160 + pixel] == 0x00 || bg_no_priority;
 
 				// White pixel for sprites is transparent
-				if (color_num != 0x00 && sprite_priority)
+				if (color_num != 0x00 && sprite_priority && obj_enabled)
 				{
 					frame_buffer[LY * 160 * 3 + pixel * 3] = buffer_color;
 					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = buffer_color;
@@ -473,13 +474,10 @@ void draw_gbc_tiles()
 
 	if (LCDC & WINDOW_ENABLE) // Draw window
 	{
-		if (LCDC & WINDOW_ENABLE) // Draw window
+		if (WY <= LY) // If current scanline is within window Y pos
 		{
-			if (WY <= LY) // If current scanline is within window Y pos
-			{
-				using_window = true;
-				WY++;
-			}
+			using_window = true;
+			WY++;
 		}
 	}
 
@@ -732,11 +730,12 @@ void draw_gbc_sprites()
 				int pixel = x_pos + x_pix;
 
 				bool bg_enabled = LCDC & BG_ENABLE;
+				bool obj_enabled = LCDC & OBJ_ENABLE;
 				bool bg_no_priority = !bg_pixel_priority[LY * 160 + pixel] && (attributes & 0x80) == 0;
 				bool sprite_priority = !bg_enabled || bg_pixel_last_color[LY * 160 + pixel] == 0x00 || bg_no_priority;
 
 				// White pixel for sprites is transparent
-				if (color_num != 0x00 && sprite_priority)
+				if (color_num != 0x00 && sprite_priority && obj_enabled)
 				{
 					frame_buffer[LY * 160 * 3 + pixel * 3] = color_red << 3;
 					frame_buffer[LY * 160 * 3 + pixel * 3 + 1] = color_green << 3;
@@ -1031,12 +1030,9 @@ static void start_gbc_dma(uint8_t value)
 		if (is_set) // Start HBlank DMA
 		{
 			running_hdma = true;
-			//log_info("Starting HDMA!\n");
 		}
 		else // General purpose DMA
 		{
-			//log_debug("VRAM DMA Triggered with mode 0\n");
-
 			uint16_t transfer_length = (value & 0b01111111); // Get length from 7 lower bits
 			transfer_length++; // Increment by 1
 			transfer_length *= 0x10; // Multiply by 16
@@ -1051,6 +1047,10 @@ static void start_gbc_dma(uint8_t value)
 				write_byte(destination_address + i, read_byte(source_address + i));
 
 			HDMA5 = 0xFF; // Transfer is done
+
+			// 8 M-cycles for every 16 bytes
+			uint16_t transfer_duration = transfer_length / 16 * 8;
+			tick(transfer_duration);
 		}
 	}
 
@@ -1077,6 +1077,8 @@ static void step_hdma_transfer()
 		
 		for (int i = 0; i < 16; i++)
 			write_byte(destination_address + i, read_byte(source_address + i));
+
+		tick(16);
 
 		// Update source and destination with new offset
 		uint16_t new_source = source_address + 0x10;
