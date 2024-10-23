@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "cpu.h"
+
 typedef enum
 {
 	AUDIO_ON = 0b10000000, // NR52
@@ -23,19 +25,47 @@ typedef enum
 
 typedef struct
 {
-	uint8_t r0;
-	uint8_t r1;
-	uint8_t r2;
-	uint8_t r3;
-	uint8_t r4;
+	uint8_t r0; // NRx0
+	uint8_t r1; // NRx1
+	uint8_t r2; // NRx2
+	uint8_t r3; // NRx3
+	uint8_t r4; // NRx4
 	int8_t volume; // Between 0x0 and 0xF, varies with envelope
 	int8_t env_count;
+	int period_counter;
+	int current_amplitude;
 } Channel;
 
-extern Channel NR1;
-extern Channel NR2;
+typedef struct
+{
+	uint8_t r0; // NRx0
+	uint8_t r1; // NRx1
+	uint8_t r2; // NRx2
+	uint8_t r3; // NRx3
+	uint8_t r4; // NRx4
+	int8_t volume; // Between 0x0 and 0xF, varies with envelope
+	int8_t env_count;
+	int period_counter;
+	int waveform_index;
+} SquareChannel;
+
+extern SquareChannel NR1;
+extern SquareChannel NR2;
 extern Channel NR3;
 extern Channel NR4;
+
+#define TARGET_SAMPLE_RATE 44100
+#define APU_SAMPLE_BUFFER_SIZE 1024
+#define APU_SAMPLE_EMIT_CYCLES (CPU_FREQ / TARGET_SAMPLE_RATE)
+
+typedef struct
+{
+	int sample_index; // Index of the current sample in the APU sample buffer
+	float sample_buffer[APU_SAMPLE_BUFFER_SIZE]; // A buffer containing the samples emitted by the APU
+	int apu_cycle_count;
+} APUState;
+
+extern APUState apu_state;
 
 // Global registers
 extern uint8_t NR50;

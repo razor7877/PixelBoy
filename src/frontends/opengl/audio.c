@@ -12,39 +12,6 @@
 #include "frontends/opengl/frontend.h"
 #include "logging.h"
 
-#define SAMPLE_RATE (44100)
-
-typedef struct
-{
-	float frequency;
-	float amplitude;
-	float phase;
-	float dutyCycle;  // For square waves
-} PAChannel;
-
-// Square channel 1
-PAChannel PA_NR1 = {
-	440.0,
-	0.05,
-	0.0,
-	0.50
-};
-
-// Square channel 2
-PAChannel PA_NR2 = {
-	440.0,
-	0.05,
-	0.0,
-	0.50
-};
-
-PAChannel PA_NR4 = {
-	0.0,
-	0.0,
-	0.0,
-	0.0
-};
-
 PaStream* stream;
 
 double current = 0;
@@ -68,70 +35,12 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 	float* in = inputBuffer;
 	float* out = outputBuffer;
 
+	int sample_index = apu_state.sample_index;
+
 	for (unsigned int i = 0; i < framesPerBuffer; i++)
 	{
-		out[i] = 0;
-
-		if (NR52 & AUDIO_ON)
-		{
-			// Square channel 1
-			if (NR52 & CH1_ON && (NR2.r2 & 0xF8) != 0)
-			{
-				if (NR1.r2 & 0xF8 == 0)
-					log_debug("NR12 DAC off\n");
-
-				uint16_t period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
-				float gb_frequency = 131072.0 / (2048 - period_value);
-				float gb_sample_rate = 1048576.0 / (2048 - period_value);
-				uint8_t duty_cycle = (NR1.r1 & WAVE_DUTY) >> 6;
-
-				PA_NR1.dutyCycle = duty_cycle == 0 ? 0.125 : (duty_cycle * 0.25);
-				PA_NR1.amplitude = NR1.volume / 15.0;
-				PA_NR1.frequency = gb_frequency;
-
-				// Square wave
-				float sample = (PA_NR1.phase < PA_NR1.dutyCycle) ? 1.0 : -1.0;
-				out[i] += PA_NR1.amplitude * sample;
-
-				PA_NR1.phase += PA_NR1.frequency / SAMPLE_RATE;
-				if (PA_NR1.phase > 1.0)
-					PA_NR1.phase -= 1.0;
-			}
-			// Square channel 2
-			if (NR52 & CH2_ON && (NR2.r2 & 0xF8) != 0)
-			{
-				if ((NR2.r2 & 0xF8) == 0)
-					log_debug("NR22 DAC off\n");
-
-				uint16_t period_value = NR2.r3 | ((NR2.r4 & 0b111) << 8);
-				float gb_frequency = 131072.0 / (2048 - period_value);
-				float gb_sample_rate = 1048576.0 / (2048 - period_value);
-				uint8_t duty_cycle = (NR2.r1 & WAVE_DUTY) >> 6;
-
-				PA_NR2.dutyCycle = duty_cycle == 0 ? 0.125 : (duty_cycle * 0.25);
-				PA_NR2.amplitude = NR2.volume / 15.0;
-				PA_NR2.frequency = gb_frequency;
-
-				// Square wave
-				float sample = (PA_NR2.phase < PA_NR2.dutyCycle) ? 1.0 : -1.0;
-				out[i] += PA_NR2.amplitude * sample;
-
-				PA_NR2.phase += PA_NR2.frequency / SAMPLE_RATE;
-				if (PA_NR2.phase > 1.0)
-					PA_NR2.phase -= 1.0;
-			}
-			// Wave channel
-			if (NR52 & CH3_ON)
-			{
-				
-			}
-			// Noise channel
-			if (NR52 & CH4_ON)
-			{
-				//PA_NR2.amplitude = NR2.volume / 15.0;
-				//out[i] += PA_NR2.amplitude;
-			}
-		}
+		out[i] = apu_state.sample_buffer[sample_index];
+		sample_index = (sample_index + 1) % APU_SAMPLE_BUFFER_SIZE;
 	}
 
 	return 0;
@@ -150,7 +59,7 @@ int start_audio()
 		0,
 		1,
 		paFloat32,
-		SAMPLE_RATE,
+		TARGET_SAMPLE_RATE,
 		256,
 		paCallback,
 		NULL);

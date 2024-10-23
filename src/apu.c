@@ -11,22 +11,28 @@
 //#define APU_DEBUG
 
 // Square channel 1
-Channel NR1 = {
+SquareChannel NR1 = {
 	0x80,
 	0xBF,
 	0xF3,
 	0xFF,
 	0xBF,
+	0,
+	0,
+	0,
 	0
 };
 
 // Square channel 2
-Channel NR2 = {
+SquareChannel NR2 = {
 	0, // Unused
 	0x3F,
 	0x00,
 	0xFF,
 	0xBF,
+	0,
+	0,
+	0,
 	0
 };
 
@@ -37,6 +43,7 @@ Channel NR3 = {
 	0x9F,
 	0xFF,
 	0xBF,
+	0,
 	0
 };
 
@@ -47,6 +54,13 @@ Channel NR4 = {
 	0x00,
 	0x00,
 	0xBF,
+	0,
+	0
+};
+
+APUState apu_state = {
+	0,
+	{0},
 	0
 };
 
@@ -307,7 +321,8 @@ void write_apu(uint16_t address, uint8_t value)
 int lfsr_cycle_count = 0;
 uint16_t lfsr = 0;
 
-void tick_apu(uint8_t cycles)
+// Ticks and updates the state of the linear feedback shift register (channel 4)
+static void tick_lfsr(uint8_t cycles)
 {
 	lfsr_cycle_count += cycles;
 
@@ -348,6 +363,72 @@ void tick_apu(uint8_t cycles)
 		NR4.volume = (NR4.r2 & 0xF0) >> 4;
 	else
 		NR4.volume = 0;
+}
+
+const uint8_t WAVE_DUTY_TABLE[4][8] = {
+	{0, 0, 0, 0, 0, 0, 0, 1}, // Duty 0
+	{0, 0, 0, 0, 0, 0, 1, 1}, // Duty 1
+	{0, 0, 0, 0, 1, 1, 1, 1}, // Duty 2
+	{1, 1, 1, 1, 1, 1, 0, 0}, // Duty 3
+};
+
+int nr1_internal_sample[APU_SAMPLE_EMIT_CYCLES] = {0};
+int nr1_internal_sample_counter = 0;
+
+static void emit_sample()
+{
+	float sample_amplitude = 0.0f;
+	for (int i = 0; i < APU_SAMPLE_EMIT_CYCLES; i++)
+	{
+		sample_amplitude += nr1_internal_sample[i];
+		nr1_internal_sample[i] = 0.0f;
+	}
+
+	sample_amplitude /= APU_SAMPLE_EMIT_CYCLES;
+	nr1_internal_sample_counter = 0;
+
+	apu_state.sample_buffer[apu_state.sample_index] = sample_amplitude / 10.0f;
+	apu_state.sample_index = (apu_state.sample_index + 1) % APU_SAMPLE_BUFFER_SIZE;
+}
+
+void tick_apu(uint8_t cycles)
+{
+	for (int i = 0; i < cycles; i += 4)
+	{
+		apu_state.apu_cycle_count += 4;
+
+		if (apu_state.apu_cycle_count >= APU_SAMPLE_EMIT_CYCLES)
+		{
+			apu_state.apu_cycle_count %= APU_SAMPLE_EMIT_CYCLES;
+			emit_sample();
+		}
+
+		{
+			float sample_amplitude = 0.0f;
+
+			// Emit a sample to the buffer and update sample index
+			int duty_cycle = (NR1.r1 & 0xC0) >> 6;
+
+			if ((float)WAVE_DUTY_TABLE[duty_cycle][NR1.waveform_index] == 0)
+				sample_amplitude = -1.0f;
+			else
+				sample_amplitude = 1.0f;
+
+			nr1_internal_sample[nr1_internal_sample_counter] = sample_amplitude;
+		}
+
+		if (NR1.period_counter <= 4)
+		{
+			int period_value = NR1.r3 | ((NR1.r4 & 0b111) << 8);
+			NR1.period_counter = (2048 - period_value) * 4;
+
+			NR1.waveform_index = (NR1.waveform_index + 1) % 7;
+		}
+		else
+			NR1.period_counter -= 4;
+
+		tick_lfsr(4);
+	}
 }
 
 void tick_frame_sequencer()
